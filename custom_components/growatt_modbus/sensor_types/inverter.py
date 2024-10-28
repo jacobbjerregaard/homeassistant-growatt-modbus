@@ -441,6 +441,7 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_FREQUENCY,
         name="AC frequency",
         native_unit_of_measurement=UnitOfFrequency.HERTZ,
+        device_class=SensorDeviceClass.FREQUENCY,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_POWER,
@@ -472,5 +473,5 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.POWER_FACTOR
     ),
-    GrowattSensorEntityDescription(key="status", name="Status", device_class=f"growatt_local__status"),
+    GrowattSensorEntityDescription(key="status", name="Status", device_class=f"growatt_modbus__status"),
 )
