@@ -117,7 +117,7 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_INPUT_1_AMPERAGE,
         name="Input 1 Amperage",
-        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
     ),
     GrowattSensorEntityDescription(
