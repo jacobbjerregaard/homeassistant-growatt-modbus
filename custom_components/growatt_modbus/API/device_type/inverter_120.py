@@ -304,6 +304,8 @@ INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     GrowattDeviceRegisters(
         name=ATTR_WARNING_CODE, register=110, value_type=int, length=2
     ),
+    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TODAY, register=112, value_type=float, length=2, scale=0.1),
+    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TOTAL, register=114, value_type=float, length=2, scale=0.1),
     GrowattDeviceRegisters(
         name=ATTR_OUTPUT_REACTIVE_POWER, register=234, value_type=float, length=2,
     ),

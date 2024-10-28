@@ -78,6 +78,8 @@ from ..API.device_type.base import (
     ATTR_OUTPUT_3_POWER,
     ATTR_OPERATION_HOURS,
     ATTR_FREQUENCY,
+    ATTR_AC_CHARGE_ENERGY_TODAY,
+    ATTR_AC_CHARGE_ENERGY_TOTAL,
     ATTR_TEMPERATURE,
     ATTR_IPM_TEMPERATURE,
     ATTR_OUTPUT_PERCENTAGE,
@@ -472,6 +474,21 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="Real power output percentage",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.POWER_FACTOR
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_AC_CHARGE_ENERGY_TODAY,
+        name="Battery AC Charge energy today",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        midnight_reset=True
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_AC_CHARGE_ENERGY_TOTAL,
+        name="Battery AC Charge energy total",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     GrowattSensorEntityDescription(key="status", name="Status", device_class=f"growatt_modbus__status"),
 )

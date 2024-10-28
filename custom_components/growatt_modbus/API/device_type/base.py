@@ -106,6 +106,9 @@ ATTR_N_BUS_VOLTAGE = "n_bus_voltage"  # V
 
 ATTR_OUTPUT_PERCENTAGE = "real_output_power_percent"  # %
 
+ATTR_AC_CHARGE_ENERGY_TODAY = "battery_ac_charge_energy_today" # kWh
+ATTR_AC_CHARGE_ENERGY_TOTAL = "battery_AC_charge_energy_total"  # kWh
+
 
 class custom_function(type):
     """
