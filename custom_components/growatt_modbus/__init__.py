@@ -10,8 +10,6 @@ from pymodbus.exceptions import ConnectionException
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.helpers.sun import get_astral_event_next
-from homeassistant.util import dt as dt_util
 from homeassistant.const import (
     CONF_ADDRESS,
     CONF_IP_ADDRESS,
@@ -19,13 +17,9 @@ from homeassistant.const import (
     CONF_PORT,
     CONF_SCAN_INTERVAL,
     CONF_TYPE,
-    SUN_EVENT_SUNRISE,
-    SUN_EVENT_SUNSET,
 )
 
 from homeassistant.helpers.event import (
-    async_track_sunrise,
-    async_track_sunset,
     async_track_time_change,
 )
 
@@ -151,11 +145,6 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
         else:
             self._counter = self._max_counter = 0
 
-        self._sun_is_down = self.sun_down()
-
-        async_track_sunrise(self.hass, self.sunrise)
-        async_track_sunset(self.hass, self.sunset, timedelta(minutes=-10))
-
         async_track_time_change(self.hass, self.midnight, 0, 0, 0)
 
     @callback
@@ -173,9 +162,6 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
         """
         status = None
         data = {}
-
-        if self._sun_is_down:
-            return {"status": "Offline"}
 
         try:
             if self._counter >= self._max_counter or self._failed_update_count > 0:
@@ -202,36 +188,6 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
             data["status"] = status
 
         return data
-
-    async def sunrise(self):
-        """Callback function when sunrise occours."""
-        _LOGGER.info("System waking up on sunrise")
-        self.update_interval = self.interval
-        self._sun_is_down = False
-        await self.async_request_refresh()
-
-    async def sunset(self):
-        """Callback function when sunset occours."""
-        _LOGGER.info("System going into sleep mode")
-        self._sun_is_down = True
-        await self.async_request_refresh()
-        self.update_interval = timedelta(hours=1)
-        self._failed_update_count = 0
-        self._counter = 0
-
-    def sun_down(self) -> bool:
-        """Customized datetimes and inversion for the implemented sun_up function of home assistant"""
-
-        utc_point_in_time = dt_util.utcnow()
-
-        next_sunrise = get_astral_event_next(
-            self.hass, SUN_EVENT_SUNRISE, utc_point_in_time + timedelta(minutes=5)
-        )
-        next_sunset = get_astral_event_next(
-            self.hass, SUN_EVENT_SUNSET, utc_point_in_time + timedelta(minutes=15)
-        )
-
-        return next_sunrise < next_sunset
 
     @callback
     def midnight(self, datetime=None):
