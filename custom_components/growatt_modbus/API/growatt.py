@@ -18,7 +18,7 @@ from pymodbus.client import ModbusBaseClient
 from pymodbus.client.serial import AsyncModbusSerialClient
 from pymodbus.client.tcp import AsyncModbusTcpClient
 from pymodbus.client.udp import AsyncModbusUdpClient
-from pymodbus.constants import Defaults, Endian
+from pymodbus.constants import Endian
 from pymodbus.framer.rtu_framer import ModbusRtuFramer
 from pymodbus.framer.socket_framer import ModbusSocketFramer
 from pymodbus.payload import BinaryPayloadBuilder
