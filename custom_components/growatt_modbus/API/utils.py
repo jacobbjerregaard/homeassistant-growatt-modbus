@@ -31,10 +31,13 @@ class DeviceRegisters:
 class RegisterKeys:
     holding: set[int] = field(default_factory=set)
     input: set[int] = field(default_factory=set)
+    
     def __len__(self):
         return len(self.holding) + len(self.input)
+    
     def __hash__(self) -> int:
         return hash((frozenset(self.holding), frozenset(self.input)))
+    
     def update(self, register_keys: "RegisterKeys") -> None:
         self.holding.update(register_keys.holding)
         self.input.update(register_keys.input)
@@ -43,8 +46,10 @@ class RegisterKeys:
 class RegisterSequences:
     holding: set[tuple[int, int]] = field(default_factory=set)
     input: set[tuple[int, int]] = field(default_factory=set)
+    
     def __len__(self):
         return len(self.holding) + len(self.input)
+    
     
 def register_sequences(
     register_keys: RegisterKeys,
@@ -52,6 +57,7 @@ def register_sequences(
 ) -> RegisterSequences:
     input_sequence = keys_sequences(get_all_keys_from_register(device_registers.input, register_keys.input), device_registers.max_length)
     holding_sequence = keys_sequences(get_all_keys_from_register(device_registers.holding, register_keys.holding), device_registers.max_length)
+    
     return RegisterSequences(holding_sequence, input_sequence)
 
 def get_keys_from_register(register: dict[int, GrowattDeviceRegisters]) -> set[int]:
