@@ -41,8 +41,8 @@ class RegisterKeys:
 
 @dataclass
 class RegisterSequences:
-    holding: set[tuple[int, int]] = set()
-    input: set[tuple[int, int]] = set()
+    holding: set[tuple[int, int]] = field(default_factory=set)
+    input: set[tuple[int, int]] = field(default_factory=set)
     def __len__(self):
         return len(self.holding) + len(self.input)
     
