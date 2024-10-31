@@ -1,7 +1,7 @@
 """The Growatt server PV inverter sensor integration."""
 import asyncio
-from datetime import date, timedelta
 import logging
+from datetime import timedelta
 from collections.abc import Callable, Sequence
 from typing import Any, Optional
 
@@ -9,7 +9,6 @@ from pymodbus.exceptions import ConnectionException
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.const import (
     CONF_ADDRESS,
     CONF_IP_ADDRESS,
@@ -19,15 +18,20 @@ from homeassistant.const import (
     CONF_TYPE,
 )
 
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers.event import (
     async_track_time_change,
 )
 
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
-    UpdateFailed,
 )
 
+from homeassistant.util import dt as dt_util
+from .API.device_type.base import GrowattDeviceRegisters
+from .API.utils import RegisterKeys
+from .API.const import DeviceTypes
+from .API.growatt import GrowattDevice, GrowattSerial, GrowattNetwork
 from .const import (
     CONF_LAYER,
     CONF_SERIAL,
@@ -45,10 +49,6 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
-
-from .API.const import DeviceTypes
-from .API.growatt import GrowattDevice, GrowattSerial, GrowattNetwork
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -134,8 +134,8 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
         self.data = {}
         self.growatt_api = growatt_api
         self._failed_update_count = 0
-        self.keys = set()
-        self.p_keys = set()
+        self.keys = RegisterKeys()
+        self.p_keys = RegisterKeys()
         self._midnight_listeners: dict[
             CALLBACK_TYPE, tuple[CALLBACK_TYPE, object | None]
         ] = {}
@@ -221,7 +221,7 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
     @callback
     def get_keys_by_name(
         self, names: Sequence[str], update_keys: bool = False
-    ) -> set[int]:
+    ) -> RegisterKeys:
         """
         Loopup modbus register values based on name.
         Setting update_keys automaticly extends the list of keys to request.
@@ -231,3 +231,10 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
             self.keys.update(keys)
 
         return keys
+    
+    def get_input_register_by_name(self, name) -> GrowattDeviceRegisters | None:
+        return self.growatt_api.get_input_register_by_name(name)
+    def get_holding_register_by_name(self, name) -> GrowattDeviceRegisters | None:
+        return self.growatt_api.get_holding_register_by_name(name)
+    async def write_register(self, register, payload):
+        await self.growatt_api.write_register(register, payload)

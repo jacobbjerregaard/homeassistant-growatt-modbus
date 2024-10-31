@@ -1,6 +1,6 @@
 {
     "state": {
-        "growatt_local__status": {
+        "growatt_modbus__status": {
           "Offline": "Offline",
           "not_connected": "Not Connected",
           "no_response": "No Response",

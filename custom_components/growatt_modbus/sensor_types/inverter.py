@@ -1,9 +1,6 @@
 """Growatt Sensor definitions for the Inverter type."""
 from __future__ import annotations
-from datetime import datetime
-from decimal import Decimal
 
-from homeassistant.core import Event
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass,
@@ -490,5 +487,9 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    GrowattSensorEntityDescription(key="status", name="Status", device_class=f"growatt_modbus__status"),
+    GrowattSensorEntityDescription(
+        key="status",
+        name="Status",
+        device_class=f"growatt_modbus__status"
+    ),
 )

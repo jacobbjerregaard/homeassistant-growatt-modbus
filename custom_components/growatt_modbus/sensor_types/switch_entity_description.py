@@ -1,19 +1,12 @@
 """Sensor Entity Description for the Growatt integration."""
 from __future__ import annotations
-
 from dataclasses import dataclass
-
-from homeassistant.components.sensor import SensorEntityDescription
-
-
+from homeassistant.components.switch import SwitchEntityDescription
 @dataclass
-class GrowattSensorRequiredKeysMixin:
+class GrowattSwitchRequiredKeysMixin:
     """Mixin for required keys."""
-
     key: str
-    midnight_reset: bool = False
-
-
 @dataclass
-class GrowattSensorEntityDescription(GrowattSensorRequiredKeysMixin, SensorEntityDescription):
+class GrowattSwitchEntityDescription(SwitchEntityDescription, GrowattSwitchRequiredKeysMixin):
     """Describes Growatt sensor entity."""
+    
