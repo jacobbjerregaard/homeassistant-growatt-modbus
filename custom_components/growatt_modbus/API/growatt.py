@@ -406,7 +406,7 @@ def get_register_information(GrowattDeviceType: DeviceTypes) -> DeviceRegisters:
         input_register = {
             obj.register: obj for obj in INPUT_REGISTERS_120
         }
-    elif GrowattDeviceType == DeviceTypes.HYBRIDE_120:
+    elif GrowattDeviceType == DeviceTypes.HYBRID_120:
         max_length = MAXIMUM_DATA_LENGTH_120
         holding_register = {
             obj.register: obj for obj in STORAGE_HOLDING_REGISTERS_120
