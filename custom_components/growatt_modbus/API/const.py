@@ -14,7 +14,7 @@ class DeviceTypes(str, Enum):
     INVERTER_120 = "inverter_120"
     HYBRID_120 = "hybrid_120"
     STORAGE_120 = "storage_120"
-    INVERTER_315 = "inverter_315"
+    INVERTER_315 = "inverter_315" 
 
 
 # Unit of measurement
