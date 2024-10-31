@@ -26,6 +26,7 @@ class DeviceRegisters:
     holding: dict[int, GrowattDeviceRegisters]
     input: dict[int, GrowattDeviceRegisters]
     max_length: int
+
 @dataclass
 class RegisterKeys:
     holding: set[int] = set()
@@ -37,12 +38,14 @@ class RegisterKeys:
     def update(self, register_keys: "RegisterKeys") -> None:
         self.holding.update(register_keys.holding)
         self.input.update(register_keys.input)
+
 @dataclass
 class RegisterSequences:
     holding: set[tuple[int, int]] = set()
     input: set[tuple[int, int]] = set()
     def __len__(self):
         return len(self.holding) + len(self.input)
+    
 def register_sequences(
     register_keys: RegisterKeys,
     device_registers: DeviceRegisters
@@ -50,7 +53,6 @@ def register_sequences(
     input_sequence = keys_sequences(get_all_keys_from_register(device_registers.input, register_keys.input), device_registers.max_length)
     holding_sequence = keys_sequences(get_all_keys_from_register(device_registers.holding, register_keys.holding), device_registers.max_length)
     return RegisterSequences(holding_sequence, input_sequence)
-
 
 def get_keys_from_register(register: dict[int, GrowattDeviceRegisters]) -> set[int]:
     results = set()
