@@ -76,7 +76,7 @@ async def async_setup_entry(
 
             sensor_descriptions.append(sensor)
 
-    if device_type in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120):
+    if device_type in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120): 
         for sensor in STORAGE_SENSOR_TYPES:
             if sensor.key not in supported_key_names:
                 continue
