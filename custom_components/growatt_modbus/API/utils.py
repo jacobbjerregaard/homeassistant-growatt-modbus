@@ -2,7 +2,7 @@
 Utility functions.
 """
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, List, Iterable, Iterator, TypeVar, Generic, Union, Optional
 from collections import OrderedDict
 from collections.abc import MutableMapping
@@ -29,8 +29,8 @@ class DeviceRegisters:
 
 @dataclass
 class RegisterKeys:
-    holding: set[int] = set()
-    input: set[int] = set()
+    holding: set[int] = field(default_factory=set)
+    input: set[int] = field(default_factory=set)
     def __len__(self):
         return len(self.holding) + len(self.input)
     def __hash__(self) -> int:
