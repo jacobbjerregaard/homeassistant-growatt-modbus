@@ -37,8 +37,8 @@
       "network": {
         "title": "Define network parameters",
         "data": {
-          "ip_address": "[%key:common::config_flow::data::ip%]",
-          "port": "[%key:common::config_flow::data::port%]",
+          "ip_address": "IP Address",
+          "port": "Port",
           "address": "Modbus Device Address",
           "modbus_frame": "Modbus Framer"
         },

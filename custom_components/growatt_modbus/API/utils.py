@@ -55,8 +55,15 @@ def register_sequences(
     register_keys: RegisterKeys,
     device_registers: DeviceRegisters
 ) -> RegisterSequences:
-    input_sequence = keys_sequences(get_all_keys_from_register(device_registers.input, register_keys.input), device_registers.max_length)
-    holding_sequence = keys_sequences(get_all_keys_from_register(device_registers.holding, register_keys.holding), device_registers.max_length)
+    if register_keys.holding:
+        holding_sequence = keys_sequences(get_all_keys_from_register(device_registers.holding, register_keys.holding), device_registers.max_length)
+    else:
+        holding_sequence = set()
+
+    if register_keys.input:
+        input_sequence = keys_sequences(get_all_keys_from_register(device_registers.input, register_keys.input), device_registers.max_length)
+    else:
+        input_sequence = set()
     
     return RegisterSequences(holding_sequence, input_sequence)
 
