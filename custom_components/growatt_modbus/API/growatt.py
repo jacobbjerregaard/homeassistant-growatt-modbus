@@ -454,5 +454,5 @@ async def get_device_info(device: GrowattModbusBase, unit: int, fixed_device_typ
     elif 3.0 < inverter_v315.modbus_version < 3.15:
         return inverter_v315
     else:
-        _LOGGER.warning(f"Inverter Modbus version not default supported.\nCheck full logs to get device information using the supported protocols.")
+        _LOGGER.warning(f"Inverter Modbus version not default supported.\nCheck full logs to get device information using the supported protocols. fixed_device_types: {fixed_device_types}")
         return None
