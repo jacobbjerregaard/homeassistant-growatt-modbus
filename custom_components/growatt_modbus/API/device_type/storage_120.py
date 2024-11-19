@@ -18,6 +18,8 @@ from .base import (
     ATTR_DISCHARGE_ENERGY_TOTAL,
     ATTR_CHARGE_ENERGY_TODAY,
     ATTR_CHARGE_ENERGY_TOTAL,
+    ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
+    ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_AC_CHARGE_ENABLED,
     ATTR_SERIAL_NUMBER,
 )
@@ -54,6 +56,18 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         register=88,
         value_type=float,
         scale=100
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
+        register=3047,
+        value_type=int,
+        length=1
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_CHARGE_STOP_SOC,
+        register=3048,
+        value_type=int,
+        length=1
     ),
     GrowattDeviceRegisters(
         name=ATTR_AC_CHARGE_ENABLED,
