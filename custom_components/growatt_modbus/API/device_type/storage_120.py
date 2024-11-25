@@ -22,6 +22,7 @@ from .base import (
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_AC_CHARGE_ENABLED,
     ATTR_SERIAL_NUMBER,
+    ATTR_METER_POWER_NETTO,
 )
 MAXIMUM_DATA_LENGTH = 100
 def model(registers) -> str:
@@ -39,6 +40,14 @@ def model(registers) -> str:
 SERIAL_NUMBER_REGISTER = GrowattDeviceRegisters(
     name=ATTR_SERIAL_NUMBER, register=3001, value_type=str, length=15
 )
+
+def netto_meter_energy(registers) -> float:
+    production = registers[0] * 65536.0 + registers[1] * 0.1
+    consumption = registers[2] * 65536.0 + registers[3] * 0.1
+
+    return production - consumption
+
+
 STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     FIRMWARE_REGISTER,
     SERIAL_NUMBER_REGISTER,
@@ -77,6 +86,13 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     ),
 )
 STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
+    GrowattDeviceRegisters(
+        name=ATTR_METER_POWER_NETTO,
+        register=3041,
+        value_type=custom_function,
+        length=4,
+        function=netto_meter_energy
+    ),
     GrowattDeviceRegisters(
         name=ATTR_SOC_PERCENTAGE, register=3171, value_type=int
     ),

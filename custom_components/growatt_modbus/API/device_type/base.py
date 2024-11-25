@@ -125,6 +125,7 @@ ATTR_DISCHARGE_ENERGY_TODAY = "discharge_energy_today"  # kWh
 ATTR_DISCHARGE_ENERGY_TOTAL = "discharge_energy_total"  # kWh
 ATTR_CHARGE_ENERGY_TODAY = "charge_energy_today"  # kWh
 ATTR_CHARGE_ENERGY_TOTAL = "charge_energy_total"  # kWh
+ATTR_METER_POWER_NETTO = "meter_power_netto" # W
 
 
 class custom_function(type):
@@ -257,8 +258,8 @@ INVERTER_FAULTCODES = {
     27: "Residual I High",
     28: "Output High DCI",
     29: "PV Voltage High",
-    30: "AC V Outrange",
-    31: "AC F Outrange",
+    30: "AC V Out of Range",
+    31: "AC F Out of Range",
     32: "Module Hot",
 }
 for i in range(1, 24):
