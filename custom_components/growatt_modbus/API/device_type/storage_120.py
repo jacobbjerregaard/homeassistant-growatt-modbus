@@ -42,7 +42,7 @@ SERIAL_NUMBER_REGISTER = GrowattDeviceRegisters(
     name=ATTR_SERIAL_NUMBER, register=3001, value_type=str, length=15
 )
 
-def inverter_status(register) -> string:
+def inverter_status(register) -> str:
     web_status = register & 0x00FF
     if web_status == 0:
         return "Standby"
