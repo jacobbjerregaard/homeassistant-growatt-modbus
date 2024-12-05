@@ -51,7 +51,7 @@ def inverter_status(register) -> str:
     if web_status == 3:
         return "Fault"
     if web_status == 4:
-        return "Flash"
+        return "Flash" 
 
 def netto_meter_energy(registers) -> float:
     production = registers[0] * 65536.0 + registers[1] * 0.1
