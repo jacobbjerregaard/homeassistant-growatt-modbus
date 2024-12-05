@@ -90,7 +90,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_CHARGE_STOP_SOC,
-        name="Battery Stop Charge SOC when Battery First"
+        name="Battery Stop Charge SOC when Battery First",
         native_unit_of_measurement=PERCENTAGE
     ),
     GrowattSensorEntityDescription(
@@ -136,7 +136,6 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_INVERTER_STATUS,
         name="Inverter Status",
-        state_class=str,
-    )
-    
+        state_class=str
+    ),
 )
