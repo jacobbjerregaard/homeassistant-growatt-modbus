@@ -23,6 +23,7 @@ from .base import (
     ATTR_AC_CHARGE_ENABLED,
     ATTR_SERIAL_NUMBER,
     ATTR_METER_POWER_NETTO,
+    ATTR_INVERTER_STATUS,
 )
 MAXIMUM_DATA_LENGTH = 100
 def model(registers) -> str:
@@ -40,6 +41,17 @@ def model(registers) -> str:
 SERIAL_NUMBER_REGISTER = GrowattDeviceRegisters(
     name=ATTR_SERIAL_NUMBER, register=3001, value_type=str, length=15
 )
+
+def inverter_status(register) -> string:
+    web_status = register & 0x00FF
+    if web_status == 0:
+        return "Standby"
+    if web_status == 1:
+        return "Normal"
+    if web_status == 3:
+        return "Fault"
+    if web_status == 4:
+        return "Flash"
 
 def netto_meter_energy(registers) -> float:
     production = registers[0] * 65536.0 + registers[1] * 0.1
@@ -86,6 +98,13 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     ),
 )
 STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
+    GrowattDeviceRegisters(
+        name=ATTR_INVERTER_STATUS,
+        register=3000,
+        value_type=custom_function,
+        length=1,
+        function=inverter_status
+    ),
     GrowattDeviceRegisters(
         name=ATTR_METER_POWER_NETTO,
         register=3041,

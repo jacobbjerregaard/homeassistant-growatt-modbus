@@ -27,6 +27,7 @@ from ..API.device_type.base import (
     ATTR_CHARGE_ENERGY_TODAY,
     ATTR_CHARGE_ENERGY_TOTAL,
     ATTR_METER_POWER_NETTO,
+    ATTR_INVERTER_STATUS,
 )
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(
@@ -90,6 +91,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_CHARGE_STOP_SOC,
         name="Battery Stop Charge SOC when Battery First"
+        native_unit_of_measurement=PERCENTAGE
     ),
     GrowattSensorEntityDescription(
         key=ATTR_AC_CHARGE_ENABLED,
@@ -130,5 +132,11 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="Meter",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_INVERTER_STATUS,
+        name="Inverter Status",
+        state_class=str,
     )
+    
 )
