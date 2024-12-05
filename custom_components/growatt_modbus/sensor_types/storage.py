@@ -136,6 +136,6 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_INVERTER_STATUS,
         name="Inverter Status",
-        state_class=str
+        state_class=str 
     ),
 )
