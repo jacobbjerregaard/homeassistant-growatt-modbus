@@ -25,6 +25,8 @@ from .base import (
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
     ATTR_INVERTER_MODE,
+    ATTR_BMS_TEMPERATURE_A,
+    ATTR_BMS_TEMPERATURE_B,
 )
 MAXIMUM_DATA_LENGTH = 100
 def model(registers) -> str:
@@ -164,4 +166,10 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     GrowattDeviceRegisters(
         name=ATTR_CHARGE_ENERGY_TOTAL, register=3131, value_type=float, length=2
     ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float, length=1
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_TEMPERATURE_B, register=3177, value_type=float, length=1
+    ),  
 )

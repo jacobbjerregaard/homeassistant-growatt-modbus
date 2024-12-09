@@ -7,6 +7,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfTemperature,
     PERCENTAGE,
 )
 from .sensor_entity_description import GrowattSensorEntityDescription
@@ -29,6 +30,8 @@ from ..API.device_type.base import (
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
     ATTR_INVERTER_MODE,
+    ATTR_BMS_TEMPERATURE_A,
+    ATTR_BMS_TEMPERATURE_B,
 )
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(
@@ -141,5 +144,17 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_INVERTER_MODE,
         name="Inverter Mode",
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BMS_TEMPERATURE_A,
+        name="BMS temperature A",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BMS_TEMPERATURE_B,
+        name="BMS temperature B",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
     ),
 )
