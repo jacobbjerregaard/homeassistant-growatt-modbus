@@ -57,14 +57,14 @@ def inverter_status(register) -> str:
         return "Flash"
 
 def inverter_mode(register) -> str:
-    if web_status == 0:
+    if register == 0:
         return "Load"
-    if web_status == 1:
+    if register == 1:
         return "Battery"
-    if web_status == 2:
+    if register == 2:
         return "Grid"
 
-    return "Unknown"
+    return f"Unknown value: {register}"
 
 
 def netto_meter_energy(registers) -> float:
@@ -111,6 +111,7 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         length=1
     ),
 )
+
 STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     GrowattDeviceRegisters(
         name=ATTR_INVERTER_STATUS,
@@ -167,9 +168,9 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_CHARGE_ENERGY_TOTAL, register=3131, value_type=float, length=2
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float, length=1
+        name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BMS_TEMPERATURE_B, register=3177, value_type=float, length=1
+        name=ATTR_BMS_TEMPERATURE_B, register=3177, value_type=float
     ),  
 )
