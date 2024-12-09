@@ -28,6 +28,7 @@ from ..API.device_type.base import (
     ATTR_CHARGE_ENERGY_TOTAL,
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
+    ATTR_INVERTER_MODE,
 )
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(
@@ -136,5 +137,9 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_INVERTER_STATUS,
         name="Inverter Status",
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_INVERTER_MODE,
+        name="Inverter Mode",
     ),
 )
