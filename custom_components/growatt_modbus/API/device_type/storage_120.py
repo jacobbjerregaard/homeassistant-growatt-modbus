@@ -24,7 +24,7 @@ from .base import (
     ATTR_SERIAL_NUMBER,
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
-    ATTR_IVERTER_MODE,
+    ATTR_INVERTER_MODE,
 )
 MAXIMUM_DATA_LENGTH = 100
 def model(registers) -> str:
