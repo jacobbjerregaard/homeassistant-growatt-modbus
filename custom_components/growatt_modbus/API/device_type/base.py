@@ -128,6 +128,7 @@ ATTR_DISCHARGE_ENERGY_TOTAL = "discharge_energy_total"  # kWh
 ATTR_CHARGE_ENERGY_TODAY = "charge_energy_today"  # kWh
 ATTR_CHARGE_ENERGY_TOTAL = "charge_energy_total"  # kWh
 ATTR_METER_POWER_NETTO = "meter_power_netto" # W
+ATTR_BATTERY_PACK_NUMBER = "battery_pack_number"
 ATTR_BMS_TEMPERATURE_A = "bms_temperature_a" # C
 ATTR_BMS_TEMPERATURE_B = "bms_temperature_b" # C
 

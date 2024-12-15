@@ -32,6 +32,7 @@ from ..API.device_type.base import (
     ATTR_INVERTER_MODE,
     ATTR_BMS_TEMPERATURE_A,
     ATTR_BMS_TEMPERATURE_B,
+    ATTR_BATTERY_PACK_NUMBER,
 )
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(
@@ -90,7 +91,8 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
-        name="Battery Charge Power Rate when Battery First"
+        name="Battery Charge Power Rate when Battery First",
+        native_unit_of_measurement=PERCENTAGE,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_CHARGE_STOP_SOC,
@@ -157,4 +159,9 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
     ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BATTERY_PACK_NUMBER,
+        name="Battery pack number ",
+    ),
+    
 )
