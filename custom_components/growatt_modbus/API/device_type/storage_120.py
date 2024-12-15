@@ -70,7 +70,7 @@ def inverter_mode(register) -> str:
 
 def netto_meter_energy(registers) -> float:
     production = registers[0] * 65536.0 + registers[1] * 0.1
-    consumption = registers[2] * 65536.0 + registers[3] * 0.1
+    consumption = registers[2] * 65536.0 + registers[3] * 0.1 
 
     return production - consumption
 
