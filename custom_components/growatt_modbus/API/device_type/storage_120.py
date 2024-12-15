@@ -98,7 +98,7 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         register=3047,
         value_type=int,
         length=1
-    )    
+    ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_CHARGE_STOP_SOC,
         register=3048,
