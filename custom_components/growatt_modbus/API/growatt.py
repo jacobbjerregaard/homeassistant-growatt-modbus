@@ -22,7 +22,7 @@ from pymodbus.constants import Endian
 from pymodbus.framer.FramerRTU import ModbusRtuFramer
 from pymodbus.framer.FramerSocket import ModbusSocketFramer
 from pymodbus.payload import BinaryPayloadBuilder
-from pymodbus.pdu import ModbusResponse
+from pymodbus.pdu import ModbusResponse 
 
 from .device_type.base import (
     GrowattDeviceRegisters,
