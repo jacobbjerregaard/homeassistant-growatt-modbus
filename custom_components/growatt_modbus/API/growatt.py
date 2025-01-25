@@ -18,9 +18,8 @@ from pymodbus.client import ModbusBaseClient
 from pymodbus.client.serial import AsyncModbusSerialClient
 from pymodbus.client.tcp import AsyncModbusTcpClient
 from pymodbus.client.udp import AsyncModbusUdpClient
-from pymodbus.constants import Endian 
-from pymodbus.framer.FramerRTU import ModbusRtuFramer
-from pymodbus.framer.FramerSocket import ModbusSocketFramer
+from pymodbus.constants import Endian
+from pymodbus import FramerType
 from pymodbus.payload import BinaryPayloadBuilder
 from pymodbus.pdu import ModbusResponse 
 
@@ -179,7 +178,7 @@ class GrowattNetwork(GrowattModbusBase):
                 self.client = AsyncModbusTcpClient(
                     host,
                     port ,
-                    framer=ModbusRtuFramer,
+                    framer=FramerType.RTU,
                     timeout=timeout,
                     retries=retries,
                 )
@@ -187,7 +186,7 @@ class GrowattNetwork(GrowattModbusBase):
                 self.client = AsyncModbusTcpClient(
                     host,
                     port,
-                    framer=ModbusSocketFramer,
+                    framer=FramerType.SOCKET,
                     timeout=timeout,
                     retries=retries,
                 )
@@ -197,7 +196,7 @@ class GrowattNetwork(GrowattModbusBase):
                 self.client = AsyncModbusUdpClient(
                     host,
                     port,
-                    framer=ModbusRtuFramer,
+                    framer=FramerType.RTU,
                     timeout=timeout,
                     retries=retries,
                 )
@@ -205,7 +204,7 @@ class GrowattNetwork(GrowattModbusBase):
                 self.client = AsyncModbusUdpClient(
                     host,
                     port,
-                    framer=ModbusSocketFramer,
+                    framer=FramerType.SOCKET,
                     timeout=timeout,
                     retries=retries,
                 )
@@ -241,7 +240,7 @@ class GrowattSerial(GrowattModbusBase):
 
         self.client = AsyncModbusSerialClient(
             port=port,
-            framer=ModbusRtuFramer,
+            framer=FramerType.RTU,
             baudrate=baudrate,
             stopbits=stopbits,
             parity=parity[:1],
