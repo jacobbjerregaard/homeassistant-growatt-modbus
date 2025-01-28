@@ -176,7 +176,7 @@ class GrowattNetwork(GrowattModbusBase):
             if frame.lower() == 'rtu':
                 self.client = AsyncModbusTcpClient(
                     host,
-                    port ,
+                    port=port,
                     framer=FramerType.RTU,
                     timeout=timeout,
                     retries=retries,
@@ -184,7 +184,7 @@ class GrowattNetwork(GrowattModbusBase):
             else:
                 self.client = AsyncModbusTcpClient(
                     host,
-                    port,
+                    port=port,
                     framer=FramerType.SOCKET,
                     timeout=timeout,
                     retries=retries,
@@ -194,7 +194,7 @@ class GrowattNetwork(GrowattModbusBase):
             if frame.lower() == 'rtu':
                 self.client = AsyncModbusUdpClient(
                     host,
-                    port,
+                    port=port,
                     framer=FramerType.RTU,
                     timeout=timeout,
                     retries=retries,
@@ -202,7 +202,7 @@ class GrowattNetwork(GrowattModbusBase):
             else:
                 self.client = AsyncModbusUdpClient(
                     host,
-                    port,
+                    port=port,
                     framer=FramerType.SOCKET,
                     timeout=timeout,
                     retries=retries,
