@@ -21,7 +21,6 @@ from pymodbus.client.udp import AsyncModbusUdpClient
 from pymodbus.constants import Endian
 from pymodbus import FramerType 
 from pymodbus.payload import BinaryPayloadBuilder
-from pymodbus.pdu import ModbusResponse 
 
 from .device_type.base import (
     GrowattDeviceRegisters,
@@ -143,7 +142,7 @@ class GrowattModbusBase:
         await self.client.write_register(49, minute)
         await self.client.write_register(50, second)
 
-    async def write_register(self, register, payload, unit) -> ModbusResponse:
+    async def write_register(self, register, payload, unit) :
         builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.BIG)
         builder.reset()
         builder.add_16bit_int(payload)
@@ -325,7 +324,7 @@ class GrowattDevice:
             results.update(process_registers(self.device_registers.input, register_values))
         return results
     
-    async def write_register(self, register, payload) -> ModbusResponse:
+    async def write_register(self, register, payload):
         _LOGGER.info("Write register %d with payload %d and unit %d", register, payload, self.unit)
         data = await self.modbus.write_register(register, payload, self.unit)
         _LOGGER.info("Write response done")
