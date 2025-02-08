@@ -155,7 +155,7 @@ class GrowattModbusBase:
         return registers
 
     async def read_input_registers(self, start_index, length, unit) -> dict[int, int]:
-        data = await self.client.read_input_registers(start_index, length, unit)
+        data = await self.client.read_input_registers(address=start_index, count=length, slave=unit)
         registers = {c: v for c, v in enumerate(data.registers, start_index)}
         return registers
 
@@ -167,8 +167,8 @@ class GrowattNetwork(GrowattModbusBase):
         host: str,
         port: int = 502,
         frame: str = '',
-        timeout: int = 3,
-        retries: int = 3,
+        timeout: int = 5,
+        retries: int = 5,
     ) -> None:
         """Initialize Network Growatt."""
 
