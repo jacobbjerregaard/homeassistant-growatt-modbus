@@ -14,6 +14,8 @@ from homeassistant.const import (
     CONF_MODEL,
     CONF_NAME,
     CONF_TYPE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
 )
 
 
@@ -150,6 +152,9 @@ class GrowattDeviceEntity(CoordinatorEntity, RestoreEntity, SensorEntity):
             )
 
         if (state := await self.async_get_last_state()) is None:
+            return
+        
+        if self._numeric_state_expected and state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
         self._attr_native_value = state.state
