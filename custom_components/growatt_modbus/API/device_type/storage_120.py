@@ -26,6 +26,8 @@ from .base import (
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
     ATTR_INVERTER_MODE,
+    ATTR_BDC_DATA_FLAG,
+    ATTR_BDC_DERATING_MODE,
     ATTR_BMS_TEMPERATURE_A,
     ATTR_BMS_TEMPERATURE_B,
 )
@@ -66,6 +68,55 @@ def inverter_mode(register) -> str:
         return "Grid"
 
     return f"Unknown value: {register}"
+
+def bdc_data_flag(register) -> str:
+    if register == 0:
+        return "No need"
+    if register == 1:
+        return "Need"
+    
+    return f"Unknown value: {register}"
+
+def bdc_derating_mode(register) -> str:
+    if register == 0:
+        return "Normal"
+    if register == 1:
+        return "Standby or fault"
+    if register == 2:
+        return "Maximum battery current limit (Discharge)"
+    if register == 3:
+        return "Battery discharge Enable (Discharge)"
+    if register == 4:
+        return "High bus discharge derating (Discharge)"
+    if register == 5:
+        return "High temperature discharge derating (Discharge)"
+    if register == 6:
+        return "System warning No discharge (Discharge)"
+    if register >= 7 and register <= 15:
+        return "Reserved (Discharge)"
+    if register == 16:
+        return "Maximum charging current of battery (Charging)"
+    if register == 17:
+        return "High Temperature (LLC and Buckboost) (Charging)"
+    if register == 18:
+        return "Final soft charge"
+    if register == 19:
+        return "SOC setting limits (Charging)"
+    if register == 20:
+        return "Battery low temperature (Charging)"
+    if register == 21:
+        return "High bus voltage (Charging)"
+    if register == 22:
+        return "Battery SOC (Charging)"
+    if register == 23:
+        return "Need to charge (Charging)"
+    if register == 24:
+        return "System warning not charging (Charging)"
+    if register >= 25 and register <= 29:
+        return "Reserved (Charging)"
+    
+    return f"Unknown value: {register}"
+
 
 
 def netto_meter_energy(registers) -> float:
@@ -134,6 +185,20 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         value_type=custom_function,
         length=1,
         function=inverter_mode
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BDC_DATA_FLAG,
+        register=3164,
+        value_type=custom_function,
+        length=1,
+        function=bdc_data_flag
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BDC_DERATING_MODE,
+        register=3165,
+        value_type=custom_function,
+        length=1,
+        function=bdc_derating_mode
     ),
     GrowattDeviceRegisters(
         name=ATTR_SOC_PERCENTAGE, register=3171, value_type=int

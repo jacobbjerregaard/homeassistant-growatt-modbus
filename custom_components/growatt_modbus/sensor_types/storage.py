@@ -30,6 +30,8 @@ from ..API.device_type.base import (
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
     ATTR_INVERTER_MODE,
+    ATTR_BDC_DATA_FLAG,
+    ATTR_BDC_DERATING_MODE,
     ATTR_BMS_TEMPERATURE_A,
     ATTR_BMS_TEMPERATURE_B,
     ATTR_BATTERY_PACK_NUMBER,
@@ -146,6 +148,14 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_INVERTER_MODE,
         name="Inverter Mode",
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BDC_DATA_FLAG,
+        name="BDC Data Flag",
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BDC_DERATING_MODE,
+        name="BDC Derating Mode",
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BMS_TEMPERATURE_A,
