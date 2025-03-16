@@ -117,6 +117,8 @@ ATTR_AC_CHARGE_ENERGY_TOTAL = "battery_AC_charge_energy_total"  # kWh
 # Attribute names for values in the input register Storage
 ATTR_INVERTER_STATUS = "inverter_status"
 ATTR_INVERTER_MODE = "inverter mode"
+ATTR_BDC_DATA_FLAG= "bdc_data_flag"
+ATTR_BDC_DERATING_MODE = "bdc_derating_mode"
 ATTR_SOC_PERCENTAGE = "soc"  # %
 ATTR_DISCHARGE_POWER = "discharge_power"  # W
 ATTR_CHARGE_POWER = "charge_power"  # W
