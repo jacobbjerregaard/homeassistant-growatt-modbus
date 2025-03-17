@@ -13,7 +13,7 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfTemperature,
     UnitOfTime,
-    PERCENTAGE,
+    PERCENTAGE, 
 )
 
 from .sensor_entity_description import GrowattSensorEntityDescription
