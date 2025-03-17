@@ -14,6 +14,7 @@ ATTR_MODBUS_VERSION = "modbus version"
 ATTR_BATTERY_NUMBER_OF_MODULES = "battery_number_of_modules"
 
 # Attribute names for values in the holding register (Storage)
+ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST = "battery_discharge_rate_when_grid_first"
 ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST = "battery_charge_rate_when_first"
 ATTR_BATTERY_CHARGE_STOP_SOC = "battery_charge_stop_soc"
 ATTR_INVERTER_ENABLED = "inverter_enabled"

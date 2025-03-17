@@ -13,6 +13,7 @@ from homeassistant.const import (
 from .sensor_entity_description import GrowattSensorEntityDescription
 from .switch_entity_description import GrowattSwitchEntityDescription
 from ..API.device_type.base import (
+    ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_AC_CHARGE_ENABLED,
@@ -90,6 +91,11 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
         midnight_reset=True
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
+        name="Battery Discharge Rate when Grid First",
+        native_unit_of_measurement=PERCENTAGE,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
