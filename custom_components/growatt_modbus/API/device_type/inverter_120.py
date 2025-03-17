@@ -7,6 +7,7 @@ from .base import (
     SERIAL_NUMBER_REGISTER,
     DEVICE_TYPE_CODE_REGISTER,
     NUMBER_OF_TRACKERS_AND_PHASES_REGISTER,
+    ATTR_BATTERY_NUMBER_OF_MODULES,
     ATTR_INVERTER_ENABLED,
     ATTR_INVERTER_MODEL,
     ATTR_MODBUS_VERSION,
@@ -126,6 +127,11 @@ HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         register=88,
         value_type=float,
         scale=100
+    )
+    , GrowattDeviceRegisters(
+        name=ATTR_BATTERY_NUMBER_OF_MODULES,
+        register=185,
+        value_type=int
     )
 )
 

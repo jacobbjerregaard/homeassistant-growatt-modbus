@@ -18,6 +18,7 @@ from homeassistant.const import (
 
 from .sensor_entity_description import GrowattSensorEntityDescription
 from ..API.device_type.base import (
+    ATTR_BATTERY_NUMBER_OF_MODULES,
     ATTR_INPUT_POWER,
     ATTR_INPUT_ENERGY_TOTAL,
     ATTR_INPUT_1_VOLTAGE,
@@ -83,6 +84,10 @@ from ..API.device_type.base import (
 )
 
 INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
+    GrowattSensorEntityDescription(
+        key=ATTR_BATTERY_NUMBER_OF_MODULES,
+        name="Number of battery modules"
+    ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_ENERGY_TODAY,
         name="Energy produced today",

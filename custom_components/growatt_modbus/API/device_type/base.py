@@ -11,6 +11,7 @@ ATTR_DEVICE_TYPE_CODE = "device type code"
 ATTR_NUMBER_OF_TRACKERS_AND_PHASES = "number of trackers and phases"
 
 ATTR_MODBUS_VERSION = "modbus version"
+ATTR_BATTERY_NUMBER_OF_MODULES = "battery_number_of_modules"
 
 # Attribute names for values in the holding register (Storage)
 ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST = "battery_charge_rate_when_first"
