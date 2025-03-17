@@ -149,7 +149,7 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_BATTERY_NUMBER_OF_MODULES,
         register=185,
         value_type=int
-    )
+    ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
         register=3047,
