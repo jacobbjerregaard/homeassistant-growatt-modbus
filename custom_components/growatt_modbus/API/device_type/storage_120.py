@@ -5,6 +5,7 @@ from .base import (
     FIRMWARE_REGISTER,
     DEVICE_TYPE_CODE_REGISTER,
     NUMBER_OF_TRACKERS_AND_PHASES_REGISTER,
+    ATTR_BATTERY_NUMBER_OF_MODULES,
     ATTR_INVERTER_MODEL,
     ATTR_MODBUS_VERSION,
     ATTR_SOC_PERCENTAGE,
@@ -144,6 +145,11 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         value_type=float,
         scale=100
     ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_NUMBER_OF_MODULES,
+        register=185,
+        value_type=int
+    )
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
         register=3047,
