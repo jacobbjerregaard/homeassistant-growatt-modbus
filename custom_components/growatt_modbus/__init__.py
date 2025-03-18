@@ -4,11 +4,13 @@ import logging
 from datetime import timedelta
 from collections.abc import Callable, Sequence
 from typing import Any, Optional
+import voluptuous as vol
 
 from pymodbus.exceptions import ConnectionException
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers import config_validation as cv
 from homeassistant.const import (
     CONF_ADDRESS,
     CONF_IP_ADDRESS,
@@ -18,7 +20,7 @@ from homeassistant.const import (
     CONF_TYPE,
 )
 
-from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback, ServiceCall
 from homeassistant.helpers.event import (
     async_track_time_change,
 )
@@ -52,6 +54,13 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# Define the schema for the service
+SERVICE_MY_FUNCTION = "my_function"
+MY_FUNCTION_SCHEMA = vol.Schema({
+    vol.Required("param1"): cv.string,
+    vol.Optional("param2", default="default_value"): cv.string,
+})
 
 
 async def async_setup_entry(
@@ -99,6 +108,20 @@ async def async_setup_entry(
     hass.data.setdefault(DOMAIN, {})[entry.data[CONF_SERIAL_NUMBER]] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    async def handle_my_function(call: ServiceCall):
+        """Handle the service call."""
+        param1 = call.data.get("param1")
+        param2 = call.data.get("param2")
+
+        _LOGGER.info(f"My function called with: param1={param1}, param2={param2}")
+
+        # Call your integration’s function here
+        # my_integration_function(param1, param2)
+
+    # Register the service
+    hass.services.async_register(DOMAIN, SERVICE_MY_FUNCTION, handle_my_function, schema=MY_FUNCTION_SCHEMA)
+
     return True
 
 
