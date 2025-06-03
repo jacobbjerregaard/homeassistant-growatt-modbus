@@ -116,9 +116,6 @@ ATTR_OUTPUT_PERCENTAGE = "real_output_power_percent"  # %
 ATTR_AC_CHARGE_ENERGY_TODAY = "battery_ac_charge_energy_today" # kWh
 ATTR_AC_CHARGE_ENERGY_TOTAL = "battery_AC_charge_energy_total"  # kWh
 
-ATTR_EXPORT_CONTROL_ENABLED = "export_control_enabled"
-ATTR_EXPORT_POWER_LIMIT = "export_power_limit"
-
 # Attribute names for values in the input register Storage
 ATTR_INVERTER_STATUS = "inverter_status"
 ATTR_INVERTER_MODE = "inverter mode"

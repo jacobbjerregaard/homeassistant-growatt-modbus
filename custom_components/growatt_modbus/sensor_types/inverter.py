@@ -81,23 +81,12 @@ from ..API.device_type.base import (
     ATTR_TEMPERATURE,
     ATTR_IPM_TEMPERATURE,
     ATTR_OUTPUT_PERCENTAGE,
-    ATTR_EXPORT_CONTROL_ENABLED,
-    ATTR_EXPORT_POWER_LIMIT,
 )
 
 INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_NUMBER_OF_MODULES,
         name="Number of battery modules"
-    ),
-    GrowattSensorEntityDescription(
-        key=ATTR_EXPORT_CONTROL_ENABLED,
-        name="Export limit type"
-    ),    
-    GrowattSensorEntityDescription(
-        key=ATTR_EXPORT_POWER_LIMIT,
-        name="Export limit",
-        native_unit_of_measurement=PERCENTAGE
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_ENERGY_TODAY,

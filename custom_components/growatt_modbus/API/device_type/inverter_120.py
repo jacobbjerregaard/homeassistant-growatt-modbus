@@ -83,8 +83,6 @@ from .base import (
     ATTR_OUTPUT_PERCENTAGE,
     ATTR_AC_CHARGE_ENERGY_TODAY,
     ATTR_AC_CHARGE_ENERGY_TOTAL,
-    ATTR_EXPORT_CONTROL_ENABLED,
-    ATTR_EXPORT_POWER_LIMIT,
 )
 
 
@@ -105,18 +103,6 @@ def model(registers) -> str:
         (mo & 0x000000F0) >> 4,
         (mo & 0x0000000F)
     )
-
-def export_limit_type(register) -> str:
-    if register == 0:
-        return "Disabled"
-    if register == 1:
-        return "Enable 485 export limit"
-    if register == 2:
-        return "Enable 232 export limit"
-    if register == 3:
-        return "Enable CT export limit"
-    
-    return "Unknown export limit"
 
 
 HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
@@ -141,15 +127,7 @@ HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         register=88,
         value_type=float,
         scale=100
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_EXPORT_CONTROL_ENABLED,
-        register=122,
-        value_type=custom_function,
-        length=1,
-        function=export_limit_type
-    ),
-    GrowattDeviceRegisters(name=ATTR_EXPORT_POWER_LIMIT, register=123, value_type=float, length=1, scale=0.1)
+    )
     , GrowattDeviceRegisters(
         name=ATTR_BATTERY_NUMBER_OF_MODULES,
         register=185,
