@@ -1,5 +1,7 @@
 """Device defaults for a Growatt Inverter."""
 from .base import (
+    ATTR_EXPORT_CONTROL_ENABLED,
+    ATTR_EXPORT_POWER_LIMIT,
     GrowattDeviceRegisters,
     custom_function,
     FIRMWARE_REGISTER,
@@ -119,7 +121,17 @@ def bdc_derating_mode(register) -> str:
     
     return f"Unknown value: {register}"
 
-
+def export_limit_type(register) -> str:
+    if register == 0:
+        return "Disabled"
+    if register == 1:
+        return "Enable 485 export limit"
+    if register == 2:
+        return "Enable 232 export limit"
+    if register == 3:
+        return "Enable CT export limit"
+    
+    return "Unknown export limit"
 
 def netto_meter_energy(registers) -> float:
     production = (registers[0] * 65536.0 + registers[1])* 0.1
@@ -147,6 +159,14 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         scale=100
     ),
     GrowattDeviceRegisters(
+        name=ATTR_EXPORT_CONTROL_ENABLED,
+        register=122,
+        value_type=custom_function,
+        length=1,
+        function=export_limit_type
+    ),
+    GrowattDeviceRegisters(name=ATTR_EXPORT_POWER_LIMIT, register=123, value_type=float, length=1, scale=0.1)
+    , GrowattDeviceRegisters(
         name=ATTR_BATTERY_NUMBER_OF_MODULES,
         register=185,
         value_type=int

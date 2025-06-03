@@ -17,6 +17,8 @@ from ..API.device_type.base import (
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_AC_CHARGE_ENABLED,
+    ATTR_EXPORT_CONTROL_ENABLED,
+    ATTR_EXPORT_POWER_LIMIT,
     ATTR_SOC_PERCENTAGE,
     ATTR_DISCHARGE_POWER,
     ATTR_CHARGE_POWER,
@@ -179,5 +181,4 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_BATTERY_PACK_NUMBER,
         name="Battery pack number ",
     ),
-    
 )
