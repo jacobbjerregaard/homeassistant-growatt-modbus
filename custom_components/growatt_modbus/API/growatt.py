@@ -147,7 +147,7 @@ class GrowattModbusBase:
             data_type="int16",
             wordorder="big",
             byteorder="big"
-        )
+        ) 
         return await self.client.write_register(register, registers, unit)
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
