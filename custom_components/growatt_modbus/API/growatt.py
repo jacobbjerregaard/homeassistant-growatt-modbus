@@ -145,7 +145,7 @@ class GrowattModbusBase:
         registers = convert_to_registers(
             payload,
             data_type="int16",
-            wordorder="big"
+            wordorder="big",
             byteorder="big"
         )
         return await self.client.write_register(register, registers, unit)
