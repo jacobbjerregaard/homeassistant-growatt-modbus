@@ -18,8 +18,7 @@ from pymodbus.client import ModbusBaseClient
 from pymodbus.client.serial import AsyncModbusSerialClient
 from pymodbus.client.tcp import AsyncModbusTcpClient
 from pymodbus.client.udp import AsyncModbusUdpClient
-from pymodbus import FramerType 
-from pymodbus.datastore import convert_from_registers, convert_to_registers
+from pymodbus import FramerType
 
 from .device_type.base import (
     GrowattDeviceRegisters,
@@ -142,7 +141,7 @@ class GrowattModbusBase:
         await self.client.write_register(50, second)
 
     async def write_register(self, register, payload, unit) :
-        registers = convert_to_registers(
+        registers = self.client.convert_to_registers(
             payload,
             data_type="int16",
             wordorder="big",
