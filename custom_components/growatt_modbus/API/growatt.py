@@ -150,12 +150,12 @@ class GrowattModbusBase:
         return await self.client.write_register(register, registers, unit)
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
-        data = await self.client.read_holding_registers(address=start_index, count=length, slave=unit)
+        data = await self.client.read_holding_registers(address=start_index, count=length, device_id=unit)
         registers = {c: v for c, v in enumerate(data.registers, start_index)}
         return registers
 
     async def read_input_registers(self, start_index, length, unit) -> dict[int, int]:
-        data = await self.client.read_input_registers(address=start_index, count=length, slave=unit)
+        data = await self.client.read_input_registers(address=start_index, count=length, device_id=unit)
         registers = {c: v for c, v in enumerate(data.registers, start_index)}
         return registers
 
