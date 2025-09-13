@@ -18,9 +18,9 @@ from pymodbus.client import ModbusBaseClient
 from pymodbus.client.serial import AsyncModbusSerialClient
 from pymodbus.client.tcp import AsyncModbusTcpClient
 from pymodbus.client.udp import AsyncModbusUdpClient
-from pymodbus.payload import Endian
+from pymodbus.constants import Endian
 from pymodbus import FramerType 
-from pymodbus.payload import BinaryPayloadBuilder
+from pymodbus.datastore import convert_from_registers, convert_to_registers
 
 from .device_type.base import (
     GrowattDeviceRegisters,
@@ -143,11 +143,13 @@ class GrowattModbusBase:
         await self.client.write_register(50, second)
 
     async def write_register(self, register, payload, unit) :
-        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.BIG)
-        builder.reset()
-        builder.add_16bit_int(payload)
-        payload = builder.to_registers()
-        return await self.client.write_register(register, payload[0], unit)
+        registers = convert_to_registers(
+            payload,
+            data_type="int16",
+            wordorder=Endian.BIG,
+            byteorder=Endian.BIG
+        )
+        return await self.client.write_register(register, registers, unit)
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
         data = await self.client.read_holding_registers(address=start_index, count=length, slave=unit)
