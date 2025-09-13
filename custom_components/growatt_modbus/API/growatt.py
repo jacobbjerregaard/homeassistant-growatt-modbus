@@ -18,7 +18,6 @@ from pymodbus.client import ModbusBaseClient
 from pymodbus.client.serial import AsyncModbusSerialClient
 from pymodbus.client.tcp import AsyncModbusTcpClient
 from pymodbus.client.udp import AsyncModbusUdpClient
-from pymodbus.constants import Endian
 from pymodbus import FramerType 
 from pymodbus.datastore import convert_from_registers, convert_to_registers
 
@@ -146,8 +145,8 @@ class GrowattModbusBase:
         registers = convert_to_registers(
             payload,
             data_type="int16",
-            wordorder=Endian.BIG,
-            byteorder=Endian.BIG
+            wordorder="big"
+            byteorder="big"
         )
         return await self.client.write_register(register, registers, unit)
 
