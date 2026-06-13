@@ -24,6 +24,16 @@ from .base import (
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_BATTERY_PACK_NUMBER,
     ATTR_AC_CHARGE_ENABLED,
+    ATTR_GRID_FIRST_STOP_SOC,
+    ATTR_ON_GRID_DISCHARGE_STOP_SOC,
+    ATTR_BATTERY_TYPE,
+    ATTR_PRE_PTO_ENABLED,
+    ATTR_GENERATOR_CHARGE_ENABLED,
+    ATTR_GENERATOR_FORCE,
+    ATTR_UPS_FUNCTION_ENABLED,
+    ATTR_UPS_OUTPUT_VOLTAGE,
+    ATTR_UPS_OUTPUT_FREQUENCY,
+    ATTR_DRY_CONTACT_ENABLED,
     ATTR_SERIAL_NUMBER,
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
@@ -174,6 +184,37 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         register=3049,
         value_type=int,
         length=1
+    ),
+    # --- Writable command registers added in Protocol II V1.39 ---
+    GrowattDeviceRegisters(
+        name=ATTR_DRY_CONTACT_ENABLED, register=3016, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_GRID_FIRST_STOP_SOC, register=3037, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_ON_GRID_DISCHARGE_STOP_SOC, register=3067, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_TYPE, register=3070, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_PRE_PTO_ENABLED, register=3072, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_GENERATOR_CHARGE_ENABLED, register=3073, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_GENERATOR_FORCE, register=3074, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_UPS_FUNCTION_ENABLED, register=3079, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_UPS_OUTPUT_VOLTAGE, register=3080, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_UPS_OUTPUT_FREQUENCY, register=3081, value_type=int
     ),
 )
 

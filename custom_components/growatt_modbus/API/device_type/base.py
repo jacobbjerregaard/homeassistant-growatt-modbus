@@ -20,6 +20,30 @@ ATTR_BATTERY_CHARGE_STOP_SOC = "battery_charge_stop_soc"
 ATTR_INVERTER_ENABLED = "inverter_enabled"
 ATTR_AC_CHARGE_ENABLED = "ac_charge_enabled"
 
+# Writable command registers added in Protocol II V1.39 (Storage)
+ATTR_GRID_FIRST_STOP_SOC = "grid_first_stop_soc"  # holding 3037
+ATTR_ON_GRID_DISCHARGE_STOP_SOC = "on_grid_discharge_stop_soc"  # holding 3067
+ATTR_BATTERY_TYPE = "battery_type"  # holding 3070
+ATTR_PRE_PTO_ENABLED = "pre_pto_enabled"  # holding 3072
+ATTR_GENERATOR_CHARGE_ENABLED = "generator_charge_enabled"  # holding 3073
+ATTR_GENERATOR_FORCE = "generator_force"  # holding 3074
+ATTR_UPS_FUNCTION_ENABLED = "ups_function_enabled"  # holding 3079
+ATTR_UPS_OUTPUT_VOLTAGE = "ups_output_voltage"  # holding 3080
+ATTR_UPS_OUTPUT_FREQUENCY = "ups_output_frequency"  # holding 3081
+ATTR_DRY_CONTACT_ENABLED = "dry_contact_enabled"  # holding 3016
+
+# Telemetry registers added in Protocol II V1.39 (Storage input)
+ATTR_BATTERY_VOLTAGE = "battery_voltage"  # input 3169, 0.01V
+ATTR_BATTERY_CURRENT = "battery_current"  # input 3170, 0.1A
+ATTR_SELF_CONSUMPTION_POWER = "self_consumption_power"  # input 3121, 0.1W
+ATTR_SYSTEM_ENERGY_TODAY = "system_energy_today"  # input 3123, 0.1kWh
+ATTR_SYSTEM_ENERGY_TOTAL = "system_energy_total"  # input 3137, 0.1kWh
+ATTR_SELF_CONSUMPTION_ENERGY_TODAY = "self_consumption_energy_today"  # input 3139
+ATTR_SELF_CONSUMPTION_ENERGY_TOTAL = "self_consumption_energy_total"  # input 3141
+ATTR_BMS_MAX_SOC = "bms_max_soc"  # input 3196, %
+ATTR_BMS_MIN_SOC = "bms_min_soc"  # input 3197, %
+ATTR_PARALLEL_BATTERY_NUM = "parallel_battery_num"  # input 3198
+
 # Attribute names for values in the input register
 
 ATTR_STATUS = "status"
