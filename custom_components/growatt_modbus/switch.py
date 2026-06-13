@@ -37,8 +37,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Growatt switches for this config entry."""
-    coordinator = config_entry.runtime_data
-    supported_key_names = coordinator.growatt_api.get_register_names()
+    # Switches are config registers; they poll on the main coordinator.
+    coordinator = config_entry.runtime_data.main_coordinator
+    supported_key_names = config_entry.runtime_data.device.get_register_names()
 
     descriptions = [
         description

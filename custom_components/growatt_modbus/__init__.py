@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from dataclasses import dataclass
 from datetime import timedelta
 from collections.abc import Callable, Sequence
-from typing import Any, Optional
+from typing import Any
 
 from pymodbus.exceptions import ConnectionException
 
@@ -28,7 +29,6 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from homeassistant.util import dt as dt_util
 from .API.device_type.base import GrowattDeviceRegisters
 from .API.utils import RegisterKeys
 from .API.const import DeviceTypes
@@ -47,7 +47,6 @@ from .const import (
     CONF_STOPBITS,
     CONF_POWER_SCAN_ENABLED,
     CONF_POWER_SCAN_INTERVAL,
-    CONF_INVERTER_POWER_CONTROL,
     DOMAIN,
     PLATFORMS,
 )
@@ -99,14 +98,23 @@ async def async_setup_entry(
         CONF_POWER_SCAN_INTERVAL, entry.data[CONF_POWER_SCAN_INTERVAL]
     )
 
-    coordinator = GrowattLocalCoordinator(
-        hass,
-        device,
-        timedelta(seconds=scan_interval),
-        timedelta(seconds=power_scan_interval) if power_scan_enabled else None,
+    # The main coordinator polls everything at the general interval. When the
+    # faster power scan is enabled a second coordinator polls just the power
+    # registers at the shorter interval; power entities subscribe to it.
+    main_coordinator = GrowattLocalCoordinator(
+        hass, device, timedelta(seconds=scan_interval), DOMAIN
     )
+    power_coordinator: GrowattLocalCoordinator | None = None
+    if power_scan_enabled:
+        power_coordinator = GrowattLocalCoordinator(
+            hass, device, timedelta(seconds=power_scan_interval), f"{DOMAIN}_power"
+        )
 
-    entry.runtime_data = coordinator
+    entry.runtime_data = GrowattRuntimeData(
+        device=device,
+        main_coordinator=main_coordinator,
+        power_coordinator=power_coordinator,
+    )
 
     # Reload the entry when the user changes options so new intervals apply.
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
@@ -128,72 +136,58 @@ async def async_unload_entry(hass: HomeAssistant, entry: GrowattConfigEntry) -> 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
-        entry.runtime_data.growatt_api.close()
+        entry.runtime_data.device.close()
 
     return unload_ok
 
 
+@dataclass
+class GrowattRuntimeData:
+    """Runtime objects shared between the platforms of one config entry."""
+
+    device: GrowattDevice
+    main_coordinator: "GrowattLocalCoordinator"
+    power_coordinator: "GrowattLocalCoordinator | None" = None
+
+
 class GrowattLocalCoordinator(DataUpdateCoordinator):
-    """My custom coordinator."""
+    """Polls one set of Growatt registers at a fixed interval."""
 
     def __init__(
         self,
         hass: HomeAssistant,
         growatt_api: GrowattDevice,
         update_interval: timedelta,
-        power_interval: Optional[timedelta] = None,
+        name: str,
     ) -> None:
-        """Initialize my coordinator."""
-        self.interval = power_interval if power_interval else update_interval
+        """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
-            name=DOMAIN,
+            name=name,
             # Polling interval. Will only be polled if there are subscribers.
-            update_interval=self.interval,
+            update_interval=update_interval,
         )
         self.data = {}
         self.growatt_api = growatt_api
         self._failed_update_count = 0
         self.keys = RegisterKeys()
-        self.p_keys = RegisterKeys()
         self._midnight_listeners: dict[
             CALLBACK_TYPE, tuple[CALLBACK_TYPE, object | None]
         ] = {}
-
-        if power_interval:
-            self._counter = self._max_counter = update_interval / power_interval
-        else:
-            self._counter = self._max_counter = 0
 
         # Unsub handle for the daily midnight-reset tracker. Created lazily when
         # the first midnight listener subscribes and cancelled when the last one
         # is removed, so it does not leak across reloads.
         self._midnight_unsub: CALLBACK_TYPE | None = None
 
-    @callback
-    def async_update_listeners(self) -> None:
-        """Update only the registered listeners for which we have new data."""
-        for update_callback, context in set(self._listeners.values()):
-            if context in self.data.keys():
-                update_callback()
-
     async def _async_update_data(self):
-        """Fetch data from API endpoint.
-
-        This is the place to pre-process the data to lookup tables
-        so entities can quickly look up their data.
-        """
+        """Fetch this coordinator's register set from the device."""
         status = None
         data = {}
 
         try:
-            if self._counter >= self._max_counter or self._failed_update_count > 0:
-                self._counter = 0
-                data = await self.growatt_api.update(self.keys)
-            else:
-                self._counter += 1
-                data = await self.growatt_api.update(self.p_keys)
+            data = await self.growatt_api.update(self.keys)
             self._failed_update_count = 0
         except ConnectionException:
             if self._failed_update_count % 60 == 0:
@@ -258,7 +252,7 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
             self.keys.update(keys)
 
         return keys
-    
+
     def get_input_register_by_name(self, name) -> GrowattDeviceRegisters | None:
         return self.growatt_api.get_input_register_by_name(name)
     def get_holding_register_by_name(self, name) -> GrowattDeviceRegisters | None:
@@ -267,5 +261,5 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
         await self.growatt_api.write_register(register, payload)
 
 
-# Config entry with the coordinator stored on entry.runtime_data.
-type GrowattConfigEntry = ConfigEntry[GrowattLocalCoordinator]
+# Config entry whose runtime_data holds the device and its coordinators.
+type GrowattConfigEntry = ConfigEntry[GrowattRuntimeData]
