@@ -8,5 +8,5 @@
     "codeowners": ["@jacobbjerregaard"],
     "iot_class": "local_polling",
     "loggers": ["custom_components.growatt_modbus"],
-    "version": "0.2.0"
+    "version": "0.3.0"
   }

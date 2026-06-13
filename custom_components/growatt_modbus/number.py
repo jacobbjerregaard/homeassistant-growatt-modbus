@@ -19,6 +19,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import GrowattConfigEntry
+from .API.utils import to_register_value
 from .const import (
     CONF_FIRMWARE,
     CONF_SERIAL_NUMBER,
@@ -100,12 +101,8 @@ class GrowattNumber(CoordinatorEntity, NumberEntity):
             )
             return
 
-        # process_registers scales float registers by `scale` on read, so apply
-        # the inverse on write. Integer registers are stored raw.
-        if register.value_type is float:
-            raw = int(round(value * register.scale))
-        else:
-            raw = int(round(value))
+        # Inverse of the read-time scaling (see process_registers).
+        raw = to_register_value(register, value)
 
         await self.coordinator.write_register(register.register, raw)
         self._attr_native_value = value

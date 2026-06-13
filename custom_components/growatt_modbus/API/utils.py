@@ -17,7 +17,7 @@ K = TypeVar('K')
 V = TypeVar('V')
 D = TypeVar('D')
 
-__all__ = ('LRUCache', 'get_keys_from_register', 'get_all_keys_from_register', 'keys_sequences', 'split_sequence', 'process_registers', 'to_signed')
+__all__ = ('LRUCache', 'get_keys_from_register', 'get_all_keys_from_register', 'keys_sequences', 'split_sequence', 'process_registers', 'to_signed', 'to_register_value')
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -228,6 +228,19 @@ def to_signed(value: int, bits: int) -> int:
     """Reinterpret an unsigned ``bits``-wide register value as two's complement."""
     sign_bit = 1 << (bits - 1)
     return (value & (sign_bit - 1)) - (value & sign_bit)
+
+
+def to_register_value(register: GrowattDeviceRegisters, value: float) -> int:
+    """Encode a user-facing value into the raw register integer to write.
+
+    Inverse of :func:`process_registers` for the int/float paths. Float
+    registers are multiplied back by their scale; integer registers are written
+    as-is. Signed negative values are returned unchanged - the Modbus client
+    encodes them as two's complement when writing.
+    """
+    if register.value_type is float:
+        return int(round(value * register.scale))
+    return int(round(value))
 
 
 def process_registers(
