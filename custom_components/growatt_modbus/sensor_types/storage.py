@@ -5,6 +5,8 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
@@ -48,6 +50,16 @@ from ..API.device_type.base import (
     ATTR_BMS_TEMPERATURE_A,
     ATTR_BMS_TEMPERATURE_B,
     ATTR_BATTERY_PACK_NUMBER,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_BATTERY_CURRENT,
+    ATTR_SELF_CONSUMPTION_POWER,
+    ATTR_SYSTEM_ENERGY_TODAY,
+    ATTR_SYSTEM_ENERGY_TOTAL,
+    ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
+    ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
+    ATTR_BMS_MAX_SOC,
+    ATTR_BMS_MIN_SOC,
+    ATTR_PARALLEL_BATTERY_NUM,
 )
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(
@@ -258,5 +270,67 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_BATTERY_PACK_NUMBER,
         name="Battery pack number ",
     ),
-    
+    # --- Telemetry added in Protocol II V1.39 ---
+    GrowattSensorEntityDescription(
+        key=ATTR_BATTERY_VOLTAGE,
+        name="Battery Voltage",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        device_class=SensorDeviceClass.VOLTAGE,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BATTERY_CURRENT,
+        name="Battery Current",
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        device_class=SensorDeviceClass.CURRENT,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SELF_CONSUMPTION_POWER,
+        name="Self Consumption Power",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SYSTEM_ENERGY_TODAY,
+        name="System Output (Today)",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        midnight_reset=True,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SYSTEM_ENERGY_TOTAL,
+        name="System Output (Total)",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
+        name="Self Consumption (Today)",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        midnight_reset=True,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
+        name="Self Consumption (Total)",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BMS_MAX_SOC,
+        name="BMS Max SOC",
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BMS_MIN_SOC,
+        name="BMS Min SOC",
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_PARALLEL_BATTERY_NUM,
+        name="Parallel Battery Count",
+    ),
 )

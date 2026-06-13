@@ -42,6 +42,16 @@ from .base import (
     ATTR_BDC_DERATING_MODE,
     ATTR_BMS_TEMPERATURE_A,
     ATTR_BMS_TEMPERATURE_B,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_BATTERY_CURRENT,
+    ATTR_SELF_CONSUMPTION_POWER,
+    ATTR_SYSTEM_ENERGY_TODAY,
+    ATTR_SYSTEM_ENERGY_TOTAL,
+    ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
+    ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
+    ATTR_BMS_MAX_SOC,
+    ATTR_BMS_MIN_SOC,
+    ATTR_PARALLEL_BATTERY_NUM,
 )
 MAXIMUM_DATA_LENGTH = 100
 def model(registers) -> str:
@@ -295,5 +305,36 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_PACK_NUMBER, register=3262, value_type=int
+    ),
+    # --- Telemetry registers added in Protocol II V1.39 ---
+    GrowattDeviceRegisters(
+        name=ATTR_SELF_CONSUMPTION_POWER, register=3121, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_SYSTEM_ENERGY_TODAY, register=3123, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_SYSTEM_ENERGY_TOTAL, register=3137, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_SELF_CONSUMPTION_ENERGY_TODAY, register=3139, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_SELF_CONSUMPTION_ENERGY_TOTAL, register=3141, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=100
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_CURRENT, register=3170, value_type=float
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_MAX_SOC, register=3196, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_MIN_SOC, register=3197, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_PARALLEL_BATTERY_NUM, register=3198, value_type=int
     ),
 )
