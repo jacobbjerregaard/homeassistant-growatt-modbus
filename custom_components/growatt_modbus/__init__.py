@@ -87,20 +87,39 @@ async def async_setup_entry(
 
     await device.connect()
 
+    # Options (set via the options flow) override the original setup data.
+    scan_interval = entry.options.get(
+        CONF_SCAN_INTERVAL, entry.data[CONF_SCAN_INTERVAL]
+    )
+    power_scan_enabled = entry.options.get(
+        CONF_POWER_SCAN_ENABLED, entry.data[CONF_POWER_SCAN_ENABLED]
+    )
+    power_scan_interval = entry.options.get(
+        CONF_POWER_SCAN_INTERVAL, entry.data[CONF_POWER_SCAN_INTERVAL]
+    )
+
     coordinator = GrowattLocalCoordinator(
         hass,
         device,
-        timedelta(seconds=entry.data[CONF_SCAN_INTERVAL]),
-        timedelta(seconds=entry.data[CONF_POWER_SCAN_INTERVAL])
-        if entry.data[CONF_POWER_SCAN_ENABLED]
-        else None,
+        timedelta(seconds=scan_interval),
+        timedelta(seconds=power_scan_interval) if power_scan_enabled else None,
     )
 
     entry.runtime_data = coordinator
 
+    # Reload the entry when the user changes options so new intervals apply.
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
+
+
+async def _async_update_listener(
+    hass: HomeAssistant, entry: GrowattConfigEntry
+) -> None:
+    """Reload the integration when its options change."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: GrowattConfigEntry) -> bool:

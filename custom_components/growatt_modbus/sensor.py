@@ -99,7 +99,10 @@ async def async_setup_entry(
 
     coordinator.get_keys_by_name({sensor.key for sensor in sensor_descriptions}, True)
 
-    if config_entry.data[CONF_POWER_SCAN_ENABLED]:
+    power_scan_enabled = config_entry.options.get(
+        CONF_POWER_SCAN_ENABLED, config_entry.data[CONF_POWER_SCAN_ENABLED]
+    )
+    if power_scan_enabled:
         power_keys = coordinator.get_keys_by_name(power_sensor)
         coordinator.p_keys.update(power_keys)
 
