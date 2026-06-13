@@ -23,7 +23,8 @@ from homeassistant.helpers import selector
 
 from .API.const import DeviceTypes
 from .API.exception import ModbusPortException
-from .API.growatt import GrowattModbusBase, GrowattSerial, GrowattNetwork, get_device_info
+from .API.client import GrowattModbusBase, GrowattSerial, GrowattNetwork
+from .API.detection import get_device_info
 from .API.device_type.base import GrowattDeviceInfo
 
 from .const import (
