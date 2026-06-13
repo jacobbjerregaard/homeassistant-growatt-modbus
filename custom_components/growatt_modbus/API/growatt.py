@@ -3,12 +3,12 @@ Python wrapper for getting data asynchronously from Growatt inverters
 via serial usb RS232 connection and modbus RTU protocol.
 """
 
+import asyncio
 import json
 import logging
 import os
 import sys
 
-from abc import abstractmethod
 from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Any, Optional
@@ -57,9 +57,12 @@ _LOGGER = logging.getLogger(__name__)
 class GrowattModbusBase:
     client: ModbusBaseClient
 
-    @abstractmethod
     def __init__(self):
-        raise NotImplementedError("Needs to be override by sub class")
+        # Modbus is a single request/response link and is not safe for
+        # overlapping transactions. Serialise every read/write through this
+        # lock so coordinator polling and entity writes cannot interleave and
+        # corrupt each other's frames.
+        self._lock = asyncio.Lock()
 
     async def connect(self):
         """Connecting the modbus device."""
@@ -113,7 +116,8 @@ class GrowattModbusBase:
         Read Growatt device time.
         """
         # TODO: update with dynamic register values
-        rhr = await self.client.read_holding_registers(address=45, count=6, slave=unit)
+        async with self._lock:
+            rhr = await self.client.read_holding_registers(address=45, count=6, slave=unit)
         if rhr.isError():
             _LOGGER.debug("Modbus read failed for rhr")
             raise ModbusException("Modbus read failed for rhr.")
@@ -133,12 +137,13 @@ class GrowattModbusBase:
         """Writing current date/time to device."""
         # TODO: test if it works with current asyc libary
         # TODO: update with dynamic register values
-        await self.client.write_register(45, year - 2000)
-        await self.client.write_register(46, month)
-        await self.client.write_register(47, day)
-        await self.client.write_register(48, hour)
-        await self.client.write_register(49, minute)
-        await self.client.write_register(50, second)
+        async with self._lock:
+            await self.client.write_register(45, year - 2000)
+            await self.client.write_register(46, month)
+            await self.client.write_register(47, day)
+            await self.client.write_register(48, hour)
+            await self.client.write_register(49, minute)
+            await self.client.write_register(50, second)
 
     async def write_register(self, register, payload, unit) :
         registers = self.client.convert_to_registers(
@@ -146,16 +151,19 @@ class GrowattModbusBase:
             data_type="int16",
             wordorder="big",
             byteorder="big"
-        ) 
-        return await self.client.write_register(register, registers, unit)
+        )
+        async with self._lock:
+            return await self.client.write_register(register, registers, unit)
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
-        data = await self.client.read_holding_registers(address=start_index, count=length, device_id=unit)
+        async with self._lock:
+            data = await self.client.read_holding_registers(address=start_index, count=length, device_id=unit)
         registers = {c: v for c, v in enumerate(data.registers, start_index)}
         return registers
 
     async def read_input_registers(self, start_index, length, unit) -> dict[int, int]:
-        data = await self.client.read_input_registers(address=start_index, count=length, device_id=unit)
+        async with self._lock:
+            data = await self.client.read_input_registers(address=start_index, count=length, device_id=unit)
         registers = {c: v for c, v in enumerate(data.registers, start_index)}
         return registers
 
@@ -171,6 +179,7 @@ class GrowattNetwork(GrowattModbusBase):
         retries: int = 5,
     ) -> None:
         """Initialize Network Growatt."""
+        super().__init__()
 
         if network_type.lower() == "tcp":
             if frame.lower() == 'rtu':
@@ -222,6 +231,7 @@ class GrowattSerial(GrowattModbusBase):
         timeout: int = 3,
     ) -> None:
         """Initialize Serial Growatt."""
+        super().__init__()
 
         if sys.platform.startswith("win"):
             if not port.startswith("COM"):
