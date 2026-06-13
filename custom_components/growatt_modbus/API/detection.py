@@ -23,7 +23,7 @@ async def get_device_info(device: GrowattModbusBase, unit: int, fixed_device_typ
     if fixed_device_types is not None:
         if fixed_device_types in (DeviceTypes.INVERTER_120, DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120):
             return await device.get_device_info(HOLDING_REGISTERS_120, minimal_length, unit)
-        elif fixed_device_types in (DeviceTypes.INVERTER_315, DeviceTypes.OFFGRID_SPF):
+        elif fixed_device_types == DeviceTypes.INVERTER_315:
             return await device.get_device_info(HOLDING_REGISTERS_315, minimal_length, unit)
         else:
             return None
