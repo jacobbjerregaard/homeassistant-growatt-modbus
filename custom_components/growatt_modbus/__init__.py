@@ -147,7 +147,10 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
         else:
             self._counter = self._max_counter = 0
 
-        async_track_time_change(self.hass, self.midnight, 0, 0, 0)
+        # Unsub handle for the daily midnight-reset tracker. Created lazily when
+        # the first midnight listener subscribes and cancelled when the last one
+        # is removed, so it does not leak across reloads.
+        self._midnight_unsub: CALLBACK_TYPE | None = None
 
     @callback
     def async_update_listeners(self) -> None:
@@ -207,16 +210,19 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
         @callback
         def remove_midnight_listener() -> None:
             """Remove midnight listener."""
-            self._midnight_listeners.pop(remove_midnight_listener)
-            if not self._midnight_listeners:
-                # determine if time track can be removed
-                pass
+            self._midnight_listeners.pop(remove_midnight_listener, None)
+            # Cancel the daily tracker once the last listener is gone.
+            if not self._midnight_listeners and self._midnight_unsub is not None:
+                self._midnight_unsub()
+                self._midnight_unsub = None
 
         self._midnight_listeners[remove_midnight_listener] = (update_callback, context)
 
-        # This is the first listener, set up interval.
+        # First listener: set up the daily midnight tracker and keep its unsub.
         if schedule_refresh:
-            async_track_time_change(self.hass, self.midnight, 0, 0, 0)
+            self._midnight_unsub = async_track_time_change(
+                self.hass, self.midnight, 0, 0, 0
+            )
 
         return remove_midnight_listener
 
