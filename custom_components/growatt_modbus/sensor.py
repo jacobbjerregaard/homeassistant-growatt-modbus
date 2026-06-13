@@ -5,7 +5,6 @@ import re
 from typing import Optional
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -32,6 +31,7 @@ from .API.device_type.base import (
     ATTR_CHARGE_POWER
 )
 
+from . import GrowattConfigEntry
 from .sensor_types.sensor_entity_description import GrowattSensorEntityDescription
 from .sensor_types.inverter import INVERTER_SENSOR_TYPES
 from .sensor_types.storage import STORAGE_SENSOR_TYPES
@@ -51,11 +51,11 @@ SCAN_INTERVAL = timedelta(minutes=1)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: GrowattConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
 
-    coordinator = hass.data[DOMAIN][config_entry.data[CONF_SERIAL_NUMBER]]
+    coordinator = config_entry.runtime_data
     entities = []
     sensor_descriptions: list[GrowattSensorEntityDescription] = []
     supported_key_names = coordinator.growatt_api.get_register_names()

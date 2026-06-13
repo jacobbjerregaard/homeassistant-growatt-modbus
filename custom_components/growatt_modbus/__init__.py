@@ -1,4 +1,6 @@
 """The Growatt server PV inverter sensor integration."""
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import timedelta
@@ -7,7 +9,6 @@ from typing import Any, Optional
 
 from pymodbus.exceptions import ConnectionException
 
-from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ADDRESS,
@@ -35,7 +36,6 @@ from .API.growatt import GrowattDevice, GrowattSerial, GrowattNetwork
 from .const import (
     CONF_LAYER,
     CONF_SERIAL,
-    CONF_SERIAL_NUMBER,
     CONF_TCP,
     CONF_UDP,
     CONF_FRAME,
@@ -55,7 +55,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: config_entries.ConfigEntry
+    hass: HomeAssistant, entry: GrowattConfigEntry
 ) -> bool:
     """Load the saved entities."""
 
@@ -96,21 +96,20 @@ async def async_setup_entry(
         else None,
     )
 
-    hass.data.setdefault(DOMAIN, {})[entry.data[CONF_SERIAL_NUMBER]] = coordinator
+    entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: GrowattConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
-    hass.data[DOMAIN][entry.data[CONF_SERIAL_NUMBER]].growatt_api.close()
-
     if unload_ok:
-        del hass.data[DOMAIN][entry.data[CONF_SERIAL_NUMBER]]
+        entry.runtime_data.growatt_api.close()
+
     return unload_ok
 
 
@@ -246,3 +245,7 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
         return self.growatt_api.get_holding_register_by_name(name)
     async def write_register(self, register, payload):
         await self.growatt_api.write_register(register, payload)
+
+
+# Config entry with the coordinator stored on entry.runtime_data.
+type GrowattConfigEntry = ConfigEntry[GrowattLocalCoordinator]
