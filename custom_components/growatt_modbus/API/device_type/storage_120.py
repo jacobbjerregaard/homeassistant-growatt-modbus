@@ -247,10 +247,10 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_CHARGE_ENERGY_TOTAL, register=3131, value_type=float, length=2
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float
+        name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BMS_TEMPERATURE_B, register=3177, value_type=float
+        name=ATTR_BMS_TEMPERATURE_B, register=3177, value_type=float, signed=True
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_PACK_NUMBER, register=3262, value_type=int

@@ -159,9 +159,9 @@ INPUT_REGISTERS_315: tuple[GrowattDeviceRegisters, ...] = (
     GrowattDeviceRegisters(
         name=ATTR_OPERATION_HOURS, register=30, value_type=float, length=2, scale=7200,
     ),
-    GrowattDeviceRegisters(name=ATTR_TEMPERATURE, register=32, value_type=float),
+    GrowattDeviceRegisters(name=ATTR_TEMPERATURE, register=32, value_type=float, signed=True),
     GrowattDeviceRegisters(name=ATTR_FAULT_CODE, register=40, value_type=int),
-    GrowattDeviceRegisters(name=ATTR_IPM_TEMPERATURE, register=41, value_type=float),
+    GrowattDeviceRegisters(name=ATTR_IPM_TEMPERATURE, register=41, value_type=float, signed=True),
     GrowattDeviceRegisters(name=ATTR_P_BUS_VOLTAGE, register=42, value_type=float),
     GrowattDeviceRegisters(name=ATTR_N_BUS_VOLTAGE, register=43, value_type=float),
     GrowattDeviceRegisters(name=ATTR_DERATING_MODE, register=47, value_type=int),
@@ -181,7 +181,7 @@ INPUT_REGISTERS_315: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_INPUT_ENERGY_TOTAL, register=56, value_type=float, length=2
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_REACTIVE_POWER, register=58, value_type=float, length=2,
+        name=ATTR_OUTPUT_REACTIVE_POWER, register=58, value_type=float, length=2, signed=True,
     ),
     GrowattDeviceRegisters(
         name=ATTR_OUTPUT_REACTIVE_ENERGY_TODAY, register=60, value_type=float, length=2,

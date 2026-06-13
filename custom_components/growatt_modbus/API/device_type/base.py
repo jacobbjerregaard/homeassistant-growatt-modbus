@@ -155,6 +155,10 @@ class GrowattDeviceRegisters:
     length: int = 1
     scale: int = 10
     function: Callable | None = None
+    # When True the raw register value is interpreted as a two's-complement
+    # signed integer (16-bit for length 1, 32-bit for length 2). Needed for
+    # quantities that can be negative, e.g. temperatures or reactive power.
+    signed: bool = False
 
 
 @dataclass

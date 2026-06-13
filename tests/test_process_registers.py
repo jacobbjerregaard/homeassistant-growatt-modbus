@@ -1,6 +1,6 @@
 """Tests for ``process_registers`` value decoding in ``API/utils.py``."""
 from growatt_api.device_type.base import GrowattDeviceRegisters, custom_function
-from growatt_api.utils import process_registers
+from growatt_api.utils import process_registers, to_signed
 
 
 def _reg(name, register, value_type, **kw) -> GrowattDeviceRegisters:
@@ -61,3 +61,48 @@ def test_unknown_register_address_is_ignored():
     registers = {10: _reg("voltage", 10, float, scale=10)}
     # address 99 has no register definition and must not appear in the result.
     assert process_registers(registers, {10: 100, 99: 1234}) == {"voltage": 10.0}
+
+
+# --- signed decoding -----------------------------------------------------
+
+
+def test_to_signed_helper():
+    assert to_signed(0x0000, 16) == 0
+    assert to_signed(0x7FFF, 16) == 32767
+    assert to_signed(0xFFFF, 16) == -1
+    assert to_signed(0xFFF6, 16) == -10
+    assert to_signed(0x8000, 16) == -32768
+    assert to_signed(0xFFFFFFFF, 32) == -1
+
+
+def test_signed_float_u16_negative_temperature():
+    # 0xFFF6 == 65526 unsigned; as a signed 16-bit it is -10, /10 -> -1.0 C
+    registers = {10: _reg("temperature", 10, float, scale=10, signed=True)}
+    assert process_registers(registers, {10: 0xFFF6}) == {"temperature": -1.0}
+
+
+def test_unsigned_float_u16_would_misread_negative():
+    # Same raw value without the signed flag decodes as a nonsensical 6552.6 —
+    # this pins the old (incorrect) behaviour the signed flag exists to fix.
+    registers = {10: _reg("temperature", 10, float, scale=10)}
+    assert process_registers(registers, {10: 0xFFF6}) == {"temperature": 6552.6}
+
+
+def test_signed_float_u32_negative_reactive_power():
+    # -100 as a signed 32-bit value, /10 -> -10.0
+    raw = (-100) & 0xFFFFFFFF
+    registers = {10: _reg("reactive", 10, float, length=2, scale=10, signed=True)}
+    assert process_registers(registers, {10: raw >> 16, 11: raw & 0xFFFF}) == {
+        "reactive": -10.0
+    }
+
+
+def test_signed_int_register():
+    registers = {10: _reg("offset", 10, int, signed=True)}
+    assert process_registers(registers, {10: 0xFFFF}) == {"offset": -1}
+
+
+def test_signed_positive_values_unchanged():
+    # The signed flag must not alter values that are within the positive range.
+    registers = {10: _reg("temperature", 10, float, scale=10, signed=True)}
+    assert process_registers(registers, {10: 235}) == {"temperature": 23.5}
