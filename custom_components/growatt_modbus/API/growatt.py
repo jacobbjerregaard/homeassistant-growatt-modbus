@@ -278,6 +278,15 @@ class GrowattDevice:
         self.holding_register = self.device_registers.holding
         self.input_register = self.device_registers.input
 
+        # Reverse name -> register indexes for O(1) lookups (the write path
+        # resolves a register by name on every switch toggle).
+        self._holding_by_name = {
+            register.name: register for register in self.holding_register.values()
+        }
+        self._input_by_name = {
+            register.name: register for register in self.input_register.values()
+        }
+
         self.unit = unit
 
     async def connect(self):
@@ -375,13 +384,10 @@ class GrowattDevice:
         )
     
     def get_input_register_by_name(self, name: str) -> Optional[GrowattDeviceRegisters]:
-        for register in self.input_register.values():
-            if register.name == name:
-                return register
+        return self._input_by_name.get(name)
+
     def get_holding_register_by_name(self, name: str) -> Optional[GrowattDeviceRegisters]:
-        for register in self.holding_register.values():
-            if register.name == name:
-                return register
+        return self._holding_by_name.get(name)
 
     def get_register_names(self) -> set[str]:
         names = {register.name for register in self.input_register.values()}
