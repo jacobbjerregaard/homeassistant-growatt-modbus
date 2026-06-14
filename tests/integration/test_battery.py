@@ -55,13 +55,15 @@ async def test_firmware_sensors(hass, setup_storage):
     fake.registers[12] = 0x4657  # "FW"
     fake.registers[13] = 0x3132  # "12"
     fake.registers[14] = 0x0000
-    fake.registers[3096] = 0x5A45  # BDC "ZE"
-    fake.registers[3097] = 0x4241  # "BA"
+    # BDC firmware: code "ZEBA" (3099-3100) + version 10 (3101).
+    fake.registers[3099] = 0x5A45  # "ZE"
+    fake.registers[3100] = 0x4241  # "BA"
+    fake.registers[3101] = 10
     fake.registers[3105] = 7       # BMS firmware version
 
     await entry.runtime_data.main_coordinator.async_refresh()
     await hass.async_block_till_done()
 
     assert _state(hass, entry, "control_firmware") == "FW12"
-    assert _state(hass, entry, "bdc_firmware") == "ZEBA"
+    assert _state(hass, entry, "bdc_firmware") == "ZEBA-10"
     assert _state(hass, entry, "bms_firmware") == "7"

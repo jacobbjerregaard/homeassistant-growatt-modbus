@@ -9,7 +9,6 @@ from .base import (
     ATTR_INVERTER_MODEL,
     ATTR_MODBUS_VERSION,
     ATTR_CONTROL_FIRMWARE,
-    ATTR_DSP_FIRMWARE,
     ATTR_BDC_FIRMWARE,
     ATTR_BMS_FIRMWARE,
     ATTR_SOC_PERCENTAGE,
@@ -108,6 +107,19 @@ def decode_ascii(registers) -> str:
     return "".join(chars).replace("\x00", "").strip()
 
 
+def firmware_code_version(registers) -> str:
+    """Combine an ASCII firmware code (leading words) with its version number.
+
+    e.g. registers [3099, 3100, 3101] -> "<code>-<version>", where the code is
+    the ASCII of all-but-last words and the version is the last word's value.
+    """
+    code = decode_ascii(registers[:-1])
+    version = registers[-1]
+    if version is None:
+        return code
+    return f"{code}-{version}" if code else str(version)
+
+
 # Battery charge/discharge time slots 1-9. Each slot is a register pair:
 #   reg1: Bit0-7 start minute | Bit8-12 start hour | Bit13-14 priority | Bit15 enable
 #   reg2: Bit0-7 end minute   | Bit8-12 end hour
@@ -143,6 +155,46 @@ def encode_time_slot(
     return reg1, reg2
 
 
+def decode_time_slot(reg1: int, reg2: int) -> dict:
+    """Decode a slot register pair into its fields."""
+    return {
+        "start_hour": (reg1 >> 8) & 0x1F,
+        "start_minute": reg1 & 0xFF,
+        "end_hour": (reg2 >> 8) & 0x1F,
+        "end_minute": reg2 & 0xFF,
+        "priority": (reg1 >> 13) & 0x3,
+        "enabled": bool((reg1 >> 15) & 0x1),
+    }
+
+
+def apply_time_slot_field(reg1: int, reg2: int, **changes) -> tuple[int, int]:
+    """Return new (reg1, reg2) with `changes` applied to the decoded fields."""
+    fields = decode_time_slot(reg1, reg2)
+    fields.update(changes)
+    return encode_time_slot(
+        fields["start_hour"],
+        fields["start_minute"],
+        fields["end_hour"],
+        fields["end_minute"],
+        fields["priority"],
+        fields["enabled"],
+    )
+
+
+def build_time_slot_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
+    """Raw register pair (word1/word2) for each of `count` time-of-use slots."""
+    registers: list[GrowattDeviceRegisters] = []
+    for slot in range(1, count + 1):
+        base = time_slot_register(slot)
+        registers.extend(
+            (
+                GrowattDeviceRegisters(name=f"tou_slot_{slot}_word1", register=base, value_type=int),
+                GrowattDeviceRegisters(name=f"tou_slot_{slot}_word2", register=base + 1, value_type=int),
+            )
+        )
+    return tuple(registers)
+
+
 def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
     """Generate per-module serial-number registers for `count` battery modules.
 
@@ -163,17 +215,17 @@ def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, 
                 ),
                 GrowattDeviceRegisters(
                     name=f"battery_module_{module}_dsp_firmware",
-                    register=base + 8,  # 5408: BatDSPCode
+                    register=base + 8,  # 5408-5409 code + 5410 version
                     value_type=custom_function,
-                    length=2,
-                    function=decode_ascii,
+                    length=3,
+                    function=firmware_code_version,
                 ),
                 GrowattDeviceRegisters(
                     name=f"battery_module_{module}_mcu_firmware",
-                    register=base + 11,  # 5411: BatMCUCode
+                    register=base + 11,  # 5411-5412 code + 5413 version
                     value_type=custom_function,
-                    length=2,
-                    function=decode_ascii,
+                    length=3,
+                    function=firmware_code_version,
                 ),
             )
         )
@@ -281,12 +333,8 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         length=3, function=decode_ascii
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BDC_FIRMWARE, register=3096, value_type=custom_function,
-        length=2, function=decode_ascii
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_DSP_FIRMWARE, register=3099, value_type=custom_function,
-        length=2, function=decode_ascii
+        name=ATTR_BDC_FIRMWARE, register=3099, value_type=custom_function,
+        length=3, function=firmware_code_version  # 3099-3100 code + 3101 version
     ),
     GrowattDeviceRegisters(
         name=ATTR_BMS_FIRMWARE, register=3105, value_type=int

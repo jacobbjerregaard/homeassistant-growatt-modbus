@@ -27,6 +27,14 @@ from .const import (
 )
 from .sensor_types.select_entity_description import GrowattSelectEntityDescription
 from .sensor_types.storage import STORAGE_SELECT_TYPES
+from .tou import (
+    TOU_PRIORITIES,
+    TOU_PRIORITY_VALUES,
+    read_slot_fields,
+    slot_device_info,
+    slot_unique_id,
+    write_slot_field,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,13 +56,44 @@ async def async_setup_entry(
 
     coordinator.get_keys_by_name({description.key for description in descriptions}, True)
 
-    async_add_entities(
-        (
-            GrowattSelect(coordinator, description=description, entry=config_entry)
-            for description in descriptions
-        ),
-        True,
-    )
+    entities: list = [
+        GrowattSelect(coordinator, description=description, entry=config_entry)
+        for description in descriptions
+    ]
+
+    for slot in range(1, config_entry.runtime_data.device.tou_slots + 1):
+        coordinator.get_keys_by_name({f"tou_slot_{slot}_word1"}, True)
+        entities.append(GrowattSlotPriority(coordinator, config_entry, slot))
+
+    async_add_entities(entities, True)
+
+
+class GrowattSlotPriority(CoordinatorEntity, SelectEntity):
+    """Priority (load/battery/grid) of a battery time-of-use slot."""
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator, entry, slot: int):
+        super().__init__(coordinator, f"tou_slot_{slot}_word1")
+        self._slot = slot
+        self._attr_name = f"Slot {slot} Priority"
+        self._attr_unique_id = slot_unique_id(entry, slot, "priority")
+        self._attr_options = list(TOU_PRIORITY_VALUES)
+        self._attr_device_info = slot_device_info(entry)
+
+    @property
+    def current_option(self) -> str | None:
+        return TOU_PRIORITIES.get(read_slot_fields(self.coordinator, self._slot)["priority"])
+
+    async def async_select_option(self, option: str) -> None:
+        await write_slot_field(
+            self.coordinator, self._slot, priority=TOU_PRIORITY_VALUES[option]
+        )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self.async_write_ha_state()
 
 
 class GrowattSelect(CoordinatorEntity, SelectEntity):

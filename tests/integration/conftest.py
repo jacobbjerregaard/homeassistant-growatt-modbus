@@ -22,6 +22,7 @@ from homeassistant.const import (
 from custom_components.growatt_modbus.const import (
     CONF_AC_PHASES,
     CONF_BATTERY_MODULES,
+    CONF_TOU_SLOTS,
     CONF_BAUDRATE,
     CONF_BYTESIZE,
     CONF_DC_STRING,
@@ -90,9 +91,10 @@ class FakeModbus:
         return None
 
 
-def _entry_data(battery_modules: int = 0) -> dict:
+def _entry_data(battery_modules: int = 0, tou_slots: int = 0) -> dict:
     return {
         CONF_BATTERY_MODULES: battery_modules,
+        CONF_TOU_SLOTS: tou_slots,
         CONF_LAYER: CONF_SERIAL,
         CONF_SERIAL_PORT: "/dev/ttyUSB0",
         CONF_BAUDRATE: 9600,
@@ -118,10 +120,10 @@ def fake_modbus() -> FakeModbus:
     return FakeModbus()
 
 
-async def _setup(hass, fake_modbus, battery_modules: int):
+async def _setup(hass, fake_modbus, battery_modules: int, tou_slots: int = 0):
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=_entry_data(battery_modules),
+        data=_entry_data(battery_modules, tou_slots),
         unique_id=TEST_SERIAL,
         title="Growatt Test",
     )
@@ -154,4 +156,11 @@ async def setup_storage(hass, fake_modbus):
 async def setup_storage_modules(hass, fake_modbus):
     """Storage device configured with 2 parallel battery modules."""
     async for value in _setup(hass, fake_modbus, 2):
+        yield value
+
+
+@pytest.fixture
+async def setup_storage_tou(hass, fake_modbus):
+    """Storage device configured with 2 time-of-use slots."""
+    async for value in _setup(hass, fake_modbus, 0, tou_slots=2):
         yield value

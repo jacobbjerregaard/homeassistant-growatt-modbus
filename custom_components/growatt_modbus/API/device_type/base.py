@@ -15,8 +15,7 @@ ATTR_BATTERY_NUMBER_OF_MODULES = "battery_number_of_modules"
 
 # Additional firmware versions (Storage holding registers)
 ATTR_CONTROL_FIRMWARE = "control_firmware"  # holding 12-14
-ATTR_DSP_FIRMWARE = "dsp_firmware"  # holding 3099
-ATTR_BDC_FIRMWARE = "bdc_firmware"  # holding 3096
+ATTR_BDC_FIRMWARE = "bdc_firmware"  # holding 3099-3101 (code + version)
 ATTR_BMS_FIRMWARE = "bms_firmware"  # holding 3105
 
 # Attribute names for values in the holding register (Storage)

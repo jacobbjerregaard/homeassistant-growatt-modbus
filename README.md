@@ -46,9 +46,10 @@ exposes:
   exposes per-module *identity* but no per-module live telemetry, so live
   battery values are the system aggregates above. Override the count with the
   *Number of battery modules* option if auto-detection is wrong.
-* **Time-slot scheduling**: the `growatt_modbus.set_time_slot` service
-  configures any of the 9 battery charge/discharge time slots (start/end time,
-  priority load/battery/grid, enable).
+* **Time-of-use scheduling**: set *Number of time-of-use slots* in the options
+  to expose each battery charge/discharge slot as editable entities (start/end
+  time, priority Load/Battery/Grid First, enable) on the device page. The
+  `growatt_modbus.set_time_slot` service is also available for automations.
 * **Firmware readouts** (diagnostic): inverter, control, DSP, BDC and BMS
   firmware versions, plus per-module DSP/MCU firmware where available.
 
