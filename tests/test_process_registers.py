@@ -106,3 +106,14 @@ def test_signed_positive_values_unchanged():
     # The signed flag must not alter values that are within the positive range.
     registers = {10: _reg("temperature", 10, float, scale=10, signed=True)}
     assert process_registers(registers, {10: 235}) == {"temperature": 23.5}
+
+
+def test_firmware_register_reads_only_three_words():
+    from growatt_api.device_type.base import FIRMWARE_REGISTER
+
+    assert FIRMWARE_REGISTER.length == 3
+    registers = {FIRMWARE_REGISTER.register: FIRMWARE_REGISTER}
+    # 9-11 = "ABCDEF"; register 12 is the separate control firmware and must
+    # not bleed into the firmware string.
+    values = {9: 0x4142, 10: 0x4344, 11: 0x4546, 12: 0x5858}
+    assert process_registers(registers, values) == {"firmware": "ABCDEF"}

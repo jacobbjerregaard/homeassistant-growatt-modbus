@@ -244,8 +244,10 @@ def trackers_and_phases(register) -> tuple[int, int]:
     return (register >> 8, register & 0xFF)
 
 
+# Firmware is registers 9-11 (3 words / 6 ASCII chars). Registers 12-14 are a
+# separate "control firmware" version, so reading length=6 mashed both together.
 FIRMWARE_REGISTER = GrowattDeviceRegisters(
-    name=ATTR_FIRMWARE, register=9, value_type=str, length=6
+    name=ATTR_FIRMWARE, register=9, value_type=str, length=3
 )
 SERIAL_NUMBER_REGISTER = GrowattDeviceRegisters(
     name=ATTR_SERIAL_NUMBER, register=23, value_type=str, length=5
