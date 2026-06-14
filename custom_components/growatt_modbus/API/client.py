@@ -131,27 +131,24 @@ class GrowattModbusBase:
             await self.client.write_register(49, minute, device_id=unit)
             await self.client.write_register(50, second, device_id=unit)
 
-    async def write_register(self, register, payload, unit) :
-        registers = self.client.convert_to_registers(
-            payload,
-            data_type="int16",
-            wordorder="big",
-            byteorder="big"
-        )
+    async def write_register(self, register, payload, unit):
+        """Write a single holding register. Signed values are sent as two's
+        complement (e.g. -10 -> 0xFFF6)."""
         async with self._lock:
-            return await self.client.write_register(register, registers, unit)
+            return await self.client.write_register(
+                register, int(payload) & 0xFFFF, device_id=unit
+            )
 
     async def write_register_value(self, register, value, unit):
         """Write a raw unsigned 16-bit value (0-65535) to a holding register.
 
-        Unlike write_register this does not clamp to int16, so it can carry
-        bit-packed values such as the time-slot registers (enable bit 15).
+        Carries bit-packed values such as the time-slot registers (enable bit
+        15) which exceed the signed-int16 range.
         """
-        registers = self.client.convert_to_registers(
-            value, data_type="uint16", wordorder="big", byteorder="big"
-        )
         async with self._lock:
-            return await self.client.write_register(register, registers, unit)
+            return await self.client.write_register(
+                register, int(value) & 0xFFFF, device_id=unit
+            )
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
         async with self._lock:
