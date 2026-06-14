@@ -12,6 +12,26 @@ def _entity_id(hass, entry, domain: str, unique_suffix: str) -> str:
     raise AssertionError(f"no {domain} entity ending {unique_suffix!r}")
 
 
+async def test_export_limit_mode_select_writes(hass, setup_storage):
+    entry, fake = setup_storage
+    eid = _entity_id(hass, entry, "select", "_export_limit_mode")  # holding 122
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": eid, "option": "Enable (CT)"}, blocking=True
+    )
+    assert (122, 3) in fake.writes
+
+
+async def test_export_limit_rate_number_writes_signed(hass, setup_storage):
+    entry, fake = setup_storage
+    eid = _entity_id(hass, entry, "number", "_export_limit_rate")  # holding 123, 0.1%
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": eid, "value": -50.0}, blocking=True
+    )
+    # -50.0% on a 0.1% (scale 10) register -> raw -500 (two's complement applied
+    # by the real client; the fake records the signed value).
+    assert (123, -500) in fake.writes
+
+
 async def test_number_writes_register(hass, setup_storage):
     entry, fake = setup_storage
     eid = _entity_id(hass, entry, "number", "_grid_first_stop_soc")  # holding 3037, int %

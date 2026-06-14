@@ -36,6 +36,8 @@ ATTR_UPS_FUNCTION_ENABLED = "ups_function_enabled"  # holding 3079
 ATTR_UPS_OUTPUT_VOLTAGE = "ups_output_voltage"  # holding 3080
 ATTR_UPS_OUTPUT_FREQUENCY = "ups_output_frequency"  # holding 3081
 ATTR_DRY_CONTACT_ENABLED = "dry_contact_enabled"  # holding 3016
+ATTR_EXPORT_LIMIT_MODE = "export_limit_mode"  # holding 122
+ATTR_EXPORT_LIMIT_RATE = "export_limit_rate"  # holding 123, 0.1% signed
 
 # Telemetry registers added in Protocol II V1.39 (Storage input)
 ATTR_BATTERY_VOLTAGE = "battery_voltage"  # input 3169, 0.01V
