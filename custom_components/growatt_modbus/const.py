@@ -40,4 +40,4 @@ DEFAULT_NAME = "Growatt Modbus"
 
 DOMAIN = "growatt_modbus"
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.NUMBER, Platform.SELECT]

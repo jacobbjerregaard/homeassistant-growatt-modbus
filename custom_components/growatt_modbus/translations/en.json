@@ -66,5 +66,20 @@
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Growatt Modbus polling options",
+        "data": {
+          "scan_interval": "General update interval",
+          "power_scan_enabled": "Enable power update interval",
+          "power_scan_interval": "Power update interval"
+        },
+        "data_description": {
+          "power_scan_enabled": "Allows a higher update rate of the various power values of your device."
+        }
+      }
+    }
   }
 }

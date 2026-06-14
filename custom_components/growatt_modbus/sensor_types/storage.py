@@ -5,6 +5,8 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
@@ -12,11 +14,23 @@ from homeassistant.const import (
 )
 from .sensor_entity_description import GrowattSensorEntityDescription
 from .switch_entity_description import GrowattSwitchEntityDescription
+from .number_entity_description import GrowattNumberEntityDescription
+from .select_entity_description import GrowattSelectEntityDescription
 from ..API.device_type.base import (
     ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_AC_CHARGE_ENABLED,
+    ATTR_GRID_FIRST_STOP_SOC,
+    ATTR_ON_GRID_DISCHARGE_STOP_SOC,
+    ATTR_BATTERY_TYPE,
+    ATTR_PRE_PTO_ENABLED,
+    ATTR_GENERATOR_CHARGE_ENABLED,
+    ATTR_GENERATOR_FORCE,
+    ATTR_UPS_FUNCTION_ENABLED,
+    ATTR_UPS_OUTPUT_VOLTAGE,
+    ATTR_UPS_OUTPUT_FREQUENCY,
+    ATTR_DRY_CONTACT_ENABLED,
     ATTR_SOC_PERCENTAGE,
     ATTR_DISCHARGE_POWER,
     ATTR_CHARGE_POWER,
@@ -36,11 +50,103 @@ from ..API.device_type.base import (
     ATTR_BMS_TEMPERATURE_A,
     ATTR_BMS_TEMPERATURE_B,
     ATTR_BATTERY_PACK_NUMBER,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_BATTERY_CURRENT,
+    ATTR_SELF_CONSUMPTION_POWER,
+    ATTR_SYSTEM_ENERGY_TODAY,
+    ATTR_SYSTEM_ENERGY_TOTAL,
+    ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
+    ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
+    ATTR_BMS_MAX_SOC,
+    ATTR_BMS_MIN_SOC,
+    ATTR_PARALLEL_BATTERY_NUM,
 )
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(
         key=ATTR_AC_CHARGE_ENABLED,
         name="AC Charge"
+    ),
+    GrowattSwitchEntityDescription(
+        key=ATTR_PRE_PTO_ENABLED,
+        name="Pre-PTO",
+    ),
+    GrowattSwitchEntityDescription(
+        key=ATTR_GENERATOR_CHARGE_ENABLED,
+        name="Generator Charge",
+    ),
+    GrowattSwitchEntityDescription(
+        key=ATTR_UPS_FUNCTION_ENABLED,
+        name="UPS Function",
+    ),
+    GrowattSwitchEntityDescription(
+        key=ATTR_DRY_CONTACT_ENABLED,
+        name="Dry Contact",
+    ),
+)
+
+STORAGE_NUMBER_TYPES: tuple[GrowattNumberEntityDescription, ...] = (
+    GrowattNumberEntityDescription(
+        key=ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
+        name="Battery Discharge Rate when Grid First",
+        native_min_value=1,
+        native_max_value=100,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
+        name="Battery Charge Rate when Battery First",
+        native_min_value=1,
+        native_max_value=100,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_BATTERY_CHARGE_STOP_SOC,
+        name="Battery Stop Charge SOC when Battery First",
+        native_min_value=1,
+        native_max_value=100,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_GRID_FIRST_STOP_SOC,
+        name="Stop Discharge SOC when Grid First",
+        native_min_value=1,
+        native_max_value=100,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_ON_GRID_DISCHARGE_STOP_SOC,
+        name="On-Grid Stop Discharge SOC",
+        native_min_value=1,
+        native_max_value=100,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+)
+
+STORAGE_SELECT_TYPES: tuple[GrowattSelectEntityDescription, ...] = (
+    GrowattSelectEntityDescription(
+        key=ATTR_BATTERY_TYPE,
+        name="Battery Type",
+        options_map={"Lithium": 0, "Lead-acid": 1, "Other": 2},
+    ),
+    GrowattSelectEntityDescription(
+        key=ATTR_GENERATOR_FORCE,
+        name="Generator Force",
+        options_map={"Not forced": 0, "Force on": 1, "Disable": 2},
+    ),
+    GrowattSelectEntityDescription(
+        key=ATTR_UPS_OUTPUT_VOLTAGE,
+        name="UPS Output Voltage",
+        options_map={"230 V": 0, "208 V": 1, "240 V": 2},
+    ),
+    GrowattSelectEntityDescription(
+        key=ATTR_UPS_OUTPUT_FREQUENCY,
+        name="UPS Output Frequency",
+        options_map={"50 Hz": 0, "60 Hz": 1},
     ),
 )
 STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
@@ -91,21 +197,6 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
         midnight_reset=True
-    ),
-    GrowattSensorEntityDescription(
-        key=ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
-        name="Battery Discharge Rate when Grid First",
-        native_unit_of_measurement=PERCENTAGE,
-    ),
-    GrowattSensorEntityDescription(
-        key=ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
-        name="Battery Charge Power Rate when Battery First",
-        native_unit_of_measurement=PERCENTAGE,
-    ),
-    GrowattSensorEntityDescription(
-        key=ATTR_BATTERY_CHARGE_STOP_SOC,
-        name="Battery Stop Charge SOC when Battery First",
-        native_unit_of_measurement=PERCENTAGE
     ),
     GrowattSensorEntityDescription(
         key=ATTR_AC_CHARGE_ENABLED,
@@ -179,5 +270,67 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_BATTERY_PACK_NUMBER,
         name="Battery pack number ",
     ),
-    
+    # --- Telemetry added in Protocol II V1.39 ---
+    GrowattSensorEntityDescription(
+        key=ATTR_BATTERY_VOLTAGE,
+        name="Battery Voltage",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        device_class=SensorDeviceClass.VOLTAGE,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BATTERY_CURRENT,
+        name="Battery Current",
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        device_class=SensorDeviceClass.CURRENT,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SELF_CONSUMPTION_POWER,
+        name="Self Consumption Power",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SYSTEM_ENERGY_TODAY,
+        name="System Output (Today)",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        midnight_reset=True,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SYSTEM_ENERGY_TOTAL,
+        name="System Output (Total)",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
+        name="Self Consumption (Today)",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        midnight_reset=True,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
+        name="Self Consumption (Total)",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BMS_MAX_SOC,
+        name="BMS Max SOC",
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BMS_MIN_SOC,
+        name="BMS Min SOC",
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_PARALLEL_BATTERY_NUM,
+        name="Parallel Battery Count",
+    ),
 )

@@ -17,7 +17,7 @@ K = TypeVar('K')
 V = TypeVar('V')
 D = TypeVar('D')
 
-__all__ = ('LRUCache', 'get_keys_from_register', 'get_all_keys_from_register', 'keys_sequences', 'split_sequence', 'process_registers')
+__all__ = ('LRUCache', 'get_keys_from_register', 'get_all_keys_from_register', 'keys_sequences', 'split_sequence', 'process_registers', 'to_signed', 'to_register_value')
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -224,6 +224,25 @@ def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
     return sorted(common_index)
 
 
+def to_signed(value: int, bits: int) -> int:
+    """Reinterpret an unsigned ``bits``-wide register value as two's complement."""
+    sign_bit = 1 << (bits - 1)
+    return (value & (sign_bit - 1)) - (value & sign_bit)
+
+
+def to_register_value(register: GrowattDeviceRegisters, value: float) -> int:
+    """Encode a user-facing value into the raw register integer to write.
+
+    Inverse of :func:`process_registers` for the int/float paths. Float
+    registers are multiplied back by their scale; integer registers are written
+    as-is. Signed negative values are returned unchanged - the Modbus client
+    encodes them as two's complement when writing.
+    """
+    if register.value_type is float:
+        return int(round(value * register.scale))
+    return int(round(value))
+
+
 def process_registers(
         registers: dict[int, GrowattDeviceRegisters],
         register_values: dict[int, int]
@@ -240,18 +259,21 @@ def process_registers(
             continue
 
         if register.value_type == int:
-            result[register.name] = value
+            result[register.name] = to_signed(value, 16) if register.signed else value
 
         elif register.value_type == float and register.length == 2:
             if (second_value := register_values.get(key + 1, None)) is None:
                 continue
 
-            result[register.name] = round(
-                float((value << 16) + second_value) / register.scale, 3
-            )
+            raw = (value << 16) + second_value
+            if register.signed:
+                raw = to_signed(raw, 32)
+
+            result[register.name] = round(float(raw) / register.scale, 3)
 
         elif register.value_type == float:
-            result[register.name] = round(float(value) / register.scale, 3)
+            raw = to_signed(value, 16) if register.signed else value
+            result[register.name] = round(float(raw) / register.scale, 3)
 
         elif register.value_type == str:
             string = ""

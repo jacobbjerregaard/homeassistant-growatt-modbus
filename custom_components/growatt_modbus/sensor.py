@@ -5,7 +5,6 @@ import re
 from typing import Optional
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -32,6 +31,7 @@ from .API.device_type.base import (
     ATTR_CHARGE_POWER
 )
 
+from . import GrowattConfigEntry
 from .sensor_types.sensor_entity_description import GrowattSensorEntityDescription
 from .sensor_types.inverter import INVERTER_SENSOR_TYPES
 from .sensor_types.storage import STORAGE_SENSOR_TYPES
@@ -40,7 +40,6 @@ from .const import (
     CONF_DC_STRING,
     CONF_FIRMWARE,
     CONF_SERIAL_NUMBER,
-    CONF_POWER_SCAN_ENABLED,
     DOMAIN,
 )
 
@@ -51,14 +50,17 @@ SCAN_INTERVAL = timedelta(minutes=1)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: GrowattConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
 
-    coordinator = hass.data[DOMAIN][config_entry.data[CONF_SERIAL_NUMBER]]
-    entities = []
+    runtime = config_entry.runtime_data
+    main_coordinator = runtime.main_coordinator
+    power_coordinator = runtime.power_coordinator
+    device = runtime.device
+
     sensor_descriptions: list[GrowattSensorEntityDescription] = []
-    supported_key_names = coordinator.growatt_api.get_register_names()
+    supported_key_names = device.get_register_names()
 
     device_type = DeviceTypes(config_entry.data[CONF_TYPE])
 
@@ -78,17 +80,18 @@ async def async_setup_entry(
 
             sensor_descriptions.append(sensor)
 
-    if device_type in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120): 
+    if device_type in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120):
         for sensor in STORAGE_SENSOR_TYPES:
             if sensor.key not in supported_key_names:
                 continue
 
             sensor_descriptions.append(sensor)
+
     if device_type in (DeviceTypes.INVERTER, DeviceTypes.INVERTER_315, DeviceTypes.INVERTER_120):
         power_sensor = (ATTR_INPUT_POWER, ATTR_OUTPUT_POWER)
-    elif device_type in device_type in (DeviceTypes.HYBRID_120, ):
+    elif device_type in (DeviceTypes.HYBRID_120,):
         power_sensor = (ATTR_INPUT_POWER, ATTR_OUTPUT_POWER, ATTR_SOC_PERCENTAGE, ATTR_DISCHARGE_POWER, ATTR_CHARGE_POWER)
-    elif device_type in device_type in (DeviceTypes.STORAGE_120, ):
+    elif device_type in (DeviceTypes.STORAGE_120,):
         power_sensor = (ATTR_SOC_PERCENTAGE, ATTR_DISCHARGE_POWER, ATTR_CHARGE_POWER)
     else:
         power_sensor = tuple()
@@ -97,20 +100,23 @@ async def async_setup_entry(
             config_entry.data[CONF_TYPE],
         )
 
-    coordinator.get_keys_by_name({sensor.key for sensor in sensor_descriptions}, True)
+    # Power sensors poll on the fast power coordinator when it exists; every
+    # other sensor polls on the main coordinator.
+    power_names = set(power_sensor) if power_coordinator is not None else set()
 
-    if config_entry.data[CONF_POWER_SCAN_ENABLED]:
-        power_keys = coordinator.get_keys_by_name(power_sensor)
-        coordinator.p_keys.update(power_keys)
+    entities = []
+    for coordinator, descriptions in (
+        (main_coordinator, [d for d in sensor_descriptions if d.key not in power_names]),
+        (power_coordinator, [d for d in sensor_descriptions if d.key in power_names]),
+    ):
+        if coordinator is None or not descriptions:
+            continue
 
-    entities.extend(
-        [
-            GrowattDeviceEntity(
-                coordinator, description=description, entry=config_entry
-            )
-            for description in sensor_descriptions
-        ]
-    )
+        coordinator.get_keys_by_name({d.key for d in descriptions}, True)
+        entities.extend(
+            GrowattDeviceEntity(coordinator, description=description, entry=config_entry)
+            for description in descriptions
+        )
 
     async_add_entities(entities, True)
 

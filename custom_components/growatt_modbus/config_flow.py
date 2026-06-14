@@ -23,7 +23,8 @@ from homeassistant.helpers import selector
 
 from .API.const import DeviceTypes
 from .API.exception import ModbusPortException
-from .API.growatt import GrowattModbusBase, GrowattSerial, GrowattNetwork, get_device_info
+from .API.client import GrowattModbusBase, GrowattSerial, GrowattNetwork
+from .API.detection import get_device_info
 from .API.device_type.base import GrowattDeviceInfo
 
 from .const import (
@@ -80,6 +81,14 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.user_id = None
         self.data: dict[str, Any] = {}
         self.force_next_page = False
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> "GrowattOptionsFlowHandler":
+        """Return the options flow for changing polling settings after setup."""
+        return GrowattOptionsFlowHandler()
 
     @callback
     def _async_show_selection_form(self, errors=None):
@@ -467,3 +476,34 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_create_entry(
             title=f"Growatt {self.data[CONF_MODEL]}", data=self.data
         )
+
+
+class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
+    """Allow changing polling intervals without re-adding the device."""
+
+    async def async_step_init(self, user_input=None) -> FlowResult:
+        """Manage the polling options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        # Pre-fill with the active values (options override the original data).
+        current = {**self.config_entry.data, **self.config_entry.options}
+
+        data_schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_SCAN_INTERVAL,
+                    default=current.get(CONF_SCAN_INTERVAL, 60),
+                ): int,
+                vol.Required(
+                    CONF_POWER_SCAN_ENABLED,
+                    default=current.get(CONF_POWER_SCAN_ENABLED, False),
+                ): bool,
+                vol.Optional(
+                    CONF_POWER_SCAN_INTERVAL,
+                    default=current.get(CONF_POWER_SCAN_INTERVAL, 5),
+                ): int,
+            }
+        )
+
+        return self.async_show_form(step_id="init", data_schema=data_schema)

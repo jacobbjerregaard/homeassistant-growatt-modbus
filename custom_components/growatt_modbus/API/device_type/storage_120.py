@@ -24,6 +24,16 @@ from .base import (
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_BATTERY_PACK_NUMBER,
     ATTR_AC_CHARGE_ENABLED,
+    ATTR_GRID_FIRST_STOP_SOC,
+    ATTR_ON_GRID_DISCHARGE_STOP_SOC,
+    ATTR_BATTERY_TYPE,
+    ATTR_PRE_PTO_ENABLED,
+    ATTR_GENERATOR_CHARGE_ENABLED,
+    ATTR_GENERATOR_FORCE,
+    ATTR_UPS_FUNCTION_ENABLED,
+    ATTR_UPS_OUTPUT_VOLTAGE,
+    ATTR_UPS_OUTPUT_FREQUENCY,
+    ATTR_DRY_CONTACT_ENABLED,
     ATTR_SERIAL_NUMBER,
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
@@ -32,6 +42,16 @@ from .base import (
     ATTR_BDC_DERATING_MODE,
     ATTR_BMS_TEMPERATURE_A,
     ATTR_BMS_TEMPERATURE_B,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_BATTERY_CURRENT,
+    ATTR_SELF_CONSUMPTION_POWER,
+    ATTR_SYSTEM_ENERGY_TODAY,
+    ATTR_SYSTEM_ENERGY_TOTAL,
+    ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
+    ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
+    ATTR_BMS_MAX_SOC,
+    ATTR_BMS_MIN_SOC,
+    ATTR_PARALLEL_BATTERY_NUM,
 )
 MAXIMUM_DATA_LENGTH = 100
 def model(registers) -> str:
@@ -175,6 +195,37 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         value_type=int,
         length=1
     ),
+    # --- Writable command registers added in Protocol II V1.39 ---
+    GrowattDeviceRegisters(
+        name=ATTR_DRY_CONTACT_ENABLED, register=3016, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_GRID_FIRST_STOP_SOC, register=3037, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_ON_GRID_DISCHARGE_STOP_SOC, register=3067, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_TYPE, register=3070, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_PRE_PTO_ENABLED, register=3072, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_GENERATOR_CHARGE_ENABLED, register=3073, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_GENERATOR_FORCE, register=3074, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_UPS_FUNCTION_ENABLED, register=3079, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_UPS_OUTPUT_VOLTAGE, register=3080, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_UPS_OUTPUT_FREQUENCY, register=3081, value_type=int
+    ),
 )
 
 STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
@@ -247,12 +298,43 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_CHARGE_ENERGY_TOTAL, register=3131, value_type=float, length=2
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float
+        name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BMS_TEMPERATURE_B, register=3177, value_type=float
+        name=ATTR_BMS_TEMPERATURE_B, register=3177, value_type=float, signed=True
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_PACK_NUMBER, register=3262, value_type=int
+    ),
+    # --- Telemetry registers added in Protocol II V1.39 ---
+    GrowattDeviceRegisters(
+        name=ATTR_SELF_CONSUMPTION_POWER, register=3121, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_SYSTEM_ENERGY_TODAY, register=3123, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_SYSTEM_ENERGY_TOTAL, register=3137, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_SELF_CONSUMPTION_ENERGY_TODAY, register=3139, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_SELF_CONSUMPTION_ENERGY_TOTAL, register=3141, value_type=float, length=2
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=100
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_CURRENT, register=3170, value_type=float
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_MAX_SOC, register=3196, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_MIN_SOC, register=3197, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_PARALLEL_BATTERY_NUM, register=3198, value_type=int
     ),
 )
