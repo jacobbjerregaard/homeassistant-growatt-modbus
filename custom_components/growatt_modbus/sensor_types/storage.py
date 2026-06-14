@@ -457,6 +457,65 @@ def build_battery_module_sensor_types(
     for n in range(1, count + 1):
         types.extend(
             (
+                # Live telemetry (input 5080+ block).
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_soc",
+                    name=f"Module {n} SOC",
+                    native_unit_of_measurement=PERCENTAGE,
+                    device_class=SensorDeviceClass.BATTERY,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_soh",
+                    name=f"Module {n} Health (SOH)",
+                    native_unit_of_measurement=PERCENTAGE,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_voltage",
+                    name=f"Module {n} Voltage",
+                    native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+                    device_class=SensorDeviceClass.VOLTAGE,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_current",
+                    name=f"Module {n} Current",
+                    native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+                    device_class=SensorDeviceClass.CURRENT,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_power",
+                    name=f"Module {n} Power",
+                    native_unit_of_measurement=UnitOfPower.WATT,
+                    device_class=SensorDeviceClass.POWER,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_temperature_max",
+                    name=f"Module {n} Temperature Max",
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=SensorDeviceClass.TEMPERATURE,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_temperature_min",
+                    name=f"Module {n} Temperature Min",
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=SensorDeviceClass.TEMPERATURE,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_cell_voltage_max",
+                    name=f"Module {n} Cell Voltage Max",
+                    native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+                    device_class=SensorDeviceClass.VOLTAGE,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_cell_voltage_min",
+                    name=f"Module {n} Cell Voltage Min",
+                    native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+                    device_class=SensorDeviceClass.VOLTAGE,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                # Identity (holding 5400+ block).
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_serial_number",
                     name=f"Module {n} Serial Number",

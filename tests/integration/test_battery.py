@@ -49,6 +49,22 @@ async def test_per_battery_module_serial_sensors(hass, setup_storage_modules):
     assert _state(hass, entry, "battery_module_2_serial_number") == "MOD2"
 
 
+async def test_per_battery_module_live_telemetry(hass, setup_storage_modules):
+    entry, fake = setup_storage_modules
+    fake.registers[5081] = 87            # module 1 SOC
+    fake.registers[5083] = 522           # module 1 voltage 0.1V -> 52.2
+    fake.registers[5084] = (-15) & 0xFFFF  # module 1 current -1.5 A (signed)
+    fake.registers[5121] = 73            # module 2 SOC (5081 + 40)
+
+    await entry.runtime_data.main_coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert _state(hass, entry, "battery_module_1_soc") == "87"
+    assert float(_state(hass, entry, "battery_module_1_voltage")) == 52.2
+    assert float(_state(hass, entry, "battery_module_1_current")) == -1.5
+    assert _state(hass, entry, "battery_module_2_soc") == "73"
+
+
 async def test_firmware_sensors(hass, setup_storage):
     entry, fake = setup_storage
     # Control firmware "FW12" at holding 12-14 (ASCII).
