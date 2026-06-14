@@ -8,6 +8,7 @@ from growatt_api.device import GrowattDevice, get_register_information
 from growatt_api.device_type.storage_120 import (
     build_battery_module_registers,
     decode_ascii,
+    firmware_code_version,
 )
 
 
@@ -36,9 +37,15 @@ def test_firmware_registers_present_for_storage():
     info = get_register_information(DeviceTypes.STORAGE_120)
     by_name = {r.name: r.register for r in info.holding.values()}
     assert by_name["control_firmware"] == 12
-    assert by_name["bdc_firmware"] == 3096
-    assert by_name["dsp_firmware"] == 3099
+    assert by_name["bdc_firmware"] == 3099  # code (3099-3100) + version (3101)
     assert by_name["bms_firmware"] == 3105
+
+
+def test_firmware_code_version_combines_code_and_version():
+    # "ZE","BA" ASCII code + version word 10.
+    assert firmware_code_version([0x5A45, 0x4241, 10]) == "ZEBA-10"
+    # No code -> just the version number.
+    assert firmware_code_version([0, 5]) == "5"
 
 
 def test_modules_appended_to_storage_holding():

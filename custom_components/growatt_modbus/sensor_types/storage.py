@@ -74,7 +74,6 @@ from ..API.device_type.base import (
     ATTR_BMS_CELL_VOLTAGE_MIN,
     ATTR_FIRMWARE,
     ATTR_CONTROL_FIRMWARE,
-    ATTR_DSP_FIRMWARE,
     ATTR_BDC_FIRMWARE,
     ATTR_BMS_FIRMWARE,
 )
@@ -431,11 +430,6 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_CONTROL_FIRMWARE,
         name="Control Firmware",
-        entity_category=EntityCategory.DIAGNOSTIC,
-    ),
-    GrowattSensorEntityDescription(
-        key=ATTR_DSP_FIRMWARE,
-        name="DSP Firmware",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
