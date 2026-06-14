@@ -32,9 +32,15 @@ exposes:
   * `select`: battery type, generator force, UPS output voltage, UPS output
     frequency.
   * `switch`: AC charge, pre-PTO, generator charge, UPS function, dry contact.
+  * `button`: "Sync device time" writes the Home Assistant host clock to the
+    inverter (useful because clock drift skews the daily energy resets).
 * **Additional telemetry**: battery voltage / current, self-consumption power
   and energy (today/total), system output energy (today/total), BMS max/min
   SOC, and parallel battery count.
+
+The writable controls are grouped under *Configuration* on the device page and
+internal readings under *Diagnostic*. A redacted diagnostics download is
+available from the device's three-dot menu for bug reports.
 
 Some command registers are model-specific (US / XH variants); on a model that
 does not implement a register it may simply read `0` and ignore writes.
@@ -46,3 +52,25 @@ does not implement a register it may simply read `0` and ignore writes.
 > than every register. Open an issue if you need a specific one.
 
 Currently the communication layer (API) is included in this repository but following the guidelines of HASS there should be seperate repositories
+
+## Testing
+
+Two test suites:
+
+* **Pure-logic** (register batching, decoding, write-encoding) — runs on any
+  recent Python, no Home Assistant required:
+
+  ```bash
+  pip install -r requirements_test.txt
+  pytest            # tests/integration is skipped automatically
+  ```
+
+* **Home Assistant integration** (config-entry setup, entities, write paths) —
+  needs Python 3.13:
+
+  ```bash
+  pip install -r requirements_test_ha.txt
+  pytest tests/integration
+  ```
+
+Both run in CI on every push/PR.
