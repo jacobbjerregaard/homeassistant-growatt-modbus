@@ -18,12 +18,12 @@ import importlib.util
 import sys
 from pathlib import Path
 
-_API_DIR = (
-    Path(__file__).resolve().parent.parent
-    / "custom_components"
-    / "growatt_modbus"
-    / "API"
-)
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_API_DIR = _REPO_ROOT / "custom_components" / "growatt_modbus" / "API"
+
+# Make ``custom_components`` importable for the Home Assistant integration tests.
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 
 def _register_namespace_package(name: str, path: Path) -> None:
@@ -37,3 +37,12 @@ def _register_namespace_package(name: str, path: Path) -> None:
 
 
 _register_namespace_package("growatt_api", _API_DIR)
+
+
+# The tests/integration suite needs Home Assistant + pytest-homeassistant-custom
+# -component. When those aren't installed (e.g. the pure-logic Python 3.14 venv)
+# skip collecting that directory entirely so the rest of the suite still runs.
+try:
+    import pytest_homeassistant_custom_component  # noqa: F401
+except ImportError:
+    collect_ignore = ["integration"]
