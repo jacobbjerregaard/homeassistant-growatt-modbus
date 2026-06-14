@@ -89,17 +89,27 @@ async def async_setup_entry(
         )
         return False
 
-    battery_modules = entry.options.get(
-        CONF_BATTERY_MODULES, entry.data.get(CONF_BATTERY_MODULES, 0)
+    device_type = DeviceTypes(entry.data[CONF_TYPE])
+    battery_modules = int(
+        entry.options.get(
+            CONF_BATTERY_MODULES, entry.data.get(CONF_BATTERY_MODULES, 0)
+        )
     )
     device = GrowattDevice(
-        device_layer,
-        DeviceTypes(entry.data[CONF_TYPE]),
-        entry.data[CONF_ADDRESS],
-        int(battery_modules),
+        device_layer, device_type, entry.data[CONF_ADDRESS], battery_modules
     )
 
     await device.connect()
+
+    # Auto-detect the battery module count (holding register 185) unless the
+    # user pinned it via the options flow.
+    if not battery_modules and device_type in (
+        DeviceTypes.HYBRID_120,
+        DeviceTypes.STORAGE_120,
+    ):
+        detected = await device.read_battery_module_count()
+        if detected:
+            device.set_battery_modules(detected)
 
     # Options (set via the options flow) override the original setup data.
     scan_interval = entry.options.get(

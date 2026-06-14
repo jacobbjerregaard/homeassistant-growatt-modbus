@@ -40,9 +40,12 @@ exposes:
 * **Battery health**: State of Health (SOH), BMS status, cycle count, cell
   voltage min/max, charge/discharge current limits, and storage fault/warning
   codes.
-* **Per-battery-module sensors** (opt-in): set *Number of battery modules* in
-  the integration options to expose per-module SOC, voltage, current,
-  temperature and SOH for multi-module / parallel-battery systems.
+* **Per-battery-module serial sensors**: the module count is auto-detected
+  (holding register 185), and each module's serial number is exposed so you can
+  track which physical module sits in each position over time. The protocol
+  exposes per-module *identity* but no per-module live telemetry, so live
+  battery values are the system aggregates above. Override the count with the
+  *Number of battery modules* option if auto-detection is wrong.
 * **Time-slot scheduling**: the `growatt_modbus.set_time_slot` service
   configures any of the 9 battery charge/discharge time slots (start/end time,
   priority load/battery/grid, enable).

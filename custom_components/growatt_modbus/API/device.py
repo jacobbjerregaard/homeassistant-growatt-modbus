@@ -30,6 +30,7 @@ from .device_type.inverter_120 import (
 from .device_type.storage_120 import (
     STORAGE_HOLDING_REGISTERS_120,
     STORAGE_INPUT_REGISTERS_120,
+    BATTERY_MODULE_COUNT_REGISTER,
     build_battery_module_registers,
 )
 
@@ -98,8 +99,9 @@ def get_register_information(
         input_register.update({obj.register: obj for obj in register_set})
 
     if battery_modules and device_type in _STORAGE_TYPES:
+        # Per-module serial numbers live in the 5400+ holding block.
         for obj in build_battery_module_registers(battery_modules):
-            input_register[obj.register] = obj
+            holding_register[obj.register] = obj
 
     return DeviceRegisters(holding_register, input_register, max_length)
 
@@ -136,6 +138,31 @@ class GrowattDevice:
         }
 
         self.unit = unit
+
+    async def read_battery_module_count(self) -> int:
+        """Read the number of battery modules from holding register 185."""
+        try:
+            data = await self.modbus.read_holding_registers(
+                BATTERY_MODULE_COUNT_REGISTER, 1, self.unit
+            )
+        except Exception:  # noqa: BLE001 - any modbus failure means "unknown"
+            return 0
+        return int(data.get(BATTERY_MODULE_COUNT_REGISTER, 0) or 0)
+
+    def set_battery_modules(self, count: int) -> None:
+        """Rebuild the register map for `count` battery modules."""
+        self.battery_modules = count
+        self.device_registers = get_register_information(self.device, count)
+        self.max_length = self.device_registers.max_length
+        self.holding_register = self.device_registers.holding
+        self.input_register = self.device_registers.input
+        self._holding_by_name = {
+            register.name: register for register in self.holding_register.values()
+        }
+        self._input_by_name = {
+            register.name: register for register in self.input_register.values()
+        }
+        self._input_cache.clear()
 
     async def connect(self):
         await self.modbus.connect()

@@ -79,7 +79,7 @@
         },
         "data_description": {
           "power_scan_enabled": "Allows a higher update rate of the various power values of your device.",
-          "battery_modules": "Number of parallel battery modules to expose per-module sensors for (0 to disable)."
+          "battery_modules": "Number of battery modules to expose per-module serial sensors for (0 = auto-detect from the inverter)."
         }
       }
     }
