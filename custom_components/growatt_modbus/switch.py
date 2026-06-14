@@ -28,6 +28,7 @@ from .const import (
 )
 from .sensor_types.storage import STORAGE_SWITCH_TYPES
 from .sensor_types.switch_entity_description import GrowattSwitchEntityDescription
+from .tou import read_slot_fields, slot_device_info, slot_unique_id, write_slot_field
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,13 +52,44 @@ async def async_setup_entry(
     # Make sure the backing registers are part of the polled key set.
     coordinator.get_keys_by_name({description.key for description in descriptions}, True)
 
-    async_add_entities(
-        (
-            GrowattSwitch(coordinator, description=description, entry=config_entry)
-            for description in descriptions
-        ),
-        True,
-    )
+    entities: list = [
+        GrowattSwitch(coordinator, description=description, entry=config_entry)
+        for description in descriptions
+    ]
+
+    for slot in range(1, config_entry.runtime_data.device.tou_slots + 1):
+        coordinator.get_keys_by_name({f"tou_slot_{slot}_word1"}, True)
+        entities.append(GrowattSlotEnable(coordinator, config_entry, slot))
+
+    async_add_entities(entities, True)
+
+
+class GrowattSlotEnable(CoordinatorEntity, SwitchEntity):
+    """Enable flag of a battery time-of-use slot."""
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator, entry, slot: int):
+        super().__init__(coordinator, f"tou_slot_{slot}_word1")
+        self._slot = slot
+        self._attr_name = f"Slot {slot} Enabled"
+        self._attr_unique_id = slot_unique_id(entry, slot, "enabled")
+        self._attr_device_info = slot_device_info(entry)
+
+    @property
+    def is_on(self) -> bool:
+        return read_slot_fields(self.coordinator, self._slot)["enabled"]
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await write_slot_field(self.coordinator, self._slot, enabled=True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await write_slot_field(self.coordinator, self._slot, enabled=False)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self.async_write_ha_state()
 
 
 class GrowattSwitch(CoordinatorEntity, RestoreEntity, SwitchEntity):

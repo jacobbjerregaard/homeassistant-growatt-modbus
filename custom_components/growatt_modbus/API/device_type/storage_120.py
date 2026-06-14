@@ -155,6 +155,46 @@ def encode_time_slot(
     return reg1, reg2
 
 
+def decode_time_slot(reg1: int, reg2: int) -> dict:
+    """Decode a slot register pair into its fields."""
+    return {
+        "start_hour": (reg1 >> 8) & 0x1F,
+        "start_minute": reg1 & 0xFF,
+        "end_hour": (reg2 >> 8) & 0x1F,
+        "end_minute": reg2 & 0xFF,
+        "priority": (reg1 >> 13) & 0x3,
+        "enabled": bool((reg1 >> 15) & 0x1),
+    }
+
+
+def apply_time_slot_field(reg1: int, reg2: int, **changes) -> tuple[int, int]:
+    """Return new (reg1, reg2) with `changes` applied to the decoded fields."""
+    fields = decode_time_slot(reg1, reg2)
+    fields.update(changes)
+    return encode_time_slot(
+        fields["start_hour"],
+        fields["start_minute"],
+        fields["end_hour"],
+        fields["end_minute"],
+        fields["priority"],
+        fields["enabled"],
+    )
+
+
+def build_time_slot_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
+    """Raw register pair (word1/word2) for each of `count` time-of-use slots."""
+    registers: list[GrowattDeviceRegisters] = []
+    for slot in range(1, count + 1):
+        base = time_slot_register(slot)
+        registers.extend(
+            (
+                GrowattDeviceRegisters(name=f"tou_slot_{slot}_word1", register=base, value_type=int),
+                GrowattDeviceRegisters(name=f"tou_slot_{slot}_word2", register=base + 1, value_type=int),
+            )
+        )
+    return tuple(registers)
+
+
 def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
     """Generate per-module serial-number registers for `count` battery modules.
 

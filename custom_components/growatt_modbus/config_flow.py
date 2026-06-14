@@ -30,6 +30,7 @@ from .API.device_type.base import GrowattDeviceInfo
 from .const import (
     CONF_AC_PHASES,
     CONF_BATTERY_MODULES,
+    CONF_TOU_SLOTS,
     CONF_DC_STRING,
     CONF_LAYER,
     CONF_SERIAL,
@@ -510,6 +511,14 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         min=0, max=10, mode=selector.NumberSelectorMode.BOX
+                    ),
+                ),
+                vol.Required(
+                    CONF_TOU_SLOTS,
+                    default=current.get(CONF_TOU_SLOTS, 0),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0, max=9, mode=selector.NumberSelectorMode.BOX
                     ),
                 ),
             }

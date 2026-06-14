@@ -32,6 +32,7 @@ from .device_type.storage_120 import (
     STORAGE_INPUT_REGISTERS_120,
     BATTERY_MODULE_COUNT_REGISTER,
     build_battery_module_registers,
+    build_time_slot_registers,
 )
 
 _STORAGE_TYPES = (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120)
@@ -80,12 +81,13 @@ _REGISTER_SETS: dict[
 
 
 def get_register_information(
-    device_type: DeviceTypes, battery_modules: int = 0
+    device_type: DeviceTypes, battery_modules: int = 0, tou_slots: int = 0
 ) -> DeviceRegisters:
     """Build the holding/input register maps for the given device type.
 
-    When ``battery_modules`` > 0 (storage/hybrid only) per-module telemetry
-    registers are appended for that many parallel battery modules.
+    When ``battery_modules`` > 0 (storage/hybrid only) per-module serial
+    registers are appended; when ``tou_slots`` > 0 the time-of-use slot
+    registers are appended.
     """
     try:
         holding_registers, input_register_sets, max_length = _REGISTER_SETS[device_type]
@@ -98,10 +100,14 @@ def get_register_information(
     for register_set in input_register_sets:
         input_register.update({obj.register: obj for obj in register_set})
 
-    if battery_modules and device_type in _STORAGE_TYPES:
-        # Per-module serial numbers live in the 5400+ holding block.
-        for obj in build_battery_module_registers(battery_modules):
-            holding_register[obj.register] = obj
+    if device_type in _STORAGE_TYPES:
+        if battery_modules:
+            # Per-module serial numbers live in the 5400+ holding block.
+            for obj in build_battery_module_registers(battery_modules):
+                holding_register[obj.register] = obj
+        if tou_slots:
+            for obj in build_time_slot_registers(tou_slots):
+                holding_register[obj.register] = obj
 
     return DeviceRegisters(holding_register, input_register, max_length)
 
@@ -117,13 +123,17 @@ class GrowattDevice:
         GrowattDeviceType: DeviceTypes,
         unit: int,
         battery_modules: int = 0,
+        tou_slots: int = 0,
     ) -> None:
         self.modbus = GrowattModbusClient
         self.device = GrowattDeviceType
         self.battery_modules = battery_modules
+        self.tou_slots = tou_slots
         self._input_cache = LRUCache(10)
 
-        self.device_registers = get_register_information(GrowattDeviceType, battery_modules)
+        self.device_registers = get_register_information(
+            GrowattDeviceType, battery_modules, tou_slots
+        )
         self.max_length = self.device_registers.max_length
         self.holding_register = self.device_registers.holding
         self.input_register = self.device_registers.input
@@ -152,7 +162,9 @@ class GrowattDevice:
     def set_battery_modules(self, count: int) -> None:
         """Rebuild the register map for `count` battery modules."""
         self.battery_modules = count
-        self.device_registers = get_register_information(self.device, count)
+        self.device_registers = get_register_information(
+            self.device, count, self.tou_slots
+        )
         self.max_length = self.device_registers.max_length
         self.holding_register = self.device_registers.holding
         self.input_register = self.device_registers.input

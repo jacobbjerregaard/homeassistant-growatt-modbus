@@ -49,6 +49,7 @@ from .const import (
     CONF_POWER_SCAN_ENABLED,
     CONF_POWER_SCAN_INTERVAL,
     CONF_BATTERY_MODULES,
+    CONF_TOU_SLOTS,
     DOMAIN,
     PLATFORMS,
 )
@@ -95,8 +96,11 @@ async def async_setup_entry(
             CONF_BATTERY_MODULES, entry.data.get(CONF_BATTERY_MODULES, 0)
         )
     )
+    tou_slots = int(
+        entry.options.get(CONF_TOU_SLOTS, entry.data.get(CONF_TOU_SLOTS, 0))
+    )
     device = GrowattDevice(
-        device_layer, device_type, entry.data[CONF_ADDRESS], battery_modules
+        device_layer, device_type, entry.data[CONF_ADDRESS], battery_modules, tou_slots
     )
 
     await device.connect()
@@ -283,6 +287,8 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
         return self.growatt_api.get_holding_register_by_name(name)
     async def write_register(self, register, payload):
         await self.growatt_api.write_register(register, payload)
+    async def write_register_value(self, register, value):
+        await self.growatt_api.write_register_value(register, value)
 
 
 # Config entry whose runtime_data holds the device and its coordinators.

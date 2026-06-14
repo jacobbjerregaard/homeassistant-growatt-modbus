@@ -75,11 +75,13 @@
           "scan_interval": "General update interval",
           "power_scan_enabled": "Enable power update interval",
           "power_scan_interval": "Power update interval",
-          "battery_modules": "Number of battery modules"
+          "battery_modules": "Number of battery modules",
+          "time_of_use_slots": "Number of time-of-use slots"
         },
         "data_description": {
           "power_scan_enabled": "Allows a higher update rate of the various power values of your device.",
-          "battery_modules": "Number of battery modules to expose per-module serial sensors for (0 = auto-detect from the inverter)."
+          "battery_modules": "Number of battery modules to expose per-module serial sensors for (0 = auto-detect from the inverter).",
+          "time_of_use_slots": "Number of battery charge/discharge time slots (1-9) to expose as editable start/end time, priority and enable entities (0 = none)."
         }
       }
     }
