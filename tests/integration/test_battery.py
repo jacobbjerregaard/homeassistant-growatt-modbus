@@ -33,15 +33,17 @@ async def test_bms_detail_sensors(hass, setup_storage):
     assert _state(hass, entry, "storage_fault_code") == "7"
 
 
-async def test_per_battery_module_sensors(hass, setup_storage_modules):
+async def test_per_battery_module_serial_sensors(hass, setup_storage_modules):
     entry, fake = setup_storage_modules
-    fake.registers[4014] = 88    # module 1 SOC (4008 + 6)
-    fake.registers[4012] = 5200  # module 1 voltage 0.01V -> 52.0 (4008 + 4)
-    fake.registers[4122] = 77    # module 2 SOC (4116 + 6)
+    # Module 1 serial "TESTSN01" at holding 5400 (2 ASCII chars per register).
+    for addr, word in {5400: 0x5445, 5401: 0x5354, 5402: 0x534E, 5403: 0x3031}.items():
+        fake.registers[addr] = word
+    # Module 2 serial "MOD2" at holding 5440.
+    for addr, word in {5440: 0x4D4F, 5441: 0x4432}.items():
+        fake.registers[addr] = word
 
     await entry.runtime_data.main_coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    assert _state(hass, entry, "battery_module_1_soc") == "88"
-    assert float(_state(hass, entry, "battery_module_1_voltage")) == 52.0
-    assert _state(hass, entry, "battery_module_2_soc") == "77"
+    assert _state(hass, entry, "battery_module_1_serial_number") == "TESTSN01"
+    assert _state(hass, entry, "battery_module_2_serial_number") == "MOD2"

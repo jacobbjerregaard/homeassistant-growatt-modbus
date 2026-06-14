@@ -80,24 +80,28 @@ def bms_status(register) -> str:
     }.get(register, f"Unknown value: {register}")
 
 
-# Per-parallel-BDC ("battery module") telemetry block. Each module occupies 108
-# registers starting at 4000; the first 8 are the serial number, the next 69
-# mirror the aggregate data block at input 3165-3233. So module n's data block
-# starts at 4008 + (n-1)*108, and a field at aggregate address A is at that base
-# plus (A - 3165). See "BDC and BMS information" in the V1.39 spec.
-_MODULE_BLOCK_BASE = 4000
-_MODULE_BLOCK_SIZE = 108
-_MODULE_DATA_OFFSET = 8  # serial number occupies the first 8 registers
-_MODULE_AGGREGATE_BASE = 3165
+# Per-module info block ("Special for APX", holding registers): battery module n
+# occupies 40 registers at 5400 + (n-1)*40, the first 8 of which are the 16-char
+# serial number. The protocol exposes per-module *identity* here (serial,
+# software versions, manufacturer) but no per-module live telemetry - the live
+# voltage/temperature/SOC values are battery-system aggregates (3165-3233 block).
+_MODULE_INFO_BASE = 5400
+_MODULE_INFO_STRIDE = 40
+_MODULE_SERIAL_LENGTH = 8  # registers (16 ASCII characters)
 
-# (aggregate address, name suffix, value_type, scale, signed)
-_BATTERY_MODULE_FIELDS = (
-    (3169, "voltage", float, 100, False),
-    (3170, "current", float, 10, True),
-    (3171, "soc", int, 10, False),
-    (3176, "temperature", float, 10, True),
-    (3222, "soh", int, 10, False),
-)
+# Holding register reporting the number of battery modules.
+BATTERY_MODULE_COUNT_REGISTER = 185
+
+
+def module_serial(registers) -> str:
+    """Decode a module serial number, dropping padding nulls/whitespace."""
+    chars: list[str] = []
+    for value in registers:
+        if value is None:
+            continue
+        chars.append(chr(value >> 8))
+        chars.append(chr(value & 0x00FF))
+    return "".join(chars).replace("\x00", "").strip()
 
 
 # Battery charge/discharge time slots 1-9. Each slot is a register pair:
@@ -136,20 +140,22 @@ def encode_time_slot(
 
 
 def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
-    """Generate per-module input registers for `count` parallel battery modules."""
+    """Generate per-module serial-number registers for `count` battery modules.
+
+    Surfacing the serial lets each physical module be tracked over time even
+    though the protocol has no per-module live telemetry.
+    """
     registers: list[GrowattDeviceRegisters] = []
     for module in range(1, count + 1):
-        base = _MODULE_BLOCK_BASE + (module - 1) * _MODULE_BLOCK_SIZE + _MODULE_DATA_OFFSET
-        for aggregate_addr, suffix, value_type, scale, signed in _BATTERY_MODULE_FIELDS:
-            registers.append(
-                GrowattDeviceRegisters(
-                    name=f"battery_module_{module}_{suffix}",
-                    register=base + (aggregate_addr - _MODULE_AGGREGATE_BASE),
-                    value_type=value_type,
-                    scale=scale,
-                    signed=signed,
-                )
+        registers.append(
+            GrowattDeviceRegisters(
+                name=f"battery_module_{module}_serial_number",
+                register=_MODULE_INFO_BASE + (module - 1) * _MODULE_INFO_STRIDE,
+                value_type=custom_function,
+                length=_MODULE_SERIAL_LENGTH,
+                function=module_serial,
             )
+        )
     return tuple(registers)
 def model(registers) -> str:
     mo = (registers[0] << 16) + registers[1]

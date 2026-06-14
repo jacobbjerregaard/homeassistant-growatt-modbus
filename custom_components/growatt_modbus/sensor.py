@@ -40,7 +40,6 @@ from .sensor_types.storage import (
 )
 from .const import (
     CONF_AC_PHASES,
-    CONF_BATTERY_MODULES,
     CONF_DC_STRING,
     CONF_FIRMWARE,
     CONF_SERIAL_NUMBER,
@@ -91,14 +90,8 @@ async def async_setup_entry(
 
             sensor_descriptions.append(sensor)
 
-        # Per-battery-module sensors (opt-in via the battery_modules option).
-        battery_modules = int(
-            config_entry.options.get(
-                CONF_BATTERY_MODULES,
-                config_entry.data.get(CONF_BATTERY_MODULES, 0),
-            )
-        )
-        for sensor in build_battery_module_sensor_types(battery_modules):
+        # Per-module serial sensors (count auto-detected or set in options).
+        for sensor in build_battery_module_sensor_types(device.battery_modules):
             if sensor.key in supported_key_names:
                 sensor_descriptions.append(sensor)
 
