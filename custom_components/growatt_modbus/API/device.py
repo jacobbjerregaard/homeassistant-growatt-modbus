@@ -195,6 +195,11 @@ class GrowattDevice:
         _LOGGER.debug("Write register %d with payload %d and unit %d", register, payload, self.unit)
         return await self.modbus.write_register(register, payload, self.unit)
 
+    async def write_register_value(self, register, value):
+        """Write a raw unsigned 16-bit value to a holding register."""
+        _LOGGER.debug("Write register %d with raw value %d and unit %d", register, value, self.unit)
+        return await self.modbus.write_register_value(register, value, self.unit)
+
 
     async def read_holding_register(self, registers: tuple[GrowattDeviceRegisters, ...]) -> dict[str, Any]:
         register = {item.register: item for item in registers}

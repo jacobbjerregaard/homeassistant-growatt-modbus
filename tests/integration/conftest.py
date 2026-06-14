@@ -75,6 +75,11 @@ class FakeModbus:
         self.registers[register] = payload
         return None
 
+    async def write_register_value(self, register, value, unit):
+        self.writes.append((register, value))
+        self.registers[register] = value
+        return None
+
     async def read_device_time(self, unit):
         from datetime import datetime
 

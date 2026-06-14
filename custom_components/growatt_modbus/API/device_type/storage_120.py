@@ -100,6 +100,41 @@ _BATTERY_MODULE_FIELDS = (
 )
 
 
+# Battery charge/discharge time slots 1-9. Each slot is a register pair:
+#   reg1: Bit0-7 start minute | Bit8-12 start hour | Bit13-14 priority | Bit15 enable
+#   reg2: Bit0-7 end minute   | Bit8-12 end hour
+# Slots 1-4 are at 3038/3040/3042/3044; slots 5-9 at 3050/3052/.../3058.
+TIME_SLOT_PRIORITIES = {"load": 0, "battery": 1, "grid": 2}
+
+
+def time_slot_register(slot: int) -> int:
+    """Return the first holding register of time slot `slot` (1-9)."""
+    if 1 <= slot <= 4:
+        return 3038 + (slot - 1) * 2
+    if 5 <= slot <= 9:
+        return 3050 + (slot - 5) * 2
+    raise ValueError(f"time slot must be 1-9, got {slot}")
+
+
+def encode_time_slot(
+    start_hour: int,
+    start_minute: int,
+    end_hour: int,
+    end_minute: int,
+    priority: int,
+    enabled: bool,
+) -> tuple[int, int]:
+    """Encode a time slot into its two register values (reg1, reg2)."""
+    reg1 = (
+        (start_minute & 0xFF)
+        | ((start_hour & 0x1F) << 8)
+        | ((priority & 0x3) << 13)
+        | ((1 if enabled else 0) << 15)
+    )
+    reg2 = (end_minute & 0xFF) | ((end_hour & 0x1F) << 8)
+    return reg1, reg2
+
+
 def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
     """Generate per-module input registers for `count` parallel battery modules."""
     registers: list[GrowattDeviceRegisters] = []
