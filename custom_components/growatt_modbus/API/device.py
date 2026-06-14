@@ -30,7 +30,10 @@ from .device_type.inverter_120 import (
 from .device_type.storage_120 import (
     STORAGE_HOLDING_REGISTERS_120,
     STORAGE_INPUT_REGISTERS_120,
+    build_battery_module_registers,
 )
+
+_STORAGE_TYPES = (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120)
 from .device_type.inverter_315 import (
     MAXIMUM_DATA_LENGTH_315,
     HOLDING_REGISTERS_315,
@@ -75,8 +78,14 @@ _REGISTER_SETS: dict[
 }
 
 
-def get_register_information(device_type: DeviceTypes) -> DeviceRegisters:
-    """Build the holding/input register maps for the given device type."""
+def get_register_information(
+    device_type: DeviceTypes, battery_modules: int = 0
+) -> DeviceRegisters:
+    """Build the holding/input register maps for the given device type.
+
+    When ``battery_modules`` > 0 (storage/hybrid only) per-module telemetry
+    registers are appended for that many parallel battery modules.
+    """
     try:
         holding_registers, input_register_sets, max_length = _REGISTER_SETS[device_type]
     except KeyError:
@@ -87,6 +96,10 @@ def get_register_information(device_type: DeviceTypes) -> DeviceRegisters:
     input_register: dict[int, GrowattDeviceRegisters] = {}
     for register_set in input_register_sets:
         input_register.update({obj.register: obj for obj in register_set})
+
+    if battery_modules and device_type in _STORAGE_TYPES:
+        for obj in build_battery_module_registers(battery_modules):
+            input_register[obj.register] = obj
 
     return DeviceRegisters(holding_register, input_register, max_length)
 
@@ -101,12 +114,14 @@ class GrowattDevice:
         GrowattModbusClient: GrowattModbusBase,
         GrowattDeviceType: DeviceTypes,
         unit: int,
+        battery_modules: int = 0,
     ) -> None:
         self.modbus = GrowattModbusClient
         self.device = GrowattDeviceType
+        self.battery_modules = battery_modules
         self._input_cache = LRUCache(10)
 
-        self.device_registers = get_register_information(GrowattDeviceType)
+        self.device_registers = get_register_information(GrowattDeviceType, battery_modules)
         self.max_length = self.device_registers.max_length
         self.holding_register = self.device_registers.holding
         self.input_register = self.device_registers.input

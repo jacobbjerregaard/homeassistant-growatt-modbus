@@ -47,6 +47,7 @@ from .const import (
     CONF_STOPBITS,
     CONF_POWER_SCAN_ENABLED,
     CONF_POWER_SCAN_INTERVAL,
+    CONF_BATTERY_MODULES,
     DOMAIN,
     PLATFORMS,
 )
@@ -81,8 +82,14 @@ async def async_setup_entry(
         )
         return False
 
+    battery_modules = entry.options.get(
+        CONF_BATTERY_MODULES, entry.data.get(CONF_BATTERY_MODULES, 0)
+    )
     device = GrowattDevice(
-        device_layer, DeviceTypes(entry.data[CONF_TYPE]), entry.data[CONF_ADDRESS]
+        device_layer,
+        DeviceTypes(entry.data[CONF_TYPE]),
+        entry.data[CONF_ADDRESS],
+        int(battery_modules),
     )
 
     await device.connect()

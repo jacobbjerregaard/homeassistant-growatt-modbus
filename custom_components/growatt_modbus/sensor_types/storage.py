@@ -418,3 +418,45 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )
+
+
+def build_battery_module_sensor_types(
+    count: int,
+) -> tuple[GrowattSensorEntityDescription, ...]:
+    """Per-module sensor descriptions; keys match build_battery_module_registers."""
+    types: list[GrowattSensorEntityDescription] = []
+    for n in range(1, count + 1):
+        types.extend(
+            (
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_soc",
+                    name=f"Module {n} SOC",
+                    native_unit_of_measurement=PERCENTAGE,
+                    device_class=SensorDeviceClass.BATTERY,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_voltage",
+                    name=f"Module {n} Voltage",
+                    native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+                    device_class=SensorDeviceClass.VOLTAGE,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_current",
+                    name=f"Module {n} Current",
+                    native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+                    device_class=SensorDeviceClass.CURRENT,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_temperature",
+                    name=f"Module {n} Temperature",
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=SensorDeviceClass.TEMPERATURE,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_soh",
+                    name=f"Module {n} Health (SOH)",
+                    native_unit_of_measurement=PERCENTAGE,
+                ),
+            )
+        )
+    return tuple(types)

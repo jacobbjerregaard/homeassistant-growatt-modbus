@@ -31,3 +31,17 @@ async def test_bms_detail_sensors(hass, setup_storage):
     assert float(_state(hass, entry, "bms_cell_voltage_max")) == 3.34
     assert float(_state(hass, entry, "bms_max_charge_current")) == 50.0
     assert _state(hass, entry, "storage_fault_code") == "7"
+
+
+async def test_per_battery_module_sensors(hass, setup_storage_modules):
+    entry, fake = setup_storage_modules
+    fake.registers[4014] = 88    # module 1 SOC (4008 + 6)
+    fake.registers[4012] = 5200  # module 1 voltage 0.01V -> 52.0 (4008 + 4)
+    fake.registers[4122] = 77    # module 2 SOC (4116 + 6)
+
+    await entry.runtime_data.main_coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert _state(hass, entry, "battery_module_1_soc") == "88"
+    assert float(_state(hass, entry, "battery_module_1_voltage")) == 52.0
+    assert _state(hass, entry, "battery_module_2_soc") == "77"

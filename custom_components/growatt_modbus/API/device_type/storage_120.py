@@ -78,6 +78,44 @@ def bms_status(register) -> str:
         6: "Fault",
         7: "Update",
     }.get(register, f"Unknown value: {register}")
+
+
+# Per-parallel-BDC ("battery module") telemetry block. Each module occupies 108
+# registers starting at 4000; the first 8 are the serial number, the next 69
+# mirror the aggregate data block at input 3165-3233. So module n's data block
+# starts at 4008 + (n-1)*108, and a field at aggregate address A is at that base
+# plus (A - 3165). See "BDC and BMS information" in the V1.39 spec.
+_MODULE_BLOCK_BASE = 4000
+_MODULE_BLOCK_SIZE = 108
+_MODULE_DATA_OFFSET = 8  # serial number occupies the first 8 registers
+_MODULE_AGGREGATE_BASE = 3165
+
+# (aggregate address, name suffix, value_type, scale, signed)
+_BATTERY_MODULE_FIELDS = (
+    (3169, "voltage", float, 100, False),
+    (3170, "current", float, 10, True),
+    (3171, "soc", int, 10, False),
+    (3176, "temperature", float, 10, True),
+    (3222, "soh", int, 10, False),
+)
+
+
+def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
+    """Generate per-module input registers for `count` parallel battery modules."""
+    registers: list[GrowattDeviceRegisters] = []
+    for module in range(1, count + 1):
+        base = _MODULE_BLOCK_BASE + (module - 1) * _MODULE_BLOCK_SIZE + _MODULE_DATA_OFFSET
+        for aggregate_addr, suffix, value_type, scale, signed in _BATTERY_MODULE_FIELDS:
+            registers.append(
+                GrowattDeviceRegisters(
+                    name=f"battery_module_{module}_{suffix}",
+                    register=base + (aggregate_addr - _MODULE_AGGREGATE_BASE),
+                    value_type=value_type,
+                    scale=scale,
+                    signed=signed,
+                )
+            )
+    return tuple(registers)
 def model(registers) -> str:
     mo = (registers[0] << 16) + registers[1]
     return "A{:X} B{:X} D{:X} T{:X} P{:X} U{:X} M{:X} S{:X}".format(
