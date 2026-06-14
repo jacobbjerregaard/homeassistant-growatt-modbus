@@ -5,7 +5,6 @@ Wraps a :class:`GrowattModbusBase` transport and maps the protocol register
 layout for a given device type to named values.
 """
 
-import json
 import logging
 
 from collections.abc import Sequence
@@ -178,14 +177,11 @@ class GrowattDevice:
         return results
 
     async def write_register(self, register, payload):
-        _LOGGER.info("Write register %d with payload %d and unit %d", register, payload, self.unit)
-        data = await self.modbus.write_register(register, payload, self.unit)
-        _LOGGER.info("Write response done")
-        return data
+        _LOGGER.debug("Write register %d with payload %d and unit %d", register, payload, self.unit)
+        return await self.modbus.write_register(register, payload, self.unit)
 
 
     async def read_holding_register(self, registers: tuple[GrowattDeviceRegisters, ...]) -> dict[str, Any]:
-        _LOGGER.info("Read holding registers")
         register = {item.register: item for item in registers}
         key_sequences = keys_sequences(get_keys_from_register(register), self.max_length)
 
@@ -197,7 +193,7 @@ class GrowattDevice:
             )
 
         results = process_registers(register, register_values)
-        _LOGGER.info("Read holding register response %s", json.dumps(results))
+        _LOGGER.debug("Read holding register response %s", results)
         return results
 
     def get_keys_by_name(self, names: Sequence[str]) -> RegisterKeys:
