@@ -141,6 +141,18 @@ class GrowattModbusBase:
         async with self._lock:
             return await self.client.write_register(register, registers, unit)
 
+    async def write_register_value(self, register, value, unit):
+        """Write a raw unsigned 16-bit value (0-65535) to a holding register.
+
+        Unlike write_register this does not clamp to int16, so it can carry
+        bit-packed values such as the time-slot registers (enable bit 15).
+        """
+        registers = self.client.convert_to_registers(
+            value, data_type="uint16", wordorder="big", byteorder="big"
+        )
+        async with self._lock:
+            return await self.client.write_register(register, registers, unit)
+
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
         async with self._lock:
             data = await self.client.read_holding_registers(address=start_index, count=length, device_id=unit)

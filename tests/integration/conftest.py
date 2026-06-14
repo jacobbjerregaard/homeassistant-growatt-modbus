@@ -21,6 +21,7 @@ from homeassistant.const import (
 
 from custom_components.growatt_modbus.const import (
     CONF_AC_PHASES,
+    CONF_BATTERY_MODULES,
     CONF_BAUDRATE,
     CONF_BYTESIZE,
     CONF_DC_STRING,
@@ -74,6 +75,11 @@ class FakeModbus:
         self.registers[register] = payload
         return None
 
+    async def write_register_value(self, register, value, unit):
+        self.writes.append((register, value))
+        self.registers[register] = value
+        return None
+
     async def read_device_time(self, unit):
         from datetime import datetime
 
@@ -84,8 +90,9 @@ class FakeModbus:
         return None
 
 
-def _entry_data() -> dict:
+def _entry_data(battery_modules: int = 0) -> dict:
     return {
+        CONF_BATTERY_MODULES: battery_modules,
         CONF_LAYER: CONF_SERIAL,
         CONF_SERIAL_PORT: "/dev/ttyUSB0",
         CONF_BAUDRATE: 9600,
@@ -111,15 +118,12 @@ def fake_modbus() -> FakeModbus:
     return FakeModbus()
 
 
-@pytest.fixture
-async def setup_storage(hass, fake_modbus):
-    """Set up a storage device backed by the fake transport; yield (entry, fake).
-
-    The GrowattSerial patch stays active for the whole test so a reload also
-    uses the fake transport rather than touching a real serial port.
-    """
+async def _setup(hass, fake_modbus, battery_modules: int):
     entry = MockConfigEntry(
-        domain=DOMAIN, data=_entry_data(), unique_id=TEST_SERIAL, title="Growatt Test"
+        domain=DOMAIN,
+        data=_entry_data(battery_modules),
+        unique_id=TEST_SERIAL,
+        title="Growatt Test",
     )
     entry.add_to_hass(hass)
 
@@ -133,3 +137,21 @@ async def setup_storage(hass, fake_modbus):
         yield entry, fake_modbus
     finally:
         patcher.stop()
+
+
+@pytest.fixture
+async def setup_storage(hass, fake_modbus):
+    """Set up a storage device backed by the fake transport; yield (entry, fake).
+
+    The GrowattSerial patch stays active for the whole test so a reload also
+    uses the fake transport rather than touching a real serial port.
+    """
+    async for value in _setup(hass, fake_modbus, 0):
+        yield value
+
+
+@pytest.fixture
+async def setup_storage_modules(hass, fake_modbus):
+    """Storage device configured with 2 parallel battery modules."""
+    async for value in _setup(hass, fake_modbus, 2):
+        yield value

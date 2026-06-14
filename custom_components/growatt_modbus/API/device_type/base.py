@@ -44,6 +44,19 @@ ATTR_BMS_MAX_SOC = "bms_max_soc"  # input 3196, %
 ATTR_BMS_MIN_SOC = "bms_min_soc"  # input 3197, %
 ATTR_PARALLEL_BATTERY_NUM = "parallel_battery_num"  # input 3198
 
+# Battery / BMS detail and fault registers (Storage input, 3165-3233 block)
+ATTR_STORAGE_FAULT_CODE = "storage_fault_code"  # input 3167
+ATTR_STORAGE_WARNING_CODE = "storage_warning_code"  # input 3168
+ATTR_BMS_DERATE_REASON = "bms_derate_reason"  # input 3199
+ATTR_BMS_STATUS = "bms_status"  # input 3212
+ATTR_BMS_SOC = "bms_soc"  # input 3215, %
+ATTR_BMS_MAX_CHARGE_CURRENT = "bms_max_charge_current"  # input 3219, 0.01A
+ATTR_BMS_MAX_DISCHARGE_CURRENT = "bms_max_discharge_current"  # input 3220, 0.01A
+ATTR_BMS_CYCLE_COUNT = "bms_cycle_count"  # input 3221
+ATTR_BMS_SOH = "bms_soh"  # input 3222, %
+ATTR_BMS_CELL_VOLTAGE_MAX = "bms_cell_voltage_max"  # input 3230, 0.001V
+ATTR_BMS_CELL_VOLTAGE_MIN = "bms_cell_voltage_min"  # input 3231, 0.001V
+
 # Attribute names for values in the input register
 
 ATTR_STATUS = "status"

@@ -52,8 +52,105 @@ from .base import (
     ATTR_BMS_MAX_SOC,
     ATTR_BMS_MIN_SOC,
     ATTR_PARALLEL_BATTERY_NUM,
+    ATTR_STORAGE_FAULT_CODE,
+    ATTR_STORAGE_WARNING_CODE,
+    ATTR_BMS_DERATE_REASON,
+    ATTR_BMS_STATUS,
+    ATTR_BMS_SOC,
+    ATTR_BMS_MAX_CHARGE_CURRENT,
+    ATTR_BMS_MAX_DISCHARGE_CURRENT,
+    ATTR_BMS_CYCLE_COUNT,
+    ATTR_BMS_SOH,
+    ATTR_BMS_CELL_VOLTAGE_MAX,
+    ATTR_BMS_CELL_VOLTAGE_MIN,
 )
 MAXIMUM_DATA_LENGTH = 100
+
+
+def bms_status(register) -> str:
+    return {
+        0: "Dormancy",
+        1: "Charging",
+        2: "Discharging",
+        3: "Free",
+        4: "Standby",
+        5: "Soft start",
+        6: "Fault",
+        7: "Update",
+    }.get(register, f"Unknown value: {register}")
+
+
+# Per-parallel-BDC ("battery module") telemetry block. Each module occupies 108
+# registers starting at 4000; the first 8 are the serial number, the next 69
+# mirror the aggregate data block at input 3165-3233. So module n's data block
+# starts at 4008 + (n-1)*108, and a field at aggregate address A is at that base
+# plus (A - 3165). See "BDC and BMS information" in the V1.39 spec.
+_MODULE_BLOCK_BASE = 4000
+_MODULE_BLOCK_SIZE = 108
+_MODULE_DATA_OFFSET = 8  # serial number occupies the first 8 registers
+_MODULE_AGGREGATE_BASE = 3165
+
+# (aggregate address, name suffix, value_type, scale, signed)
+_BATTERY_MODULE_FIELDS = (
+    (3169, "voltage", float, 100, False),
+    (3170, "current", float, 10, True),
+    (3171, "soc", int, 10, False),
+    (3176, "temperature", float, 10, True),
+    (3222, "soh", int, 10, False),
+)
+
+
+# Battery charge/discharge time slots 1-9. Each slot is a register pair:
+#   reg1: Bit0-7 start minute | Bit8-12 start hour | Bit13-14 priority | Bit15 enable
+#   reg2: Bit0-7 end minute   | Bit8-12 end hour
+# Slots 1-4 are at 3038/3040/3042/3044; slots 5-9 at 3050/3052/.../3058.
+TIME_SLOT_PRIORITIES = {"load": 0, "battery": 1, "grid": 2}
+
+
+def time_slot_register(slot: int) -> int:
+    """Return the first holding register of time slot `slot` (1-9)."""
+    if 1 <= slot <= 4:
+        return 3038 + (slot - 1) * 2
+    if 5 <= slot <= 9:
+        return 3050 + (slot - 5) * 2
+    raise ValueError(f"time slot must be 1-9, got {slot}")
+
+
+def encode_time_slot(
+    start_hour: int,
+    start_minute: int,
+    end_hour: int,
+    end_minute: int,
+    priority: int,
+    enabled: bool,
+) -> tuple[int, int]:
+    """Encode a time slot into its two register values (reg1, reg2)."""
+    reg1 = (
+        (start_minute & 0xFF)
+        | ((start_hour & 0x1F) << 8)
+        | ((priority & 0x3) << 13)
+        | ((1 if enabled else 0) << 15)
+    )
+    reg2 = (end_minute & 0xFF) | ((end_hour & 0x1F) << 8)
+    return reg1, reg2
+
+
+def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
+    """Generate per-module input registers for `count` parallel battery modules."""
+    registers: list[GrowattDeviceRegisters] = []
+    for module in range(1, count + 1):
+        base = _MODULE_BLOCK_BASE + (module - 1) * _MODULE_BLOCK_SIZE + _MODULE_DATA_OFFSET
+        for aggregate_addr, suffix, value_type, scale, signed in _BATTERY_MODULE_FIELDS:
+            registers.append(
+                GrowattDeviceRegisters(
+                    name=f"battery_module_{module}_{suffix}",
+                    register=base + (aggregate_addr - _MODULE_AGGREGATE_BASE),
+                    value_type=value_type,
+                    scale=scale,
+                    signed=signed,
+                )
+            )
+    return tuple(registers)
 def model(registers) -> str:
     mo = (registers[0] << 16) + registers[1]
     return "A{:X} B{:X} D{:X} T{:X} P{:X} U{:X} M{:X} S{:X}".format(
@@ -336,5 +433,39 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     ),
     GrowattDeviceRegisters(
         name=ATTR_PARALLEL_BATTERY_NUM, register=3198, value_type=int
+    ),
+    # --- Battery / BMS detail and fault registers (3165-3233 block) ---
+    GrowattDeviceRegisters(
+        name=ATTR_STORAGE_FAULT_CODE, register=3167, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_STORAGE_WARNING_CODE, register=3168, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_DERATE_REASON, register=3199, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_STATUS, register=3212, value_type=custom_function, function=bms_status
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_SOC, register=3215, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_MAX_CHARGE_CURRENT, register=3219, value_type=float, scale=100
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_MAX_DISCHARGE_CURRENT, register=3220, value_type=float, scale=100
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_CYCLE_COUNT, register=3221, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_SOH, register=3222, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_CELL_VOLTAGE_MAX, register=3230, value_type=float, scale=1000
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_CELL_VOLTAGE_MIN, register=3231, value_type=float, scale=1000
     ),
 )

@@ -34,9 +34,13 @@ from .API.device_type.base import (
 from . import GrowattConfigEntry
 from .sensor_types.sensor_entity_description import GrowattSensorEntityDescription
 from .sensor_types.inverter import INVERTER_SENSOR_TYPES
-from .sensor_types.storage import STORAGE_SENSOR_TYPES
+from .sensor_types.storage import (
+    STORAGE_SENSOR_TYPES,
+    build_battery_module_sensor_types,
+)
 from .const import (
     CONF_AC_PHASES,
+    CONF_BATTERY_MODULES,
     CONF_DC_STRING,
     CONF_FIRMWARE,
     CONF_SERIAL_NUMBER,
@@ -86,6 +90,17 @@ async def async_setup_entry(
                 continue
 
             sensor_descriptions.append(sensor)
+
+        # Per-battery-module sensors (opt-in via the battery_modules option).
+        battery_modules = int(
+            config_entry.options.get(
+                CONF_BATTERY_MODULES,
+                config_entry.data.get(CONF_BATTERY_MODULES, 0),
+            )
+        )
+        for sensor in build_battery_module_sensor_types(battery_modules):
+            if sensor.key in supported_key_names:
+                sensor_descriptions.append(sensor)
 
     if device_type in (DeviceTypes.INVERTER, DeviceTypes.INVERTER_315, DeviceTypes.INVERTER_120):
         power_sensor = (ATTR_INPUT_POWER, ATTR_OUTPUT_POWER)

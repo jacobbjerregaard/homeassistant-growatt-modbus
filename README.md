@@ -37,6 +37,15 @@ exposes:
 * **Additional telemetry**: battery voltage / current, self-consumption power
   and energy (today/total), system output energy (today/total), BMS max/min
   SOC, and parallel battery count.
+* **Battery health**: State of Health (SOH), BMS status, cycle count, cell
+  voltage min/max, charge/discharge current limits, and storage fault/warning
+  codes.
+* **Per-battery-module sensors** (opt-in): set *Number of battery modules* in
+  the integration options to expose per-module SOC, voltage, current,
+  temperature and SOH for multi-module / parallel-battery systems.
+* **Time-slot scheduling**: the `growatt_modbus.set_time_slot` service
+  configures any of the 9 battery charge/discharge time slots (start/end time,
+  priority load/battery/grid, enable).
 
 The writable controls are grouped under *Configuration* on the device page and
 internal readings under *Diagnostic*. A redacted diagnostics download is

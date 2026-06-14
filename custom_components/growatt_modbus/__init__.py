@@ -34,6 +34,7 @@ from .API.utils import RegisterKeys
 from .API.const import DeviceTypes
 from .API.client import GrowattSerial, GrowattNetwork
 from .API.device import GrowattDevice
+from .services import async_setup_services
 from .const import (
     CONF_LAYER,
     CONF_SERIAL,
@@ -47,11 +48,18 @@ from .const import (
     CONF_STOPBITS,
     CONF_POWER_SCAN_ENABLED,
     CONF_POWER_SCAN_INTERVAL,
+    CONF_BATTERY_MODULES,
     DOMAIN,
     PLATFORMS,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup(hass: HomeAssistant, config) -> bool:
+    """Register integration-level services once."""
+    async_setup_services(hass)
+    return True
 
 
 async def async_setup_entry(
@@ -81,8 +89,14 @@ async def async_setup_entry(
         )
         return False
 
+    battery_modules = entry.options.get(
+        CONF_BATTERY_MODULES, entry.data.get(CONF_BATTERY_MODULES, 0)
+    )
     device = GrowattDevice(
-        device_layer, DeviceTypes(entry.data[CONF_TYPE]), entry.data[CONF_ADDRESS]
+        device_layer,
+        DeviceTypes(entry.data[CONF_TYPE]),
+        entry.data[CONF_ADDRESS],
+        int(battery_modules),
     )
 
     await device.connect()
