@@ -72,6 +72,11 @@ from ..API.device_type.base import (
     ATTR_BMS_SOH,
     ATTR_BMS_CELL_VOLTAGE_MAX,
     ATTR_BMS_CELL_VOLTAGE_MIN,
+    ATTR_FIRMWARE,
+    ATTR_CONTROL_FIRMWARE,
+    ATTR_DSP_FIRMWARE,
+    ATTR_BDC_FIRMWARE,
+    ATTR_BMS_FIRMWARE,
 )
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(
@@ -417,6 +422,32 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="BMS Derate Reason",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    # --- Firmware readouts ---
+    GrowattSensorEntityDescription(
+        key=ATTR_FIRMWARE,
+        name="Firmware",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_CONTROL_FIRMWARE,
+        name="Control Firmware",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_DSP_FIRMWARE,
+        name="DSP Firmware",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BDC_FIRMWARE,
+        name="BDC Firmware",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_BMS_FIRMWARE,
+        name="BMS Firmware",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 )
 
 
@@ -428,11 +459,25 @@ def build_battery_module_sensor_types(
     The protocol exposes per-module identity (serial) but no per-module live
     telemetry, so each module gets a serial-number sensor for tracking.
     """
-    return tuple(
-        GrowattSensorEntityDescription(
-            key=f"battery_module_{n}_serial_number",
-            name=f"Module {n} Serial Number",
-            entity_category=EntityCategory.DIAGNOSTIC,
+    types: list[GrowattSensorEntityDescription] = []
+    for n in range(1, count + 1):
+        types.extend(
+            (
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_serial_number",
+                    name=f"Module {n} Serial Number",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_dsp_firmware",
+                    name=f"Module {n} DSP Firmware",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_mcu_firmware",
+                    name=f"Module {n} MCU Firmware",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+            )
         )
-        for n in range(1, count + 1)
-    )
+    return tuple(types)
