@@ -52,6 +52,7 @@ class FakeModbus:
         # defaultdict(int) -> unknown registers read as 0
         self.registers: dict[int, int] = defaultdict(int)
         self.writes: list[tuple[int, int]] = []
+        self.time_writes: list[tuple] = []
 
     async def connect(self):
         return None
@@ -71,6 +72,15 @@ class FakeModbus:
     async def write_register(self, register, payload, unit):
         self.writes.append((register, payload))
         self.registers[register] = payload
+        return None
+
+    async def read_device_time(self, unit):
+        from datetime import datetime
+
+        return datetime(2024, 1, 1, 0, 0, 0)
+
+    async def write_device_time(self, year, month, day, hour, minute, second, unit):
+        self.time_writes.append((year, month, day, hour, minute, second, unit))
         return None
 
 

@@ -139,7 +139,7 @@ class GrowattDevice:
         device_time = await self.modbus.read_device_time(self.unit)
         time = datetime.now()
         await self.modbus.write_device_time(
-            time.year, time.month, time.day, time.hour, time.minute, time.second
+            time.year, time.month, time.day, time.hour, time.minute, time.second, self.unit
         )
 
         return time - device_time

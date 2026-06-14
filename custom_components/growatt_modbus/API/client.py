@@ -96,38 +96,40 @@ class GrowattModbusBase:
         return device_info
 
     async def read_device_time(self, unit: int):
-        """
-        Read Growatt device time.
-        """
-        # TODO: update with dynamic register values
+        """Read the device clock from holding registers 45-50 (SysYear..SysSec)."""
         async with self._lock:
-            rhr = await self.client.read_holding_registers(address=45, count=6, slave=unit)
+            rhr = await self.client.read_holding_registers(address=45, count=6, device_id=unit)
         if rhr.isError():
             _LOGGER.debug("Modbus read failed for rhr")
             raise ModbusException("Modbus read failed for rhr.")
 
+        # SysYear is stored with a 2000 offset (year - 2000). See note in
+        # write_device_time about the V1.39 "Year offset is 0" ambiguity.
         return datetime(
-            rhr.register[0] + 2000,
-            rhr.register[1],
-            rhr.register[2],
-            rhr.register[3],
-            rhr.register[4],
-            rhr.register[5],
+            rhr.registers[0] + 2000,
+            rhr.registers[1],
+            rhr.registers[2],
+            rhr.registers[3],
+            rhr.registers[4],
+            rhr.registers[5],
         )
 
     async def write_device_time(
-        self, year: int, month: int, day: int, hour: int, minute: int, second: int
+        self, year: int, month: int, day: int, hour: int, minute: int, second: int, unit: int
     ):
-        """Writing current date/time to device."""
-        # TODO: test if it works with current asyc libary
-        # TODO: update with dynamic register values
+        """Write current date/time to the device (holding registers 45-50).
+
+        SysYear is written as ``year - 2000`` to match read_device_time. The
+        V1.39 spec annotates SysYear as "Year offset is 0", which is ambiguous;
+        if a device shows a wrong year after a sync, this offset is the knob.
+        """
         async with self._lock:
-            await self.client.write_register(45, year - 2000)
-            await self.client.write_register(46, month)
-            await self.client.write_register(47, day)
-            await self.client.write_register(48, hour)
-            await self.client.write_register(49, minute)
-            await self.client.write_register(50, second)
+            await self.client.write_register(45, year - 2000, device_id=unit)
+            await self.client.write_register(46, month, device_id=unit)
+            await self.client.write_register(47, day, device_id=unit)
+            await self.client.write_register(48, hour, device_id=unit)
+            await self.client.write_register(49, minute, device_id=unit)
+            await self.client.write_register(50, second, device_id=unit)
 
     async def write_register(self, register, payload, unit) :
         registers = self.client.convert_to_registers(
