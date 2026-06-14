@@ -10,6 +10,7 @@ from homeassistant.const import (
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
+    EntityCategory,
     PERCENTAGE,
 )
 from .sensor_entity_description import GrowattSensorEntityDescription
@@ -249,10 +250,12 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_BDC_DATA_FLAG,
         name="BDC Data Flag",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BDC_DERATING_MODE,
         name="BDC Derating Mode",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BMS_TEMPERATURE_A,
@@ -269,6 +272,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_PACK_NUMBER,
         name="Battery pack number ",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     # --- Telemetry added in Protocol II V1.39 ---
     GrowattSensorEntityDescription(
@@ -323,14 +327,17 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_BMS_MAX_SOC,
         name="BMS Max SOC",
         native_unit_of_measurement=PERCENTAGE,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BMS_MIN_SOC,
         name="BMS Min SOC",
         native_unit_of_measurement=PERCENTAGE,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_PARALLEL_BATTERY_NUM,
         name="Parallel Battery Count",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )

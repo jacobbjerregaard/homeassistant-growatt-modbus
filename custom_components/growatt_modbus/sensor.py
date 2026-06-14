@@ -124,6 +124,8 @@ async def async_setup_entry(
 class GrowattDeviceEntity(CoordinatorEntity, RestoreEntity, SensorEntity):
     """An entity using CoordinatorEntity."""
 
+    _attr_has_entity_name = True
+
     def __init__(self, coordinator, description, entry):
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator, description.key)
@@ -138,9 +140,6 @@ class GrowattDeviceEntity(CoordinatorEntity, RestoreEntity, SensorEntity):
             name=entry.data[CONF_NAME],
         )
 
-    @property
-    def name(self):
-        return f"{self._config_entry.data[CONF_NAME]} {self.entity_description.name}"
     @property
     def unique_id(self) -> Optional[str]:
         return f"{DOMAIN}_{self._config_entry.data[CONF_SERIAL_NUMBER]}_{self.entity_description.key}"

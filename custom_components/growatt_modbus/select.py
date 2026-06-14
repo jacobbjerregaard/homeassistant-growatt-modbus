@@ -12,6 +12,7 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.const import (
     CONF_MODEL,
     CONF_NAME,
+    EntityCategory,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
@@ -59,6 +60,9 @@ async def async_setup_entry(
 class GrowattSelect(CoordinatorEntity, SelectEntity):
     """A writable Growatt enumerated holding-register select."""
 
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
+
     def __init__(self, coordinator, description, entry):
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator, description.key)
@@ -75,10 +79,6 @@ class GrowattSelect(CoordinatorEntity, SelectEntity):
             sw_version=entry.data[CONF_FIRMWARE],
             name=entry.data[CONF_NAME],
         )
-
-    @property
-    def name(self) -> str:
-        return f"{self._config_entry.data[CONF_NAME]} {self.entity_description.name}"
 
     @property
     def unique_id(self) -> Optional[str]:

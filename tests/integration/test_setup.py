@@ -1,4 +1,5 @@
 """Integration test: config-entry setup creates the expected entities."""
+from homeassistant.const import EntityCategory
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.growatt_modbus.const import DOMAIN
@@ -24,6 +25,30 @@ async def test_storage_entities_created(hass, setup_storage):
     assert uid("grid_first_stop_soc") in by_uid  # number
     assert uid("battery_type") in by_uid         # select
     assert uid("ac_charge_enabled") in by_uid    # switch
+
+
+async def test_entity_categories_and_naming(hass, setup_storage):
+    entry, _fake = setup_storage
+    registry = er.async_get(hass)
+    by_uid = {
+        e.unique_id: e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+
+    def uid(key: str) -> str:
+        return f"{DOMAIN}_{entry.unique_id}_{key}"
+
+    # Controls are configuration entities.
+    assert by_uid[uid("grid_first_stop_soc")].entity_category == EntityCategory.CONFIG
+    assert by_uid[uid("battery_type")].entity_category == EntityCategory.CONFIG
+    # Internal readings are diagnostic.
+    assert by_uid[uid("parallel_battery_num")].entity_category == EntityCategory.DIAGNOSTIC
+    # Primary telemetry has no category.
+    assert by_uid[uid("soc")].entity_category is None
+
+    # has_entity_name: friendly name is "<device name> <entity name>".
+    soc = hass.states.get(by_uid[uid("soc")].entity_id)
+    assert soc.attributes["friendly_name"] == "Growatt Test SOC"
 
 
 async def test_unload_entry(hass, setup_storage):
