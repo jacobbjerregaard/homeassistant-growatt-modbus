@@ -7,6 +7,7 @@ from growatt_api.const import DeviceTypes
 from growatt_api.device import GrowattDevice, get_register_information
 from growatt_api.device_type.storage_120 import (
     build_battery_module_registers,
+    build_battery_module_input_registers,
     decode_ascii,
     firmware_code_version,
 )
@@ -26,6 +27,19 @@ def test_module_register_addresses():
     assert regs["battery_module_1_dsp_firmware"] == 5408
     assert regs["battery_module_1_mcu_firmware"] == 5411
     assert regs["battery_module_2_serial_number"] == 5440  # +40 stride
+
+
+def test_module_telemetry_addresses():
+    regs = {r.name: r.register for r in build_battery_module_input_registers(2)}
+    assert regs["battery_module_1_soc"] == 5081
+    assert regs["battery_module_1_voltage"] == 5083
+    assert regs["battery_module_1_temperature_max"] == 5090
+    assert regs["battery_module_2_soc"] == 5121  # +40 stride
+    current = next(
+        r for r in build_battery_module_input_registers(1)
+        if r.name == "battery_module_1_current"
+    )
+    assert current.signed is True  # charge/discharge
 
 
 def test_decode_ascii_strips_padding():

@@ -32,6 +32,7 @@ from .device_type.storage_120 import (
     STORAGE_INPUT_REGISTERS_120,
     BATTERY_MODULE_COUNT_REGISTER,
     build_battery_module_registers,
+    build_battery_module_input_registers,
     build_time_slot_registers,
 )
 
@@ -102,9 +103,12 @@ def get_register_information(
 
     if device_type in _STORAGE_TYPES:
         if battery_modules:
-            # Per-module serial numbers live in the 5400+ holding block.
+            # Per-module serial/firmware in the 5400+ holding block, and live
+            # telemetry (SOC, voltage, etc.) in the 5080+ input block.
             for obj in build_battery_module_registers(battery_modules):
                 holding_register[obj.register] = obj
+            for obj in build_battery_module_input_registers(battery_modules):
+                input_register[obj.register] = obj
         if tou_slots:
             for obj in build_time_slot_registers(tou_slots):
                 holding_register[obj.register] = obj
