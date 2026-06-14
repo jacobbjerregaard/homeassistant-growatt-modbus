@@ -13,6 +13,12 @@ ATTR_NUMBER_OF_TRACKERS_AND_PHASES = "number of trackers and phases"
 ATTR_MODBUS_VERSION = "modbus version"
 ATTR_BATTERY_NUMBER_OF_MODULES = "battery_number_of_modules"
 
+# Additional firmware versions (Storage holding registers)
+ATTR_CONTROL_FIRMWARE = "control_firmware"  # holding 12-14
+ATTR_DSP_FIRMWARE = "dsp_firmware"  # holding 3099
+ATTR_BDC_FIRMWARE = "bdc_firmware"  # holding 3096
+ATTR_BMS_FIRMWARE = "bms_firmware"  # holding 3105
+
 # Attribute names for values in the holding register (Storage)
 ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST = "battery_discharge_rate_when_grid_first"
 ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST = "battery_charge_rate_when_first"

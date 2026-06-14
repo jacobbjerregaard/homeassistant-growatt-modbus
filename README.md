@@ -49,6 +49,8 @@ exposes:
 * **Time-slot scheduling**: the `growatt_modbus.set_time_slot` service
   configures any of the 9 battery charge/discharge time slots (start/end time,
   priority load/battery/grid, enable).
+* **Firmware readouts** (diagnostic): inverter, control, DSP, BDC and BMS
+  firmware versions, plus per-module DSP/MCU firmware where available.
 
 The writable controls are grouped under *Configuration* on the device page and
 internal readings under *Diagnostic*. A redacted diagnostics download is

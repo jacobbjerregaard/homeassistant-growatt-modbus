@@ -8,6 +8,10 @@ from .base import (
     ATTR_BATTERY_NUMBER_OF_MODULES,
     ATTR_INVERTER_MODEL,
     ATTR_MODBUS_VERSION,
+    ATTR_CONTROL_FIRMWARE,
+    ATTR_DSP_FIRMWARE,
+    ATTR_BDC_FIRMWARE,
+    ATTR_BMS_FIRMWARE,
     ATTR_SOC_PERCENTAGE,
     ATTR_DISCHARGE_POWER,
     ATTR_CHARGE_POWER,
@@ -93,8 +97,8 @@ _MODULE_SERIAL_LENGTH = 8  # registers (16 ASCII characters)
 BATTERY_MODULE_COUNT_REGISTER = 185
 
 
-def module_serial(registers) -> str:
-    """Decode a module serial number, dropping padding nulls/whitespace."""
+def decode_ascii(registers) -> str:
+    """Decode register words to an ASCII string, dropping padding/whitespace."""
     chars: list[str] = []
     for value in registers:
         if value is None:
@@ -147,13 +151,30 @@ def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, 
     """
     registers: list[GrowattDeviceRegisters] = []
     for module in range(1, count + 1):
-        registers.append(
-            GrowattDeviceRegisters(
-                name=f"battery_module_{module}_serial_number",
-                register=_MODULE_INFO_BASE + (module - 1) * _MODULE_INFO_STRIDE,
-                value_type=custom_function,
-                length=_MODULE_SERIAL_LENGTH,
-                function=module_serial,
+        base = _MODULE_INFO_BASE + (module - 1) * _MODULE_INFO_STRIDE
+        registers.extend(
+            (
+                GrowattDeviceRegisters(
+                    name=f"battery_module_{module}_serial_number",
+                    register=base,  # 5400: serial number (8 words)
+                    value_type=custom_function,
+                    length=_MODULE_SERIAL_LENGTH,
+                    function=decode_ascii,
+                ),
+                GrowattDeviceRegisters(
+                    name=f"battery_module_{module}_dsp_firmware",
+                    register=base + 8,  # 5408: BatDSPCode
+                    value_type=custom_function,
+                    length=2,
+                    function=decode_ascii,
+                ),
+                GrowattDeviceRegisters(
+                    name=f"battery_module_{module}_mcu_firmware",
+                    register=base + 11,  # 5411: BatMCUCode
+                    value_type=custom_function,
+                    length=2,
+                    function=decode_ascii,
+                ),
             )
         )
     return tuple(registers)
@@ -254,6 +275,22 @@ def netto_meter_energy(registers) -> float:
 STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     FIRMWARE_REGISTER,
     SERIAL_NUMBER_REGISTER,
+    # --- Additional firmware readouts ---
+    GrowattDeviceRegisters(
+        name=ATTR_CONTROL_FIRMWARE, register=12, value_type=custom_function,
+        length=3, function=decode_ascii
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BDC_FIRMWARE, register=3096, value_type=custom_function,
+        length=2, function=decode_ascii
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_DSP_FIRMWARE, register=3099, value_type=custom_function,
+        length=2, function=decode_ascii
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BMS_FIRMWARE, register=3105, value_type=int
+    ),
     GrowattDeviceRegisters(
         name=ATTR_INVERTER_MODEL,
         register=28,
