@@ -163,6 +163,35 @@ class GrowattDevice:
             return 0
         return int(data.get(BATTERY_MODULE_COUNT_REGISTER, 0) or 0)
 
+    async def read_battery_module_serials(self) -> dict[int, str]:
+        """Read each battery module's serial number (holding 5400+ block).
+
+        Returns a ``{slot: serial}`` mapping for the slots that report a
+        non-empty serial. Used to give each module a stable, serial-based
+        identity so its entities and history follow the physical module if the
+        slot order changes.
+        """
+        if not self.battery_modules:
+            return {}
+
+        names = {
+            f"battery_module_{n}_serial_number"
+            for n in range(1, self.battery_modules + 1)
+        }
+        try:
+            data = await self.update(self.get_keys_by_name(names))
+        except Exception:  # noqa: BLE001 - any modbus failure means "unknown"
+            return {}
+
+        serials: dict[int, str] = {}
+        for n in range(1, self.battery_modules + 1):
+            serial = data.get(f"battery_module_{n}_serial_number")
+            # The string decode keeps NUL padding from unused trailing words.
+            serial = serial.replace("\x00", "").strip() if isinstance(serial, str) else ""
+            if serial:
+                serials[n] = serial
+        return serials
+
     def set_battery_modules(self, count: int) -> None:
         """Rebuild the register map for `count` battery modules."""
         self.battery_modules = count

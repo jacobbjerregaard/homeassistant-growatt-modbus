@@ -160,6 +160,19 @@ async def setup_storage_modules(hass, fake_modbus):
 
 
 @pytest.fixture
+async def setup_storage_modules_serialized(hass, fake_modbus):
+    """Storage with 2 modules that report serials *before* setup, so the
+    per-module entities are grouped under serial-named devices."""
+    # Module 1 serial "MODONE" at holding 5400, module 2 "MODTWO" at 5440.
+    for addr, word in {5400: 0x4D4F, 5401: 0x444F, 5402: 0x4E45}.items():
+        fake_modbus.registers[addr] = word
+    for addr, word in {5440: 0x4D4F, 5441: 0x4454, 5442: 0x574F}.items():
+        fake_modbus.registers[addr] = word
+    async for value in _setup(hass, fake_modbus, 2):
+        yield value
+
+
+@pytest.fixture
 async def setup_storage_tou(hass, fake_modbus):
     """Storage device configured with 2 time-of-use slots."""
     async for value in _setup(hass, fake_modbus, 0, tou_slots=2):

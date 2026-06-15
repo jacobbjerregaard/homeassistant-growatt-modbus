@@ -51,8 +51,10 @@ exposes:
   balance state / hours, cell capacity (effective / min), Ah integral,
   cumulative charge/discharge capacity, cycle count, fault / warning codes and
   subcodes, internal short-circuit / SOX-correction state, and the
-  charge/discharge enable flags. Override the count with the *Number of battery
-  modules* option if auto-detection is wrong.
+  charge/discharge enable flags. Each module's sensors are grouped under their
+  own device, named by the module serial number, so a module keeps its identity
+  and history even if the slot order changes. Override the count with the
+  *Number of battery modules* option if auto-detection is wrong.
 * **Time-of-use scheduling**: set *Number of time-of-use slots* in the options
   to expose each battery charge/discharge slot as editable entities (start/end
   time, priority Load/Battery/Grid First, enable) on the device page. The
