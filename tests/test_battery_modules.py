@@ -7,6 +7,11 @@ from growatt_api.const import DeviceTypes
 from growatt_api.device import GrowattDevice, get_register_information
 from growatt_api.device_type.base import ATTR_BATTERY_CURRENT
 from growatt_api.device_type.storage_120 import (
+    BALANCE_STATE_OPTIONS,
+    BAT_SYS_STATE_OPTIONS,
+    BDC_DERATING_OPTIONS,
+    BMS_STATUS_OPTIONS,
+    MODULE_DERATING_OPTIONS,
     bat_balance_state,
     bat_internal_state,
     bat_soc,
@@ -14,6 +19,7 @@ from growatt_api.device_type.storage_120 import (
     bat_subcode,
     bat_sys_state,
     bdc_derating_mode,
+    bms_status,
     module_derating_mode,
     build_battery_module_registers,
     build_battery_module_input_registers,
@@ -156,6 +162,22 @@ def test_module_derating_mode_text():
     assert module_derating_mode(19) == "Bus voltage too high"
     assert module_derating_mode(25) == "Reserved"
     assert "Unknown" in module_derating_mode(7)
+
+
+def test_enum_options_cover_every_decode_output():
+    # ENUM sensors log a warning if the state is not in their options list, so
+    # every value the decoders can return must be a declared option.
+    assert bat_sys_state(2) in BAT_SYS_STATE_OPTIONS
+    assert bat_sys_state(99) in BAT_SYS_STATE_OPTIONS  # "Unknown"
+    assert bms_status(1) in BMS_STATUS_OPTIONS
+    assert bms_status(99) in BMS_STATUS_OPTIONS
+    assert bat_balance_state(2 << 8)["state"] in BALANCE_STATE_OPTIONS
+    assert bat_balance_state(99 << 8)["state"] in BALANCE_STATE_OPTIONS
+    for value in range(0, 40):
+        assert module_derating_mode(value) in MODULE_DERATING_OPTIONS
+        assert bdc_derating_mode(value) in BDC_DERATING_OPTIONS
+    assert module_derating_mode(999) in MODULE_DERATING_OPTIONS
+    assert bdc_derating_mode(999) in BDC_DERATING_OPTIONS
 
 
 def test_decode_ascii_strips_padding():

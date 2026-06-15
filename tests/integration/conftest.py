@@ -9,6 +9,7 @@ from collections import defaultdict
 from unittest.mock import patch
 
 import pytest
+from pymodbus.exceptions import ConnectionException
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant.const import (
@@ -177,3 +178,27 @@ async def setup_storage_tou(hass, fake_modbus):
     """Storage device configured with 2 time-of-use slots."""
     async for value in _setup(hass, fake_modbus, 0, tou_slots=2):
         yield value
+
+
+@pytest.fixture
+async def setup_unreachable(hass):
+    """Attempt setup against a transport whose connect() always fails."""
+
+    class _FailingConnectModbus(FakeModbus):
+        async def connect(self):
+            raise ConnectionException("unreachable")
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=_entry_data(0),
+        unique_id=TEST_SERIAL,
+        title="Growatt Test",
+    )
+    entry.add_to_hass(hass)
+    with patch(
+        "custom_components.growatt_modbus.GrowattSerial",
+        return_value=_FailingConnectModbus(),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        yield entry

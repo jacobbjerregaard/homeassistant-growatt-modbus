@@ -66,6 +66,11 @@ The writable controls are grouped under *Configuration* on the device page and
 internal readings under *Diagnostic*. A redacted diagnostics download is
 available from the device's three-dot menu for bug reports.
 
+State sensors (system / balance / derating / BMS status) are exposed as
+`enum` device-class entities. If the inverter is unreachable the entities go
+*unavailable* (rather than holding a stale value), and setup retries
+automatically with Home Assistant's normal backoff until the device responds.
+
 Some command registers are model-specific (US / XH variants); on a model that
 does not implement a register it may simply read `0` and ignore writes.
 

@@ -21,12 +21,15 @@ from homeassistant.const import (
 )
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import (
     async_track_time_change,
 )
 
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
+    UpdateFailed,
 )
 
 from .API.device_type.base import GrowattDeviceRegisters
@@ -50,6 +53,7 @@ from .const import (
     CONF_POWER_SCAN_INTERVAL,
     CONF_BATTERY_MODULES,
     CONF_TOU_SLOTS,
+    CONF_SERIAL_NUMBER,
     DOMAIN,
     PLATFORMS,
 )
@@ -61,6 +65,37 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
     """Register integration-level services once."""
     async_setup_services(hass)
     return True
+
+
+async def _async_migrate_module_unique_ids(
+    hass: HomeAssistant, entry: "GrowattConfigEntry", serials: dict[int, str]
+) -> None:
+    """Rename slot-based per-module entity unique_ids to serial-based ones.
+
+    Pre-0.12 per-module entities were ``..._battery_module_<slot>_<field>``.
+    Now that each module is identified by its serial, migrate the registry so
+    the existing entities (and their history) are kept rather than orphaned.
+    """
+    inverter_serial = entry.data[CONF_SERIAL_NUMBER]
+    old_prefix = f"{DOMAIN}_{inverter_serial}_battery_module_"
+
+    @callback
+    def _migrate(entity_entry: er.RegistryEntry) -> dict[str, str] | None:
+        uid = entity_entry.unique_id
+        if not uid.startswith(old_prefix):
+            return None
+        slot_str, sep, field = uid[len(old_prefix):].partition("_")
+        if not sep or not slot_str.isdigit():
+            return None
+        serial = serials.get(int(slot_str))
+        if not serial:
+            return None
+        new_uid = f"{DOMAIN}_{inverter_serial}_module_{serial}_{field}"
+        if new_uid == uid:
+            return None
+        return {"new_unique_id": new_uid}
+
+    await er.async_migrate_entries(hass, entry.entry_id, _migrate)
 
 
 async def async_setup_entry(
@@ -103,7 +138,14 @@ async def async_setup_entry(
         device_layer, device_type, entry.data[CONF_ADDRESS], battery_modules, tou_slots
     )
 
-    await device.connect()
+    try:
+        await device.connect()
+    except (ConnectionException, asyncio.TimeoutError, OSError) as err:
+        # The inverter is unreachable right now (power-cycle, RS485 glitch).
+        # Tell HA to retry setup with its normal backoff instead of failing.
+        raise ConfigEntryNotReady(
+            f"Could not connect to Growatt device: {err}"
+        ) from err
 
     # Auto-detect the battery module count (holding register 185) unless the
     # user pinned it via the options flow.
@@ -116,13 +158,22 @@ async def async_setup_entry(
             device.set_battery_modules(detected)
 
     # Read each module's serial so its entities can be grouped under a
-    # per-module device with a stable, serial-based identity.
+    # per-module device with a stable, serial-based identity. Retry a couple of
+    # times so a transient read failure does not drop every module back to
+    # slot-based naming for the whole session.
     battery_module_serials: dict[int, str] = {}
     if device.battery_modules and device_type in (
         DeviceTypes.HYBRID_120,
         DeviceTypes.STORAGE_120,
     ):
-        battery_module_serials = await device.read_battery_module_serials()
+        for _attempt in range(3):
+            battery_module_serials = await device.read_battery_module_serials()
+            if battery_module_serials:
+                break
+        # Rename any existing slot-based per-module entities to the new
+        # serial-based identity so their history survives the upgrade.
+        if battery_module_serials:
+            await _async_migrate_module_unique_ids(hass, entry, battery_module_serials)
 
     # Options (set via the options flow) override the original setup data.
     scan_interval = entry.options.get(
@@ -223,25 +274,29 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch this coordinator's register set from the device."""
-        status = None
-        data = {}
-
         try:
             data = await self.growatt_api.update(self.keys)
             self._failed_update_count = 0
-        except ConnectionException:
+        except ConnectionException as err:
+            # Periodically attempt a reconnect while the link is down.
             if self._failed_update_count % 60 == 0:
-                _LOGGER.warning("Modbus connection got interupted retrying to reconnect", exc_info=True)
-                await self.growatt_api.connect()
+                _LOGGER.warning(
+                    "Modbus connection got interrupted, retrying to reconnect",
+                    exc_info=True,
+                )
+                try:
+                    await self.growatt_api.connect()
+                except Exception:  # noqa: BLE001 - reconnect is best-effort
+                    pass
             self._failed_update_count += 1
-            status = "not_connected"
-        except asyncio.TimeoutError:
+            # Surface the outage to HA so the entities go unavailable instead
+            # of silently keeping their last (now stale) values.
+            raise UpdateFailed("Modbus connection interrupted") from err
+        except asyncio.TimeoutError as err:
             self._failed_update_count += 1
-            status = "no_response"
+            raise UpdateFailed("No response from the Growatt device") from err
 
-        if status is None:
-            status = self.growatt_api.status(data)
-
+        status = self.growatt_api.status(data)
         if status:
             data["status"] = status
 
