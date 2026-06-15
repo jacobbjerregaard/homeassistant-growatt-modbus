@@ -102,17 +102,40 @@ BATTERY_MODULE_COUNT_REGISTER = 185
 _MODULE_TELEMETRY_BASE = 5080
 _MODULE_TELEMETRY_STRIDE = 40
 
-# (offset from block start, name suffix, value_type, scale, signed)
+
+def bat_sys_state(register) -> str:
+    return {
+        0: "Initialize",
+        1: "Standby",
+        2: "Charging",
+        3: "Discharging",
+        4: "Shutdown",
+        5: "Fault",
+        6: "Update",
+    }.get(register, f"Unknown value: {register}")
+
+
+def bat_soc(register) -> int:  # SOC is replicated in both bytes (Bit15-8 / Bit7-0)
+    return register & 0xFF
+
+
+def bat_soh(register) -> int:  # Bit6-0 = SOH; bit7 = scrap flag
+    return register & 0x7F
+
+
+# (offset from block start, name suffix, value_type, scale, length, signed, function)
 _MODULE_TELEMETRY_FIELDS = (
-    (1, "soc", int, 10, False),                # 5081 BatSOC, 1%
-    (2, "soh", int, 10, False),                # 5082 BatSOH, 1%
-    (3, "voltage", float, 10, False),          # 5083 BatVolt, 0.1V
-    (4, "current", float, 10, True),           # 5084 BatCurrent, 0.1A
-    (5, "power", int, 10, True),               # 5085 BatPower, 1W
-    (8, "cell_voltage_max", float, 1000, False),  # 5088, 0.001V
-    (9, "cell_voltage_min", float, 1000, False),  # 5089, 0.001V
-    (10, "temperature_max", float, 10, True),  # 5090 BatMaxTemp, 0.1C
-    (11, "temperature_min", float, 10, True),  # 5091 BatMinTemp, 0.1C
+    (0, "system_state", custom_function, 1, 1, False, bat_sys_state),  # 5080
+    (1, "soc", custom_function, 1, 1, False, bat_soc),         # 5081 BatSOC, %
+    (2, "soh", custom_function, 1, 1, False, bat_soh),         # 5082 BatSOH, %
+    (3, "voltage", float, 10, 1, False, None),                # 5083 BatVolt, 0.1V
+    (4, "current", float, 10, 1, True, None),                 # 5084 BatCurrent, 0.1A
+    (5, "power", int, 1, 1, True, None),                      # 5085 BatPower, 1W
+    (6, "discharge_energy_total", float, 10, 2, False, None), # 5086-5087, 0.1kWh
+    (8, "cell_voltage_max", float, 1000, 1, False, None),     # 5088, 0.001V
+    (9, "cell_voltage_min", float, 1000, 1, False, None),     # 5089, 0.001V
+    (10, "temperature_max", float, 10, 1, True, None),        # 5090 BatMaxTemp, 0.1C
+    (11, "temperature_min", float, 10, 1, True, None),        # 5091 BatMinTemp, 0.1C
 )
 
 
@@ -121,14 +144,16 @@ def build_battery_module_input_registers(count: int) -> tuple[GrowattDeviceRegis
     registers: list[GrowattDeviceRegisters] = []
     for module in range(1, count + 1):
         base = _MODULE_TELEMETRY_BASE + (module - 1) * _MODULE_TELEMETRY_STRIDE
-        for offset, suffix, value_type, scale, signed in _MODULE_TELEMETRY_FIELDS:
+        for offset, suffix, value_type, scale, length, signed, function in _MODULE_TELEMETRY_FIELDS:
             registers.append(
                 GrowattDeviceRegisters(
                     name=f"battery_module_{module}_{suffix}",
                     register=base + offset,
                     value_type=value_type,
                     scale=scale,
+                    length=length,
                     signed=signed,
+                    function=function,
                 )
             )
     return tuple(registers)

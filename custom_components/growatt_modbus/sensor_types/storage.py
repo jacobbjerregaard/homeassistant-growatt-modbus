@@ -479,6 +479,10 @@ def build_battery_module_sensor_types(
             (
                 # Live telemetry (input 5080+ block).
                 GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_system_state",
+                    name=f"Module {n} State",
+                ),
+                GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_soc",
                     name=f"Module {n} SOC",
                     native_unit_of_measurement=PERCENTAGE,
@@ -508,6 +512,13 @@ def build_battery_module_sensor_types(
                     device_class=SensorDeviceClass.POWER,
                 ),
                 GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_discharge_energy_total",
+                    name=f"Module {n} Discharged (Total)",
+                    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+                    device_class=SensorDeviceClass.ENERGY,
+                    state_class=SensorStateClass.TOTAL_INCREASING,
+                ),
+                GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_temperature_max",
                     name=f"Module {n} Temperature Max",
                     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -526,6 +537,7 @@ def build_battery_module_sensor_types(
                     name=f"Module {n} Cell Voltage Max",
                     native_unit_of_measurement=UnitOfElectricPotential.VOLT,
                     device_class=SensorDeviceClass.VOLTAGE,
+                    suggested_display_precision=3,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
@@ -533,6 +545,7 @@ def build_battery_module_sensor_types(
                     name=f"Module {n} Cell Voltage Min",
                     native_unit_of_measurement=UnitOfElectricPotential.VOLT,
                     device_class=SensorDeviceClass.VOLTAGE,
+                    suggested_display_precision=3,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 # Identity (holding 5400+ block).

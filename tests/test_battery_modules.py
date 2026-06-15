@@ -6,6 +6,9 @@ pytest.importorskip("pymodbus", reason="device.py imports the transport layer")
 from growatt_api.const import DeviceTypes
 from growatt_api.device import GrowattDevice, get_register_information
 from growatt_api.device_type.storage_120 import (
+    bat_soc,
+    bat_soh,
+    bat_sys_state,
     build_battery_module_registers,
     build_battery_module_input_registers,
     decode_ascii,
@@ -40,6 +43,38 @@ def test_module_telemetry_addresses():
         if r.name == "battery_module_1_current"
     )
     assert current.signed is True  # charge/discharge
+
+
+def test_module_new_telemetry_addresses():
+    regs = {r.name: r for r in build_battery_module_input_registers(2)}
+    assert regs["battery_module_1_system_state"].register == 5080
+    # BatTotalDischargeElectric is a u32 (5086-5087), 0.1 kWh.
+    discharge = regs["battery_module_1_discharge_energy_total"]
+    assert discharge.register == 5086
+    assert discharge.length == 2
+    assert discharge.scale == 10
+    # Cell voltages are 0.001 V (scale 1000).
+    assert regs["battery_module_1_cell_voltage_max"].register == 5088
+    assert regs["battery_module_1_cell_voltage_max"].scale == 1000
+    assert regs["battery_module_2_system_state"].register == 5120  # +40 stride
+
+
+def test_bat_sys_state_text():
+    assert bat_sys_state(2) == "Charging"
+    assert bat_sys_state(3) == "Discharging"
+    assert bat_sys_state(99).startswith("Unknown")
+
+
+def test_bat_soc_decodes_low_byte():
+    # 0x5F5F (24415) is SOC replicated in both bytes -> 95%.
+    assert bat_soc(0x5F5F) == 95
+    assert bat_soc(95) == 95
+
+
+def test_bat_soh_masks_scrap_flag():
+    # Bit7 is a scrap flag; SOH is the low 7 bits.
+    assert bat_soh(95) == 95
+    assert bat_soh(0x80 | 95) == 95
 
 
 def test_decode_ascii_strips_padding():
