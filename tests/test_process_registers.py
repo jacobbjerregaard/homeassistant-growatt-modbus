@@ -57,6 +57,22 @@ def test_custom_function_without_function_is_skipped():
     assert process_registers(registers, {10: 5}) == {}
 
 
+def test_custom_function_dict_expands_into_suffixed_keys():
+    # A packed bitfield can decode one register into several named values.
+    registers = {
+        10: _reg(
+            "module_1_flags",
+            10,
+            custom_function,
+            function=lambda v: {"low": v & 0xFF, "high": v >> 8},
+        )
+    }
+    assert process_registers(registers, {10: 0x1234}) == {
+        "module_1_flags_low": 0x34,
+        "module_1_flags_high": 0x12,
+    }
+
+
 def test_unknown_register_address_is_ignored():
     registers = {10: _reg("voltage", 10, float, scale=10)}
     # address 99 has no register definition and must not appear in the result.

@@ -74,6 +74,40 @@ async def test_per_battery_module_live_telemetry(hass, setup_storage_modules):
     assert _state(hass, entry, "battery_module_2_soc") == "73"
 
 
+async def test_per_battery_module_health_detail(hass, setup_storage_modules):
+    entry, fake = setup_storage_modules
+    fake.registers[5094] = (2 << 8) | 6      # balance: Top requested, 6 h left
+    fake.registers[5095] = 1500              # cell capacity 0.1Ah -> 150.0
+    fake.registers[5097] = 11                # fault code
+    fake.registers[5098] = 22                # warning code
+    fake.registers[5099] = 0b11 | (3 << 8) | (5 << 12)  # subcode bitfield
+    fake.registers[5100] = 0                 # charge energy total (u32 hi)
+    fake.registers[5101] = 5000              #   (u32 lo) 0.1kWh -> 500.0
+    fake.registers[5102] = 0                 # discharge capacity total (u32 hi)
+    fake.registers[5103] = 20000             #   (u32 lo) 0.01Ah -> 200.0
+    fake.registers[5108] = 1234              # cycle count 0.1 -> 123.4
+    fake.registers[5109] = (0x12 << 8) | 0x34  # internal state bytes
+    fake.registers[5110] = 19                # derating: Bus voltage too high
+
+    await entry.runtime_data.main_coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert _state(hass, entry, "battery_module_1_balance_state") == "Top requested"
+    assert int(float(_state(hass, entry, "battery_module_1_balance_time_hours"))) == 6
+    assert float(_state(hass, entry, "battery_module_1_cell_capacity")) == 150.0
+    assert _state(hass, entry, "battery_module_1_fault_code") == "11"
+    assert _state(hass, entry, "battery_module_1_warning_code") == "22"
+    assert _state(hass, entry, "battery_module_1_flags_charge_enabled") == "1"
+    assert _state(hass, entry, "battery_module_1_flags_fault_subcode") == "5"
+    assert _state(hass, entry, "battery_module_1_flags_warning_subcode") == "3"
+    assert float(_state(hass, entry, "battery_module_1_charge_energy_total")) == 500.0
+    assert float(_state(hass, entry, "battery_module_1_discharge_capacity_total")) == 200.0
+    assert float(_state(hass, entry, "battery_module_1_cycle_count")) == 123.4
+    assert _state(hass, entry, "battery_module_1_internal_short_circuit") == "18"  # 0x12
+    assert _state(hass, entry, "battery_module_1_internal_sox_correction") == "52"  # 0x34
+    assert _state(hass, entry, "battery_module_1_derating_mode") == "Bus voltage too high"
+
+
 async def test_firmware_sensors(hass, setup_storage):
     entry, fake = setup_storage
     # Control firmware "FW12" at holding 12-14 (ASCII).

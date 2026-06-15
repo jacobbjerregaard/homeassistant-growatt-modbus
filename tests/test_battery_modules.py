@@ -6,9 +6,13 @@ pytest.importorskip("pymodbus", reason="device.py imports the transport layer")
 from growatt_api.const import DeviceTypes
 from growatt_api.device import GrowattDevice, get_register_information
 from growatt_api.device_type.storage_120 import (
+    bat_balance_state,
+    bat_internal_state,
     bat_soc,
     bat_soh,
+    bat_subcode,
     bat_sys_state,
+    module_derating_mode,
     build_battery_module_registers,
     build_battery_module_input_registers,
     decode_ascii,
@@ -75,6 +79,81 @@ def test_bat_soh_masks_scrap_flag():
     # Bit7 is a scrap flag; SOH is the low 7 bits.
     assert bat_soh(95) == 95
     assert bat_soh(0x80 | 95) == 95
+
+
+def test_module_capacity_and_health_addresses():
+    regs = {r.name: r for r in build_battery_module_input_registers(2)}
+    # 5095 BatCellCapacity, 0.1 Ah.
+    assert regs["battery_module_1_cell_capacity"].register == 5095
+    assert regs["battery_module_1_cell_capacity"].scale == 10
+    # Cumulative u32 capacity counters.
+    charge_e = regs["battery_module_1_charge_energy_total"]
+    assert charge_e.register == 5100 and charge_e.length == 2 and charge_e.scale == 10
+    dis_cap = regs["battery_module_1_discharge_capacity_total"]
+    assert dis_cap.register == 5102 and dis_cap.length == 2 and dis_cap.scale == 100
+    chg_cap = regs["battery_module_1_charge_capacity_total"]
+    assert chg_cap.register == 5104 and chg_cap.length == 2 and chg_cap.scale == 100
+    assert regs["battery_module_1_cell_capacity_min"].register == 5106
+    assert regs["battery_module_1_ah_integral"].register == 5107
+    assert regs["battery_module_1_cycle_count"].register == 5108
+    assert regs["battery_module_1_fault_code"].register == 5097
+    assert regs["battery_module_1_warning_code"].register == 5098
+    # +40 stride for module 2.
+    assert regs["battery_module_2_cell_capacity"].register == 5135
+
+
+def test_bat_balance_state_splits_state_and_hours():
+    # Bit15-8 state (2 = Top requested), Bit7-0 balance time = 12 h.
+    decoded = bat_balance_state((2 << 8) | 12)
+    assert decoded == {"state": "Top requested", "time_hours": 12}
+    assert "Unknown" in bat_balance_state(99 << 8)["state"]
+
+
+def test_bat_subcode_splits_flags():
+    # charge+discharge enabled, warning subcode 3, fault subcode 5.
+    decoded = bat_subcode(0b1 | 0b10 | (3 << 8) | (5 << 12))
+    assert decoded == {
+        "charge_enabled": 1,
+        "discharge_enabled": 1,
+        "warning_subcode": 3,
+        "fault_subcode": 5,
+    }
+
+
+def test_bat_internal_state_splits_bytes():
+    decoded = bat_internal_state((0x12 << 8) | 0x34)
+    assert decoded == {"short_circuit": 0x12, "sox_correction": 0x34}
+
+
+def test_multi_value_registers_advertise_sub_names():
+    regs = {r.name: r for r in build_battery_module_input_registers(1)}
+    balance = regs["battery_module_1_balance"]
+    assert balance.value_names == (
+        "battery_module_1_balance_state",
+        "battery_module_1_balance_time_hours",
+    )
+    # Single-value registers do not advertise extra names.
+    assert regs["battery_module_1_soc"].value_names == ()
+
+
+def test_module_sub_names_visible_to_device():
+    info = get_register_information(DeviceTypes.STORAGE_120, battery_modules=1)
+    names = {r.name for r in info.input.values()}
+    sub_names = set()
+    for r in info.input.values():
+        sub_names.update(r.value_names)
+    # The register is keyed under its own name, but exposes the sub-values.
+    assert "battery_module_1_balance" in names
+    assert "battery_module_1_balance_state" in sub_names
+    assert "battery_module_1_flags_fault_subcode" in sub_names
+
+
+def test_module_derating_mode_text():
+    assert module_derating_mode(0) == "No derating"
+    assert module_derating_mode(1) == "Fault"
+    assert module_derating_mode(19) == "Bus voltage too high"
+    assert module_derating_mode(25) == "Reserved"
+    assert "Unknown" in module_derating_mode(7)
 
 
 def test_decode_ascii_strips_padding():
