@@ -51,17 +51,26 @@ async def test_per_battery_module_serial_sensors(hass, setup_storage_modules):
 
 async def test_per_battery_module_live_telemetry(hass, setup_storage_modules):
     entry, fake = setup_storage_modules
-    fake.registers[5081] = 87            # module 1 SOC
+    fake.registers[5080] = 2             # module 1 system state -> Charging
+    fake.registers[5081] = 0x5F5F        # module 1 SOC replicated in both bytes -> 95
     fake.registers[5083] = 522           # module 1 voltage 0.1V -> 52.2
     fake.registers[5084] = (-15) & 0xFFFF  # module 1 current -1.5 A (signed)
-    fake.registers[5121] = 73            # module 2 SOC (5081 + 40)
+    fake.registers[5086] = 0             # module 1 discharged total (u32 hi)
+    fake.registers[5087] = 12345         # module 1 discharged total (u32 lo) 0.1kWh -> 1234.5
+    fake.registers[5088] = 3340          # module 1 cell voltage max 0.001V -> 3.34
+    fake.registers[5089] = 3310          # module 1 cell voltage min 0.001V -> 3.31
+    fake.registers[5121] = 0x5F49        # module 2 SOC (5081 + 40) low byte 0x49 -> 73
 
     await entry.runtime_data.main_coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    assert _state(hass, entry, "battery_module_1_soc") == "87"
+    assert _state(hass, entry, "battery_module_1_system_state") == "Charging"
+    assert _state(hass, entry, "battery_module_1_soc") == "95"
     assert float(_state(hass, entry, "battery_module_1_voltage")) == 52.2
     assert float(_state(hass, entry, "battery_module_1_current")) == -1.5
+    assert float(_state(hass, entry, "battery_module_1_discharge_energy_total")) == 1234.5
+    assert float(_state(hass, entry, "battery_module_1_cell_voltage_max")) == 3.34
+    assert float(_state(hass, entry, "battery_module_1_cell_voltage_min")) == 3.31
     assert _state(hass, entry, "battery_module_2_soc") == "73"
 
 

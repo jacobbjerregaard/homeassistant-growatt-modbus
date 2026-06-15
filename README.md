@@ -42,10 +42,13 @@ exposes:
   voltage min/max, charge/discharge current limits, and storage fault/warning
   codes.
 * **Per-battery-module sensors**: the module count is auto-detected (holding
-  register 185), and each module exposes live telemetry (SOC, SOH, voltage,
-  current, power, cell voltage min/max, temperature min/max) from the 5080+
-  input block, plus identity (serial number, DSP/MCU firmware). Override the
-  count with the *Number of battery modules* option if auto-detection is wrong.
+  register 185), and each module exposes live telemetry (state, SOC, SOH,
+  voltage, current, power, total discharged energy, cell voltage min/max,
+  temperature min/max) from the 5080+ input block, plus identity (serial number,
+  DSP/MCU firmware). The module state is decoded to text
+  (Standby / Charging / Discharging / Fault / …) and cell voltages are shown to
+  millivolt resolution. Override the count with the *Number of battery modules*
+  option if auto-detection is wrong.
 * **Time-of-use scheduling**: set *Number of time-of-use slots* in the options
   to expose each battery charge/discharge slot as editable entities (start/end
   time, priority Load/Battery/Grid First, enable) on the device page. The
