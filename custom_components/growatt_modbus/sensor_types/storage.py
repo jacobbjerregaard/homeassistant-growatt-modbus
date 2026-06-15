@@ -10,6 +10,7 @@ from homeassistant.const import (
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
+    UnitOfTime,
     EntityCategory,
     PERCENTAGE,
 )
@@ -519,6 +520,13 @@ def build_battery_module_sensor_types(
                     state_class=SensorStateClass.TOTAL_INCREASING,
                 ),
                 GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_charge_energy_total",
+                    name=f"Module {n} Charged (Total)",
+                    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+                    device_class=SensorDeviceClass.ENERGY,
+                    state_class=SensorStateClass.TOTAL_INCREASING,
+                ),
+                GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_temperature_max",
                     name=f"Module {n} Temperature Max",
                     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -546,6 +554,102 @@ def build_battery_module_sensor_types(
                     native_unit_of_measurement=UnitOfElectricPotential.VOLT,
                     device_class=SensorDeviceClass.VOLTAGE,
                     suggested_display_precision=3,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                # Balance / capacity / health detail (5094-5110 block).
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_balance_state",
+                    name=f"Module {n} Balance State",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_balance_time_hours",
+                    name=f"Module {n} Balance Time",
+                    native_unit_of_measurement=UnitOfTime.HOURS,
+                    device_class=SensorDeviceClass.DURATION,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_cell_capacity",
+                    name=f"Module {n} Cell Capacity",
+                    native_unit_of_measurement="Ah",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_cell_capacity_min",
+                    name=f"Module {n} Cell Capacity Min",
+                    native_unit_of_measurement="Ah",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_ah_integral",
+                    name=f"Module {n} Ah Integral",
+                    native_unit_of_measurement="Ah",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_discharge_capacity_total",
+                    name=f"Module {n} Discharged Capacity (Total)",
+                    native_unit_of_measurement="Ah",
+                    state_class=SensorStateClass.TOTAL_INCREASING,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_charge_capacity_total",
+                    name=f"Module {n} Charged Capacity (Total)",
+                    native_unit_of_measurement="Ah",
+                    state_class=SensorStateClass.TOTAL_INCREASING,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_cycle_count",
+                    name=f"Module {n} Cycle Count",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_derating_mode",
+                    name=f"Module {n} Derating Mode",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                # Fault / warning detail (5097-5099, 5109 block).
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_fault_code",
+                    name=f"Module {n} Fault Code",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_warning_code",
+                    name=f"Module {n} Warning Code",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_flags_fault_subcode",
+                    name=f"Module {n} Fault Subcode",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_flags_warning_subcode",
+                    name=f"Module {n} Warning Subcode",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_flags_charge_enabled",
+                    name=f"Module {n} Charge Enabled",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_flags_discharge_enabled",
+                    name=f"Module {n} Discharge Enabled",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_internal_short_circuit",
+                    name=f"Module {n} Internal Short-Circuit State",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                ),
+                GrowattSensorEntityDescription(
+                    key=f"battery_module_{n}_internal_sox_correction",
+                    name=f"Module {n} SOX Correction State",
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 # Identity (holding 5400+ block).

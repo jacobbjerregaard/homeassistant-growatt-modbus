@@ -123,6 +123,76 @@ def bat_soh(register) -> int:  # Bit6-0 = SOH; bit7 = scrap flag
     return register & 0x7F
 
 
+_BALANCE_STATES = {
+    0: "Not balancing",
+    1: "Bottom end requested",
+    2: "Top requested",
+    3: "Charge terminal requested",
+    4: "Even channels (parity limited)",
+    5: "Odd channels (parity limited)",
+    6: "Closed (incomplete)",
+    7: "Parity channels (unlimited)",
+    8: "Complete",
+}
+
+
+def bat_balance_state(register) -> dict:  # Bit15-8 state; Bit7-0 balance time (h)
+    state = (register >> 8) & 0xFF
+    return {
+        "state": _BALANCE_STATES.get(state, f"Unknown value: {state}"),
+        "time_hours": register & 0xFF,
+    }
+
+
+def bat_subcode(register) -> dict:
+    # Bit0 charge-enable, Bit1 discharge-enable, Bit8-11 warning subcode,
+    # Bit12-15 fault subcode.
+    return {
+        "charge_enabled": (register >> 0) & 0x1,
+        "discharge_enabled": (register >> 1) & 0x1,
+        "warning_subcode": (register >> 8) & 0xF,
+        "fault_subcode": (register >> 12) & 0xF,
+    }
+
+
+def bat_internal_state(register) -> dict:
+    # Bit15-8 internal short-circuit condition; Bit7-0 SOX correction status.
+    return {
+        "short_circuit": (register >> 8) & 0xFF,
+        "sox_correction": register & 0xFF,
+    }
+
+
+# Per-module (5110) derating enumeration. Distinct from the pack-level
+# bdc_derating_mode (register 3165), which uses a different numbering.
+_MODULE_DERATING_MODES = {
+    0: "No derating",
+    1: "Fault",
+    17: "Max battery discharge current",
+    18: "Battery discharge enabled",
+    19: "Bus voltage too high",
+    20: "Discharge NTC high temperature",
+    21: "Discharge system alarm",
+    22: "Discharge upper computer settings",
+}
+
+
+def module_derating_mode(register) -> str:
+    if 23 <= register <= 32:
+        return "Reserved"
+    return _MODULE_DERATING_MODES.get(register, f"Unknown value: {register}")
+
+
+# Decode functions that expand one register into several named values; the
+# tuple lists the result-key suffixes each produces (kept in sync with the
+# dict returned by the function above).
+_MULTI_VALUE_DECODERS = {
+    bat_balance_state: ("state", "time_hours"),
+    bat_subcode: ("charge_enabled", "discharge_enabled", "warning_subcode", "fault_subcode"),
+    bat_internal_state: ("short_circuit", "sox_correction"),
+}
+
+
 # (offset from block start, name suffix, value_type, scale, length, signed, function)
 _MODULE_TELEMETRY_FIELDS = (
     (0, "system_state", custom_function, 1, 1, False, bat_sys_state),  # 5080
@@ -136,6 +206,19 @@ _MODULE_TELEMETRY_FIELDS = (
     (9, "cell_voltage_min", float, 1000, 1, False, None),     # 5089, 0.001V
     (10, "temperature_max", float, 10, 1, True, None),        # 5090 BatMaxTemp, 0.1C
     (11, "temperature_min", float, 10, 1, True, None),        # 5091 BatMinTemp, 0.1C
+    (14, "balance", custom_function, 1, 1, False, bat_balance_state),  # 5094 state + h
+    (15, "cell_capacity", float, 10, 1, False, None),         # 5095 BatCellCapacity, 0.1Ah
+    (17, "fault_code", int, 1, 1, False, None),               # 5097 BatFaultCode
+    (18, "warning_code", int, 1, 1, False, None),             # 5098 BatWarningCode
+    (19, "flags", custom_function, 1, 1, False, bat_subcode), # 5099 BatSubCode bitfield
+    (20, "charge_energy_total", float, 10, 2, False, None),   # 5100-5101, 0.1kWh
+    (22, "discharge_capacity_total", float, 100, 2, False, None),  # 5102-5103, 0.01Ah
+    (24, "charge_capacity_total", float, 100, 2, False, None),     # 5104-5105, 0.01Ah
+    (26, "cell_capacity_min", float, 10, 1, False, None),     # 5106 BatMinCellCapacity, 0.1Ah
+    (27, "ah_integral", float, 10, 1, False, None),           # 5107 BatAHIntegralValue, 0.1Ah
+    (28, "cycle_count", float, 10, 1, False, None),           # 5108 BatCyclesNumber, 0.1Cyc
+    (29, "internal", custom_function, 1, 1, False, bat_internal_state),  # 5109 BatInternalState
+    (30, "derating_mode", custom_function, 1, 1, False, module_derating_mode),  # 5110 BDCDeratingMode
 )
 
 
@@ -145,15 +228,20 @@ def build_battery_module_input_registers(count: int) -> tuple[GrowattDeviceRegis
     for module in range(1, count + 1):
         base = _MODULE_TELEMETRY_BASE + (module - 1) * _MODULE_TELEMETRY_STRIDE
         for offset, suffix, value_type, scale, length, signed, function in _MODULE_TELEMETRY_FIELDS:
+            name = f"battery_module_{module}_{suffix}"
+            value_names = tuple(
+                f"{name}_{sub}" for sub in _MULTI_VALUE_DECODERS.get(function, ())
+            )
             registers.append(
                 GrowattDeviceRegisters(
-                    name=f"battery_module_{module}_{suffix}",
+                    name=name,
                     register=base + offset,
                     value_type=value_type,
                     scale=scale,
                     length=length,
                     signed=signed,
                     function=function,
+                    value_names=value_names,
                 )
             )
     return tuple(registers)

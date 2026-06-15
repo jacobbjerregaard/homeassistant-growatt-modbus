@@ -292,11 +292,20 @@ def process_registers(
                 continue
 
             if register.length == 1:
-                result[register.name] = register.function(value)
+                decoded = register.function(value)
             else:
-                result[register.name] = register.function([
+                decoded = register.function([
                     register_values.get(i) for i in range(key, key + register.length)
                 ])
+
+            # A custom_function may decode a single register into several named
+            # values (e.g. a packed bitfield) by returning a dict; each entry is
+            # suffixed onto the register name to form its own result key.
+            if isinstance(decoded, dict):
+                for sub_name, sub_value in decoded.items():
+                    result[f"{register.name}_{sub_name}"] = sub_value
+            else:
+                result[register.name] = decoded
 
     return result
 

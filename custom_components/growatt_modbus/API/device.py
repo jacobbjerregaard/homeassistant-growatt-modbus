@@ -263,16 +263,23 @@ class GrowattDevice:
         if ATTR_STATUS in names:
             names = (*names, ATTR_STATUS_CODE, ATTR_FAULT_CODE, ATTR_DERATING_MODE)
 
+        def _wanted(register) -> bool:
+            # A register is requested when its own name is asked for, or when any
+            # of the sub-values it expands into (a packed bitfield) is asked for.
+            return register.name in names or any(
+                vn in names for vn in register.value_names
+            )
+
         return RegisterKeys(
             holding={
                 key
                 for key, register in self.device_registers.holding.items()
-                if register.name in names
+                if _wanted(register)
             },
             input={
                 key
                 for key, register in self.device_registers.input.items()
-                if register.name in names
+                if _wanted(register)
             }
         )
 
@@ -283,8 +290,11 @@ class GrowattDevice:
         return self._holding_by_name.get(name)
 
     def get_register_names(self) -> set[str]:
-        names = {register.name for register in self.input_register.values()}
-        names.update({register.name for register in self.holding_register.values()})
+        names: set[str] = set()
+        for register in (*self.input_register.values(), *self.holding_register.values()):
+            # A register that expands into several named values advertises those
+            # names (so the matching sensors get created) rather than its own.
+            names.update(register.value_names or (register.name,))
 
         names.add(ATTR_STATUS)
 

@@ -203,6 +203,10 @@ class GrowattDeviceRegisters:
     # signed integer (16-bit for length 1, 32-bit for length 2). Needed for
     # quantities that can be negative, e.g. temperatures or reactive power.
     signed: bool = False
+    # The full result keys this register decodes to when its custom_function
+    # expands one register into several named values (a packed bitfield). Empty
+    # means the register produces a single value under ``name``.
+    value_names: tuple[str, ...] = ()
 
 
 @dataclass
