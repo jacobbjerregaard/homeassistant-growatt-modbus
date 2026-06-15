@@ -1,5 +1,5 @@
 """Integration tests for the battery / BMS detail sensors."""
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from custom_components.growatt_modbus.const import DOMAIN
 
@@ -106,6 +106,31 @@ async def test_per_battery_module_health_detail(hass, setup_storage_modules):
     assert _state(hass, entry, "battery_module_1_internal_short_circuit") == "18"  # 0x12
     assert _state(hass, entry, "battery_module_1_internal_sox_correction") == "52"  # 0x34
     assert _state(hass, entry, "battery_module_1_derating_mode") == "Bus voltage too high"
+
+
+async def test_per_module_grouped_under_serial_device(
+    hass, setup_storage_modules_serialized
+):
+    entry, fake = setup_storage_modules_serialized
+    fake.registers[5081] = 0x5F5F  # module 1 SOC -> 95
+    await entry.runtime_data.main_coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
+
+    # The module-1 SOC entity is identified by the module serial, not the slot,
+    # so its identity (and history) survives a slot reorder.
+    uid = f"{DOMAIN}_{entry.unique_id}_module_MODONE_soc"
+    entity_id = ent_reg.async_get_entity_id("sensor", DOMAIN, uid)
+    assert entity_id is not None
+    assert hass.states.get(entity_id).state == "95"
+
+    # It lives under a per-module device named by the serial.
+    entry_obj = ent_reg.async_get(entity_id)
+    device = dev_reg.async_get(entry_obj.device_id)
+    assert device.name == "Module MODONE"
+    assert (DOMAIN, f"{entry.unique_id}_battery_module_MODONE") in device.identifiers
 
 
 async def test_firmware_sensors(hass, setup_storage):

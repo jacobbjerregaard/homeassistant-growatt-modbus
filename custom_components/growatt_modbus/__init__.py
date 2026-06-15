@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import timedelta
 from collections.abc import Callable, Sequence
 from typing import Any
@@ -115,6 +115,15 @@ async def async_setup_entry(
         if detected:
             device.set_battery_modules(detected)
 
+    # Read each module's serial so its entities can be grouped under a
+    # per-module device with a stable, serial-based identity.
+    battery_module_serials: dict[int, str] = {}
+    if device.battery_modules and device_type in (
+        DeviceTypes.HYBRID_120,
+        DeviceTypes.STORAGE_120,
+    ):
+        battery_module_serials = await device.read_battery_module_serials()
+
     # Options (set via the options flow) override the original setup data.
     scan_interval = entry.options.get(
         CONF_SCAN_INTERVAL, entry.data[CONF_SCAN_INTERVAL]
@@ -142,6 +151,7 @@ async def async_setup_entry(
         device=device,
         main_coordinator=main_coordinator,
         power_coordinator=power_coordinator,
+        battery_module_serials=battery_module_serials,
     )
 
     # Reload the entry when the user changes options so new intervals apply.
@@ -176,6 +186,8 @@ class GrowattRuntimeData:
     device: GrowattDevice
     main_coordinator: "GrowattLocalCoordinator"
     power_coordinator: "GrowattLocalCoordinator | None" = None
+    # {slot: serial} for battery modules that report a serial number.
+    battery_module_serials: dict[int, str] = field(default_factory=dict)
 
 
 class GrowattLocalCoordinator(DataUpdateCoordinator):
