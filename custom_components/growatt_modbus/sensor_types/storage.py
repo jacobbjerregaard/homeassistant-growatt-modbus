@@ -80,6 +80,13 @@ from ..API.device_type.base import (
     ATTR_BDC_FIRMWARE,
     ATTR_BMS_FIRMWARE,
 )
+from ..API.device_type.storage_120 import (
+    BAT_SYS_STATE_OPTIONS,
+    BALANCE_STATE_OPTIONS,
+    BDC_DERATING_OPTIONS,
+    BMS_STATUS_OPTIONS,
+    MODULE_DERATING_OPTIONS,
+)
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(
         key=ATTR_AC_CHARGE_ENABLED,
@@ -291,6 +298,8 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_BDC_DERATING_MODE,
         name="BDC Derating Mode",
+        device_class=SensorDeviceClass.ENUM,
+        options=BDC_DERATING_OPTIONS,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
@@ -385,6 +394,8 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_BMS_STATUS,
         name="BMS Status",
+        device_class=SensorDeviceClass.ENUM,
+        options=BMS_STATUS_OPTIONS,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
@@ -482,6 +493,8 @@ def build_battery_module_sensor_types(
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_system_state",
                     name=f"Module {n} State",
+                    device_class=SensorDeviceClass.ENUM,
+                    options=BAT_SYS_STATE_OPTIONS,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_soc",
@@ -560,6 +573,8 @@ def build_battery_module_sensor_types(
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_balance_state",
                     name=f"Module {n} Balance State",
+                    device_class=SensorDeviceClass.ENUM,
+                    options=BALANCE_STATE_OPTIONS,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
@@ -609,6 +624,8 @@ def build_battery_module_sensor_types(
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_derating_mode",
                     name=f"Module {n} Derating Mode",
+                    device_class=SensorDeviceClass.ENUM,
+                    options=MODULE_DERATING_OPTIONS,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 # Fault / warning detail (5097-5099, 5109 block).

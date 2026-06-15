@@ -72,17 +72,21 @@ from .base import (
 MAXIMUM_DATA_LENGTH = 100
 
 
+_BMS_STATUSES = {
+    0: "Dormancy",
+    1: "Charging",
+    2: "Discharging",
+    3: "Free",
+    4: "Standby",
+    5: "Soft start",
+    6: "Fault",
+    7: "Update",
+}
+BMS_STATUS_OPTIONS = [*_BMS_STATUSES.values(), "Unknown"]
+
+
 def bms_status(register) -> str:
-    return {
-        0: "Dormancy",
-        1: "Charging",
-        2: "Discharging",
-        3: "Free",
-        4: "Standby",
-        5: "Soft start",
-        6: "Fault",
-        7: "Update",
-    }.get(register, f"Unknown value: {register}")
+    return _BMS_STATUSES.get(register, "Unknown")
 
 
 # Per-module info block ("Special for APX", holding registers): battery module n
@@ -103,16 +107,20 @@ _MODULE_TELEMETRY_BASE = 5080
 _MODULE_TELEMETRY_STRIDE = 40
 
 
+_BAT_SYS_STATES = {
+    0: "Initialize",
+    1: "Standby",
+    2: "Charging",
+    3: "Discharging",
+    4: "Shutdown",
+    5: "Fault",
+    6: "Update",
+}
+BAT_SYS_STATE_OPTIONS = [*_BAT_SYS_STATES.values(), "Unknown"]
+
+
 def bat_sys_state(register) -> str:
-    return {
-        0: "Initialize",
-        1: "Standby",
-        2: "Charging",
-        3: "Discharging",
-        4: "Shutdown",
-        5: "Fault",
-        6: "Update",
-    }.get(register, f"Unknown value: {register}")
+    return _BAT_SYS_STATES.get(register, "Unknown")
 
 
 def bat_soc(register) -> int:  # SOC is replicated in both bytes (Bit15-8 / Bit7-0)
@@ -136,10 +144,13 @@ _BALANCE_STATES = {
 }
 
 
+BALANCE_STATE_OPTIONS = [*_BALANCE_STATES.values(), "Unknown"]
+
+
 def bat_balance_state(register) -> dict:  # Bit15-8 state; Bit7-0 balance time (h)
     state = (register >> 8) & 0xFF
     return {
-        "state": _BALANCE_STATES.get(state, f"Unknown value: {state}"),
+        "state": _BALANCE_STATES.get(state, "Unknown"),
         "time_hours": register & 0xFF,
     }
 
@@ -177,10 +188,13 @@ _MODULE_DERATING_MODES = {
 }
 
 
+MODULE_DERATING_OPTIONS = [*dict.fromkeys(_MODULE_DERATING_MODES.values()), "Reserved", "Unknown"]
+
+
 def module_derating_mode(register) -> str:
     if 23 <= register <= 32:
         return "Reserved"
-    return _MODULE_DERATING_MODES.get(register, f"Unknown value: {register}")
+    return _MODULE_DERATING_MODES.get(register, "Unknown")
 
 
 # Decode functions that expand one register into several named values; the
@@ -460,10 +474,19 @@ _BDC_DERATING_MODES = {
 }
 
 
+# Several codes share the "Reserved (...)" label, so dedupe while preserving order.
+# Codes 24-32 add "Reserved (discharge)", which is not a dict value.
+BDC_DERATING_OPTIONS = [
+    *dict.fromkeys(_BDC_DERATING_MODES.values()),
+    "Reserved (discharge)",
+    "Unknown",
+]
+
+
 def bdc_derating_mode(register) -> str:
     if 24 <= register <= 32:
         return "Reserved (discharge)"
-    return _BDC_DERATING_MODES.get(register, f"Unknown value: {register}")
+    return _BDC_DERATING_MODES.get(register, "Unknown")
 
 
 
