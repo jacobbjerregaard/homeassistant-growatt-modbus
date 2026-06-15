@@ -248,14 +248,19 @@ def build_battery_module_input_registers(count: int) -> tuple[GrowattDeviceRegis
 
 
 def decode_ascii(registers) -> str:
-    """Decode register words to an ASCII string, dropping padding/whitespace."""
+    """Decode register words to an ASCII string, dropping NUL padding.
+
+    Only NUL bytes (0x00) are treated as padding. A meaningful trailing space
+    or other whitespace is part of the value (e.g. a 5-character firmware whose
+    last character is a space) and must be preserved.
+    """
     chars: list[str] = []
     for value in registers:
         if value is None:
             continue
         chars.append(chr(value >> 8))
         chars.append(chr(value & 0x00FF))
-    return "".join(chars).replace("\x00", "").strip()
+    return "".join(chars).replace("\x00", "")
 
 
 def firmware_code_version(registers) -> str:
@@ -426,45 +431,39 @@ def bdc_data_flag(register) -> str:
     
     return f"Unknown value: {register}"
 
+# Battery derating mode (input register 3165), per V1.39 "Table 2".
+_BDC_DERATING_MODES = {
+    0: "Normal, unrestricted",
+    1: "System fault",
+    2: "System warning",
+    3: "Maximum charging current of battery (charge)",
+    4: "Battery high temperature (charge)",
+    5: "Reserved (charge)",
+    6: "SOC setting limits (charge)",
+    7: "Battery low temperature (charge)",
+    8: "High bus voltage (charge)",
+    9: "Full charged (charge)",
+    10: "Reserved (charge)",
+    11: "System warning, no charging (charge)",
+    12: "User-set charging current (charge)",
+    13: "BM charge current limited (charge)",
+    14: "Reserved (charge)",
+    15: "Reserved (charge)",
+    16: "Reserved (charge)",
+    17: "Maximum battery current limit (discharge)",
+    18: "Battery discharge enable (discharge)",
+    19: "High bus discharge derating (discharge)",
+    20: "High temperature discharge derating (discharge)",
+    21: "System warning, no discharge (discharge)",
+    22: "User-set discharging current (discharge)",
+    23: "BM discharge current limited (discharge)",
+}
+
+
 def bdc_derating_mode(register) -> str:
-    if register == 0:
-        return "Normal"
-    if register == 1:
-        return "Standby or fault"
-    if register == 2:
-        return "Maximum battery current limit (Discharge)"
-    if register == 3:
-        return "Battery discharge Enable (Discharge)"
-    if register == 4:
-        return "High bus discharge derating (Discharge)"
-    if register == 5:
-        return "High temperature discharge derating (Discharge)"
-    if register == 6:
-        return "System warning No discharge (Discharge)"
-    if register >= 7 and register <= 15:
-        return "Reserved (Discharge)"
-    if register == 16:
-        return "Maximum charging current of battery (Charging)"
-    if register == 17:
-        return "High Temperature (LLC and Buckboost) (Charging)"
-    if register == 18:
-        return "Final soft charge"
-    if register == 19:
-        return "SOC setting limits (Charging)"
-    if register == 20:
-        return "Battery low temperature (Charging)"
-    if register == 21:
-        return "High bus voltage (Charging)"
-    if register == 22:
-        return "Battery SOC (Charging)"
-    if register == 23:
-        return "Need to charge (Charging)"
-    if register == 24:
-        return "System warning not charging (Charging)"
-    if register >= 25 and register <= 29:
-        return "Reserved (Charging)"
-    
-    return f"Unknown value: {register}"
+    if 24 <= register <= 32:
+        return "Reserved (discharge)"
+    return _BDC_DERATING_MODES.get(register, f"Unknown value: {register}")
 
 
 
@@ -671,7 +670,7 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=100
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BATTERY_CURRENT, register=3170, value_type=float
+        name=ATTR_BATTERY_CURRENT, register=3170, value_type=float, signed=True
     ),
     GrowattDeviceRegisters(
         name=ATTR_BMS_MAX_SOC, register=3196, value_type=int

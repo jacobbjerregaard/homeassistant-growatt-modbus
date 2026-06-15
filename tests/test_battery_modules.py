@@ -5,6 +5,7 @@ pytest.importorskip("pymodbus", reason="device.py imports the transport layer")
 
 from growatt_api.const import DeviceTypes
 from growatt_api.device import GrowattDevice, get_register_information
+from growatt_api.device_type.base import ATTR_BATTERY_CURRENT
 from growatt_api.device_type.storage_120 import (
     bat_balance_state,
     bat_internal_state,
@@ -12,6 +13,7 @@ from growatt_api.device_type.storage_120 import (
     bat_soh,
     bat_subcode,
     bat_sys_state,
+    bdc_derating_mode,
     module_derating_mode,
     build_battery_module_registers,
     build_battery_module_input_registers,
@@ -193,9 +195,46 @@ def test_zero_modules_adds_nothing():
     assert build_battery_module_registers(0) == ()
 
 
+def test_decode_ascii_preserves_meaningful_whitespace():
+    # A 5-char firmware whose last char is a space: registers 12-14 = "ZBDB "
+    # plus NUL padding. Only the NUL is dropped; the trailing space stays.
+    assert decode_ascii([0x5A42, 0x4442, 0x2000]) == "ZBDB "
+    # NUL-only padding is still removed entirely.
+    assert decode_ascii([0x4142, 0x4344, 0x0000]) == "ABCD"
+
+
+def test_battery_current_is_signed():
+    info = get_register_information(DeviceTypes.STORAGE_120)
+    current = next(
+        r for r in info.input.values() if r.name == ATTR_BATTERY_CURRENT
+    )
+    assert current.register == 3170
+    assert current.signed is True
+
+
+def test_bdc_derating_mode_full_table():
+    assert bdc_derating_mode(0) == "Normal, unrestricted"
+    assert bdc_derating_mode(2) == "System warning"
+    assert bdc_derating_mode(9) == "Full charged (charge)"
+    assert bdc_derating_mode(17) == "Maximum battery current limit (discharge)"
+    assert bdc_derating_mode(30) == "Reserved (discharge)"
+    assert "Unknown" in bdc_derating_mode(99)
+
+
 async def test_read_battery_module_count():
     device = GrowattDevice(_FakeModbus({185: 3}), DeviceTypes.STORAGE_120, 1)
     assert await device.read_battery_module_count() == 3
+
+
+async def test_read_battery_module_serials():
+    # Module 1 serial "MOD1" at holding 5400 (2 ASCII chars per register);
+    # module 2 has no serial and must be omitted from the mapping.
+    device = GrowattDevice(
+        _FakeModbus({5400: 0x4D4F, 5401: 0x4431}), DeviceTypes.STORAGE_120, 1
+    )
+    device.set_battery_modules(2)
+    serials = await device.read_battery_module_serials()
+    assert serials == {1: "MOD1"}
 
 
 def test_set_battery_modules_rebuilds_register_map():
