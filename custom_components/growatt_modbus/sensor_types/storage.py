@@ -32,6 +32,8 @@ from ..API.device_type.base import (
     ATTR_UPS_OUTPUT_VOLTAGE,
     ATTR_UPS_OUTPUT_FREQUENCY,
     ATTR_DRY_CONTACT_ENABLED,
+    ATTR_EXPORT_LIMIT_MODE,
+    ATTR_EXPORT_LIMIT_RATE,
     ATTR_SOC_PERCENTAGE,
     ATTR_DISCHARGE_POWER,
     ATTR_CHARGE_POWER,
@@ -141,9 +143,27 @@ STORAGE_NUMBER_TYPES: tuple[GrowattNumberEntityDescription, ...] = (
         native_step=1,
         native_unit_of_measurement=PERCENTAGE,
     ),
+    GrowattNumberEntityDescription(
+        key=ATTR_EXPORT_LIMIT_RATE,
+        name="Export Limit Power Rate",
+        native_min_value=-100,
+        native_max_value=100,
+        native_step=0.1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
 )
 
 STORAGE_SELECT_TYPES: tuple[GrowattSelectEntityDescription, ...] = (
+    GrowattSelectEntityDescription(
+        key=ATTR_EXPORT_LIMIT_MODE,
+        name="Export Limit",
+        options_map={
+            "Disable": 0,
+            "Enable (RS485)": 1,
+            "Enable (RS232)": 2,
+            "Enable (CT)": 3,
+        },
+    ),
     GrowattSelectEntityDescription(
         key=ATTR_BATTERY_TYPE,
         name="Battery Type",

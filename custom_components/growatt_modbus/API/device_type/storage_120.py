@@ -37,6 +37,8 @@ from .base import (
     ATTR_UPS_OUTPUT_VOLTAGE,
     ATTR_UPS_OUTPUT_FREQUENCY,
     ATTR_DRY_CONTACT_ENABLED,
+    ATTR_EXPORT_LIMIT_MODE,
+    ATTR_EXPORT_LIMIT_RATE,
     ATTR_SERIAL_NUMBER,
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
@@ -449,6 +451,12 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     ),
     GrowattDeviceRegisters(
         name=ATTR_UPS_OUTPUT_FREQUENCY, register=3081, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_EXPORT_LIMIT_MODE, register=122, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_EXPORT_LIMIT_RATE, register=123, value_type=float, scale=10, signed=True
     ),
 )
 

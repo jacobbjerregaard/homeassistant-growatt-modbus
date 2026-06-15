@@ -29,8 +29,9 @@ exposes:
     the Grid-First discharge rate / Battery-First charge rate / Battery-First
     stop SOC (these three moved from read-only `sensor.*` to writable
     `number.*`).
-  * `select`: battery type, generator force, UPS output voltage, UPS output
-    frequency.
+  * `select`: export limit (disable / RS485 / RS232 / CT), battery type,
+    generator force, UPS output voltage, UPS output frequency.
+  * `number`: export limit power rate (%), in addition to the SOC settings.
   * `switch`: AC charge, pre-PTO, generator charge, UPS function, dry contact.
   * `button`: "Sync device time" writes the Home Assistant host clock to the
     inverter (useful because clock drift skews the daily energy resets).
