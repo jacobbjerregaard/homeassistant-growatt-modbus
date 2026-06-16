@@ -140,8 +140,14 @@ async def test_options_flow_updates_settings(hass, setup_storage):
     entry, _fake = setup_storage
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["type"] == FlowResultType.FORM
+    assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "general"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "general"
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],

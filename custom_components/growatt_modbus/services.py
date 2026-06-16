@@ -19,6 +19,7 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 SERVICE_SET_TIME_SLOT = "set_time_slot"
+SERVICE_RUN_OPTIMIZATION = "run_optimization"
 
 SET_TIME_SLOT_SCHEMA = vol.Schema(
     {
@@ -70,4 +71,24 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     hass.services.async_register(
         DOMAIN, SERVICE_SET_TIME_SLOT, handle_set_time_slot, schema=SET_TIME_SLOT_SCHEMA
+    )
+
+    async def handle_run_optimization(call: ServiceCall) -> None:
+        """Trigger an EMHASS optimisation for every entry that has one."""
+        ran = False
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            runtime = getattr(entry, "runtime_data", None)
+            optimizer = getattr(runtime, "optimizer", None) if runtime else None
+            if optimizer is None:
+                continue
+            await optimizer.async_run_optimization()
+            ran = True
+
+        if not ran:
+            _LOGGER.warning(
+                "run_optimization: no Growatt entry has EMHASS configured"
+            )
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_RUN_OPTIMIZATION, handle_run_optimization
     )

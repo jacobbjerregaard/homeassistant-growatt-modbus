@@ -7,6 +7,9 @@ from .base import (
     NUMBER_OF_TRACKERS_AND_PHASES_REGISTER,
     ATTR_BATTERY_NUMBER_OF_MODULES,
     ATTR_INVERTER_MODEL,
+    ATTR_INVERTER_RATED_POWER,
+    ATTR_RATED_CELL_CAPACITY,
+    ATTR_RATED_BATTERY_CAPACITY,
     ATTR_MODBUS_VERSION,
     ATTR_CONTROL_FIRMWARE,
     ATTR_BDC_FIRMWARE,
@@ -531,6 +534,24 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_BATTERY_NUMBER_OF_MODULES,
         register=185,
         value_type=int
+    ),
+    # Nameplate / rated values (read-only).
+    GrowattDeviceRegisters(
+        name=ATTR_INVERTER_RATED_POWER,  # holding 6-7 PmaxH/PmaxL, 0.1VA
+        register=6,
+        value_type=float,
+        length=2,
+        scale=10,
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_RATED_CELL_CAPACITY,  # holding 3119, 1Ah
+        register=3119,
+        value_type=int,
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_RATED_BATTERY_CAPACITY,  # holding 3121, APX only, raw
+        register=3121,
+        value_type=int,
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,

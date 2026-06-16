@@ -61,6 +61,10 @@ exposes:
   `growatt_modbus.set_time_slot` service is also available for automations.
 * **Firmware readouts** (diagnostic): inverter, control, DSP, BDC and BMS
   firmware versions, plus per-module DSP/MCU firmware where available.
+* **Nameplate / rated values** (diagnostic): inverter rated power (Pmax,
+  holding 6–7, VA), cell rated capacity (holding 3119, Ah) and — APX only —
+  battery rated capacity (holding 3121; the spec lists no unit, so the raw
+  value is shown).
 
 The writable controls are grouped under *Configuration* on the device page and
 internal readings under *Diagnostic*. A redacted diagnostics download is
@@ -81,6 +85,84 @@ does not implement a register it may simply read `0` and ignore writes.
 > than every register. Open an issue if you need a specific one.
 
 Currently the communication layer (API) is included in this repository but following the guidelines of HASS there should be seperate repositories
+
+## Energy optimization (EMHASS)
+
+The integration can bridge to [EMHASS](https://github.com/davidusb-geek/emhass)
+(Energy Management for Home Assistant), which optimises battery usage against
+dynamic electricity prices and a PV forecast. EMHASS does the optimisation; this
+integration reads back the plan and (in later phases) drives the battery's
+time-of-use slots and charge controls to follow it.
+
+Set the *EMHASS URL* in the integration options (optionally a bearer token, a
+battery-SOC sensor and an update interval). When configured, four diagnostic
+sensors appear under the inverter device, mirroring the plan EMHASS publishes:
+
+* *Optimizer Status* — EMHASS optimisation result (e.g. `Optimal`).
+* *Optimizer Battery Power Target* — planned battery power (W; negative =
+  charging). The full forecast series is exposed as a `forecast` attribute.
+* *Optimizer Battery SOC Target* — planned state of charge (%).
+* *Optimizer Plan Updated* — when the plan was last read.
+
+The `growatt_modbus.run_optimization` service triggers a fresh EMHASS day-ahead
+optimisation + publish and refreshes those sensors.
+
+### Letting the optimizer control the battery (day-ahead)
+
+Reading the plan is **read-only by default**. To let the optimizer act on it,
+turn on *Let the optimizer control the battery* in the options. When enabled it
+compiles the published day-ahead plan onto the inverter:
+
+* Each forecast step is mapped to a priority — charging → **Battery First**,
+  discharging while exporting → **Grid First**, everything else →
+  **Load First** (the inverter's resting behaviour).
+* Adjacent same-priority steps are merged into contiguous windows and written to
+  the 9 time-of-use slots (Load-First windows need no slot; the longest windows
+  win if the plan needs more than 9). Unused slots are disabled so a stale
+  window can't linger.
+* **AC charge** is enabled whenever the plan includes a grid-charging window, so
+  the battery actually charges from the grid during cheap hours.
+
+Compilation runs once just after midnight (from the freshly published day-ahead
+plan) and on every `run_optimization` call. With no plan available the existing
+slots are left untouched rather than stranding the battery. **While enabled the
+optimizer owns all 9 time-of-use slots and the AC-charge control**, so don't
+also drive them by hand.
+
+The *Optimizer Control* switch (under the inverter device) is the master on/off
+for this actuation and mirrors the option above, so you can stop the optimizer
+from a dashboard without re-opening the options.
+
+### Intraday corrections (model-predictive)
+
+The day-ahead slots are a baseline. While control is enabled the optimizer also
+runs a lightweight correction every *optimizer update interval*: it re-runs the
+EMHASS naive-MPC optimisation seeded with the live battery SOC (from the
+configured SOC sensor) and then adjusts the **current** controls without
+rewriting the slots —
+
+* **AC charge** is switched on/off to match whether the plan charges right now;
+* the **stop-charge / stop-discharge SOC** tracks the plan's SOC target, so the
+  battery follows the planned trajectory and stops at the right level;
+* the **charge / discharge rate** is set from the planned power, converting
+  EMHASS watts to the inverter's percentage. The battery max power is taken from
+  the *Battery max power* option, or — when that is left at 0 — derived live from
+  the BMS current limit × battery voltage; with neither available the rates are
+  left untouched.
+
+Fail-safes guard every write: corrections are skipped unless the plan is
+`Optimal`, and any SOC target is clamped to the battery's BMS-reported safe
+window (a missing or bogus BMS reading falls back to 0–100 % rather than
+stranding the battery).
+
+### Options layout and custom EMHASS entities
+
+The integration options are grouped into **General & polling** and **EMHASS
+optimizer** sections. If your EMHASS instance publishes under non-default entity
+ids, override the battery-power, battery-SOC, grid-power and status sensors in
+the optimizer section; left blank they fall back to the EMHASS defaults
+(`sensor.p_batt_forecast`, `sensor.soc_batt_forecast`, `sensor.p_grid_forecast`,
+`sensor.optim_status`).
 
 ## Testing
 
