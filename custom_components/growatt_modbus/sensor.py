@@ -31,6 +31,7 @@ from .API.device_type.base import (
 )
 
 from . import GrowattConfigEntry
+from .optimizer import build_optimizer_sensors
 from .sensor_types.sensor_entity_description import GrowattSensorEntityDescription
 from .sensor_types.inverter import INVERTER_SENSOR_TYPES
 from .sensor_types.storage import (
@@ -147,6 +148,10 @@ async def async_setup_entry(
                     module_serial=module_serials.get(slot),
                 )
             )
+
+    # Diagnostic sensors mirroring the EMHASS optimisation plan (read-only).
+    if runtime.optimizer is not None:
+        entities.extend(build_optimizer_sensors(runtime.optimizer, config_entry))
 
     async_add_entities(entities, True)
 

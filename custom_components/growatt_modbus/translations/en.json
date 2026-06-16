@@ -68,6 +68,9 @@
     }
   },
   "options": {
+    "error": {
+      "emhass_connection": "Could not reach EMHASS at the given URL"
+    },
     "step": {
       "init": {
         "title": "Growatt Modbus options",
@@ -76,14 +79,32 @@
           "power_scan_enabled": "Enable power update interval",
           "power_scan_interval": "Power update interval",
           "battery_modules": "Number of battery modules",
-          "time_of_use_slots": "Number of time-of-use slots"
+          "time_of_use_slots": "Number of time-of-use slots",
+          "emhass_url": "EMHASS URL",
+          "emhass_token": "EMHASS token (optional)",
+          "optimizer_soc_sensor": "Battery SOC sensor",
+          "optimizer_interval": "Optimizer update interval (seconds)"
         },
         "data_description": {
           "power_scan_enabled": "Allows a higher update rate of the various power values of your device.",
           "battery_modules": "Number of battery modules to expose per-module serial sensors for (0 = auto-detect from the inverter).",
-          "time_of_use_slots": "Number of battery charge/discharge time slots (1-9) to expose as editable start/end time, priority and enable entities (0 = none)."
+          "time_of_use_slots": "Number of battery charge/discharge time slots (1-9) to expose as editable start/end time, priority and enable entities (0 = none).",
+          "emhass_url": "Base URL of your EMHASS instance, e.g. http://homeassistant.local:5000. Leave empty to disable the optimizer.",
+          "emhass_token": "Bearer token, only if your EMHASS instance requires authentication.",
+          "optimizer_soc_sensor": "Battery state-of-charge sensor fed back to EMHASS as the live starting SOC (used in later phases).",
+          "optimizer_interval": "How often the published EMHASS plan is re-read."
         }
       }
+    }
+  },
+  "services": {
+    "set_time_slot": {
+      "name": "Set battery time slot",
+      "description": "Configure one of the 9 battery charge/discharge time slots on a Growatt storage/hybrid inverter."
+    },
+    "run_optimization": {
+      "name": "Run EMHASS optimization",
+      "description": "Trigger an EMHASS day-ahead optimisation and publish the result, then refresh the optimizer diagnostic sensors."
     }
   }
 }

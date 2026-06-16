@@ -66,5 +66,42 @@
         }
       }
     }
+  },
+  "options": {
+    "error": {
+      "emhass_connection": "Kan EMHASS niet bereiken op de opgegeven URL"
+    },
+    "step": {
+      "init": {
+        "title": "Growatt Modbus opties",
+        "data": {
+          "scan_interval": "General update interval",
+          "power_scan_enabled": "Enable power update interval",
+          "power_scan_interval": "Power update interval",
+          "battery_modules": "Aantal batterijmodules",
+          "time_of_use_slots": "Aantal tijdslots",
+          "emhass_url": "EMHASS URL",
+          "emhass_token": "EMHASS token (optioneel)",
+          "optimizer_soc_sensor": "Batterij SOC sensor",
+          "optimizer_interval": "Optimizer update interval (seconden)"
+        },
+        "data_description": {
+          "emhass_url": "Basis-URL van je EMHASS instantie, bijv. http://homeassistant.local:5000. Laat leeg om de optimizer uit te schakelen.",
+          "emhass_token": "Bearer token, alleen als je EMHASS instantie authenticatie vereist.",
+          "optimizer_soc_sensor": "Batterij state-of-charge sensor die als live start-SOC aan EMHASS wordt doorgegeven (gebruikt in latere fases).",
+          "optimizer_interval": "Hoe vaak het gepubliceerde EMHASS plan opnieuw wordt gelezen."
+        }
+      }
+    }
+  },
+  "services": {
+    "set_time_slot": {
+      "name": "Batterij tijdslot instellen",
+      "description": "Configureer een van de 9 batterij laad-/ontlaadtijdslots op een Growatt opslag-/hybride omvormer."
+    },
+    "run_optimization": {
+      "name": "EMHASS optimalisatie uitvoeren",
+      "description": "Start een EMHASS day-ahead optimalisatie en publiceer het resultaat, en ververs vervolgens de optimizer diagnostische sensoren."
+    }
   }
 }

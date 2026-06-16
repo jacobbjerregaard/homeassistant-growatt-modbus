@@ -23,6 +23,7 @@ from homeassistant.const import (
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import (
     async_track_time_change,
 )
@@ -38,6 +39,8 @@ from .API.const import DeviceTypes
 from .API.client import GrowattSerial, GrowattNetwork
 from .API.device import GrowattDevice
 from .services import async_setup_services
+from .emhass_client import EmhassClient
+from .optimizer import EmhassOptimizerCoordinator
 from .const import (
     CONF_LAYER,
     CONF_SERIAL,
@@ -54,6 +57,10 @@ from .const import (
     CONF_BATTERY_MODULES,
     CONF_TOU_SLOTS,
     CONF_SERIAL_NUMBER,
+    CONF_EMHASS_URL,
+    CONF_EMHASS_TOKEN,
+    CONF_OPTIMIZER_INTERVAL,
+    DEFAULT_OPTIMIZER_INTERVAL,
     DOMAIN,
     PLATFORMS,
 )
@@ -198,11 +205,31 @@ async def async_setup_entry(
             hass, device, timedelta(seconds=power_scan_interval), f"{DOMAIN}_power"
         )
 
+    # Optional EMHASS optimizer: only wired up when an EMHASS URL is configured.
+    # Phase 1 reads the published plan; it never drives the battery yet.
+    optimizer: EmhassOptimizerCoordinator | None = None
+    emhass_url = entry.options.get(
+        CONF_EMHASS_URL, entry.data.get(CONF_EMHASS_URL)
+    )
+    if emhass_url:
+        token = entry.options.get(
+            CONF_EMHASS_TOKEN, entry.data.get(CONF_EMHASS_TOKEN)
+        ) or None
+        interval = int(
+            entry.options.get(CONF_OPTIMIZER_INTERVAL, DEFAULT_OPTIMIZER_INTERVAL)
+        )
+        client = EmhassClient(async_get_clientsession(hass), emhass_url, token)
+        optimizer = EmhassOptimizerCoordinator(
+            hass, client, timedelta(seconds=interval)
+        )
+        await optimizer.async_config_entry_first_refresh()
+
     entry.runtime_data = GrowattRuntimeData(
         device=device,
         main_coordinator=main_coordinator,
         power_coordinator=power_coordinator,
         battery_module_serials=battery_module_serials,
+        optimizer=optimizer,
     )
 
     # Reload the entry when the user changes options so new intervals apply.
@@ -239,6 +266,8 @@ class GrowattRuntimeData:
     power_coordinator: "GrowattLocalCoordinator | None" = None
     # {slot: serial} for battery modules that report a serial number.
     battery_module_serials: dict[int, str] = field(default_factory=dict)
+    # Present only when the EMHASS optimizer is configured for this entry.
+    optimizer: "EmhassOptimizerCoordinator | None" = None
 
 
 class GrowattLocalCoordinator(DataUpdateCoordinator):

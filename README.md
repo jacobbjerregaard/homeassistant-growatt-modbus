@@ -82,6 +82,29 @@ does not implement a register it may simply read `0` and ignore writes.
 
 Currently the communication layer (API) is included in this repository but following the guidelines of HASS there should be seperate repositories
 
+## Energy optimization (EMHASS)
+
+The integration can bridge to [EMHASS](https://github.com/davidusb-geek/emhass)
+(Energy Management for Home Assistant), which optimises battery usage against
+dynamic electricity prices and a PV forecast. EMHASS does the optimisation; this
+integration reads back the plan and (in later phases) drives the battery's
+time-of-use slots and charge controls to follow it.
+
+**Phase 1 (current) is read-only.** Set the *EMHASS URL* in the integration
+options (optionally a bearer token, a battery-SOC sensor and an update
+interval). When configured, four diagnostic sensors appear under the inverter
+device, mirroring the plan EMHASS publishes:
+
+* *Optimizer Status* — EMHASS optimisation result (e.g. `Optimal`).
+* *Optimizer Battery Power Target* — planned battery power (W; negative =
+  charging). The full forecast series is exposed as a `forecast` attribute.
+* *Optimizer Battery SOC Target* — planned state of charge (%).
+* *Optimizer Plan Updated* — when the plan was last read.
+
+The `growatt_modbus.run_optimization` service triggers a fresh EMHASS day-ahead
+optimisation + publish and refreshes those sensors. No battery actuation happens
+in this phase, so the plan can be verified safely before any control is wired up.
+
 ## Testing
 
 Two test suites:

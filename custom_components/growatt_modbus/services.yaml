@@ -46,3 +46,10 @@ set_time_slot:
       required: true
       selector:
         boolean:
+
+run_optimization:
+  name: Run EMHASS optimization
+  description: >-
+    Trigger an EMHASS day-ahead optimisation and publish the result, then
+    refresh the optimizer diagnostic sensors. Requires an EMHASS URL configured
+    in the integration options.

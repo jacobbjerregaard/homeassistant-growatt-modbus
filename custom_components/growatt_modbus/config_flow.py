@@ -20,6 +20,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .API.const import DeviceTypes
 from .API.exception import ModbusPortException
@@ -46,9 +47,15 @@ from .const import (
     CONF_POWER_SCAN_INTERVAL,
     CONF_SERIAL_NUMBER,
     CONF_FIRMWARE,
+    CONF_EMHASS_URL,
+    CONF_EMHASS_TOKEN,
+    CONF_OPTIMIZER_SOC_SENSOR,
+    CONF_OPTIMIZER_INTERVAL,
+    DEFAULT_OPTIMIZER_INTERVAL,
     ParityOptions,
     DOMAIN,
 )
+from .emhass_client import EmhassClient, EmhassError
 
 PARITY_OPTION = [
     selector.SelectOptionDict(value=ParityOptions.NONE, label=ParityOptions.NONE),
@@ -484,12 +491,31 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
     """Allow changing polling intervals without re-adding the device."""
 
     async def async_step_init(self, user_input=None) -> FlowResult:
-        """Manage the polling options."""
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+        """Manage the polling and EMHASS optimizer options."""
+        errors: dict[str, str] = {}
 
-        # Pre-fill with the active values (options override the original data).
-        current = {**self.config_entry.data, **self.config_entry.options}
+        if user_input is not None:
+            url = (user_input.get(CONF_EMHASS_URL) or "").strip()
+            if url:
+                client = EmhassClient(
+                    async_get_clientsession(self.hass),
+                    url,
+                    user_input.get(CONF_EMHASS_TOKEN) or None,
+                )
+                try:
+                    await client.async_test_connection()
+                except EmhassError:
+                    errors["base"] = "emhass_connection"
+
+            if not errors:
+                return self.async_create_entry(title="", data=user_input)
+
+        # Pre-fill with the submitted values (on error) or the active values.
+        current = {
+            **self.config_entry.data,
+            **self.config_entry.options,
+            **(user_input or {}),
+        }
 
         data_schema = vol.Schema(
             {
@@ -521,7 +547,35 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
                         min=0, max=9, mode=selector.NumberSelectorMode.BOX
                     ),
                 ),
+                vol.Optional(
+                    CONF_EMHASS_URL,
+                    description={"suggested_value": current.get(CONF_EMHASS_URL)},
+                ): str,
+                vol.Optional(
+                    CONF_EMHASS_TOKEN,
+                    description={"suggested_value": current.get(CONF_EMHASS_TOKEN)},
+                ): str,
+                vol.Optional(
+                    CONF_OPTIMIZER_SOC_SENSOR,
+                    description={
+                        "suggested_value": current.get(CONF_OPTIMIZER_SOC_SENSOR)
+                    },
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor")
+                ),
+                vol.Optional(
+                    CONF_OPTIMIZER_INTERVAL,
+                    default=current.get(
+                        CONF_OPTIMIZER_INTERVAL, DEFAULT_OPTIMIZER_INTERVAL
+                    ),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=30, max=3600, mode=selector.NumberSelectorMode.BOX
+                    ),
+                ),
             }
         )
 
-        return self.async_show_form(step_id="init", data_schema=data_schema)
+        return self.async_show_form(
+            step_id="init", data_schema=data_schema, errors=errors
+        )
