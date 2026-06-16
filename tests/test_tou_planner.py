@@ -6,6 +6,7 @@ from growatt_api.tou_planner import (
     clamp_soc,
     compile_tou_slots,
     minutes_to_hm,
+    power_to_rate,
     priority_for_step,
 )
 
@@ -111,3 +112,16 @@ def test_clamp_soc_within_and_outside_range():
     assert clamp_soc(150) == 100
     # Swapped bounds are tolerated.
     assert clamp_soc(50, 90, 10) == 50
+
+
+# --- power_to_rate ---------------------------------------------------------
+
+
+def test_power_to_rate():
+    assert power_to_rate(2500, 5000) == 50
+    assert power_to_rate(-2500, 5000) == 50  # sign ignored
+    assert power_to_rate(6000, 5000) == 100  # clamped to 100
+    assert power_to_rate(0, 5000) == 0
+    # No maximum configured -> leave the rate untouched.
+    assert power_to_rate(2500, 0) is None
+    assert power_to_rate(2500, -1) is None

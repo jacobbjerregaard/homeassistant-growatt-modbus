@@ -74,24 +74,46 @@
     "step": {
       "init": {
         "title": "Growatt Modbus opties",
+        "menu_options": {
+          "general": "Algemeen & polling",
+          "optimizer": "EMHASS optimizer"
+        }
+      },
+      "general": {
+        "title": "Algemeen & polling",
         "data": {
           "scan_interval": "General update interval",
           "power_scan_enabled": "Enable power update interval",
           "power_scan_interval": "Power update interval",
           "battery_modules": "Aantal batterijmodules",
-          "time_of_use_slots": "Aantal tijdslots",
+          "time_of_use_slots": "Aantal tijdslots"
+        }
+      },
+      "optimizer": {
+        "title": "EMHASS optimizer",
+        "data": {
           "emhass_url": "EMHASS URL",
           "emhass_token": "EMHASS token (optioneel)",
+          "optimizer_enabled": "Laat de optimizer de batterij aansturen",
           "optimizer_soc_sensor": "Batterij SOC sensor",
           "optimizer_interval": "Optimizer update interval (seconden)",
-          "optimizer_enabled": "Laat de optimizer de batterij aansturen"
+          "battery_max_power": "Batterij max vermogen (W)",
+          "emhass_sensor_batt_power": "EMHASS batterijvermogen sensor",
+          "emhass_sensor_batt_soc": "EMHASS batterij SOC sensor",
+          "emhass_sensor_grid": "EMHASS netvermogen sensor",
+          "emhass_sensor_status": "EMHASS status sensor"
         },
         "data_description": {
           "emhass_url": "Basis-URL van je EMHASS instantie, bijv. http://homeassistant.local:5000. Laat leeg om de optimizer uit te schakelen.",
           "emhass_token": "Bearer token, alleen als je EMHASS instantie authenticatie vereist.",
-          "optimizer_soc_sensor": "Batterij state-of-charge sensor die als live start-SOC aan EMHASS wordt doorgegeven (gebruikt in latere fases).",
-          "optimizer_interval": "Hoe vaak het gepubliceerde EMHASS plan opnieuw wordt gelezen.",
-          "optimizer_enabled": "Indien aan schrijft de optimizer het EMHASS plan naar de tijdslots en AC-laden van de omvormer. Laat uit om alleen-lezen te blijven (alleen diagnostiek)."
+          "optimizer_enabled": "Indien aan schrijft de optimizer het EMHASS plan naar de tijdslots en AC-laden van de omvormer. Laat uit om alleen-lezen te blijven (alleen diagnostiek).",
+          "optimizer_soc_sensor": "Batterij state-of-charge sensor die als live start-SOC aan EMHASS wordt doorgegeven voor intraday correcties.",
+          "optimizer_interval": "Hoe vaak het gepubliceerde EMHASS plan opnieuw wordt gelezen en intraday correcties worden toegepast.",
+          "battery_max_power": "Maximaal (ont)laadvermogen van de batterij, gebruikt om EMHASS watt-doelen naar het rate-percentage van de omvormer om te zetten. 0 = laat de rates ongemoeid.",
+          "emhass_sensor_batt_power": "Overschrijf de EMHASS batterijvermogen sensor (standaard sensor.p_batt_forecast).",
+          "emhass_sensor_batt_soc": "Overschrijf de EMHASS batterij-SOC sensor (standaard sensor.soc_batt_forecast).",
+          "emhass_sensor_grid": "Overschrijf de EMHASS netvermogen sensor (standaard sensor.p_grid_forecast).",
+          "emhass_sensor_status": "Overschrijf de EMHASS status sensor (standaard sensor.optim_status)."
         }
       }
     }

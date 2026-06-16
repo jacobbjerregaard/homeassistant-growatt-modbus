@@ -139,12 +139,24 @@ rewriting the slots —
 
 * **AC charge** is switched on/off to match whether the plan charges right now;
 * the **stop-charge / stop-discharge SOC** tracks the plan's SOC target, so the
-  battery follows the planned trajectory and stops at the right level.
+  battery follows the planned trajectory and stops at the right level;
+* the **charge / discharge rate** is set from the planned power when a *Battery
+  max power* is configured (it converts EMHASS watts to the inverter's
+  percentage; leave it at 0 to keep the rates untouched).
 
 Fail-safes guard every write: corrections are skipped unless the plan is
 `Optimal`, and any SOC target is clamped to the battery's BMS-reported safe
 window (a missing or bogus BMS reading falls back to 0–100 % rather than
 stranding the battery).
+
+### Options layout and custom EMHASS entities
+
+The integration options are grouped into **General & polling** and **EMHASS
+optimizer** sections. If your EMHASS instance publishes under non-default entity
+ids, override the battery-power, battery-SOC, grid-power and status sensors in
+the optimizer section; left blank they fall back to the EMHASS defaults
+(`sensor.p_batt_forecast`, `sensor.soc_batt_forecast`, `sensor.p_grid_forecast`,
+`sensor.optim_status`).
 
 ## Testing
 

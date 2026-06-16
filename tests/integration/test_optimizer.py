@@ -9,15 +9,13 @@ from datetime import timedelta
 
 import aiohttp
 
-from homeassistant.const import (
-    CONF_SCAN_INTERVAL,
-    STATE_UNAVAILABLE,
-)
+from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from custom_components.growatt_modbus.API.device_type.base import (
     ATTR_AC_CHARGE_ENABLED,
+    ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_BMS_MAX_SOC,
 )
@@ -27,13 +25,11 @@ from custom_components.growatt_modbus.API.device_type.storage_120 import (
 )
 from custom_components.growatt_modbus.API.utils import to_register_value
 from custom_components.growatt_modbus.const import (
-    CONF_BATTERY_MODULES,
+    CONF_BATTERY_MAX_POWER,
+    CONF_EMHASS_SENSOR_BATT_POWER,
     CONF_EMHASS_URL,
     CONF_OPTIMIZER_ENABLED,
     CONF_OPTIMIZER_INTERVAL,
-    CONF_POWER_SCAN_ENABLED,
-    CONF_POWER_SCAN_INTERVAL,
-    CONF_TOU_SLOTS,
     DOMAIN,
 )
 from custom_components.growatt_modbus.optimizer import read_plan
@@ -186,17 +182,22 @@ async def test_run_optimization_service_triggers_emhass(
 # --- options flow EMHASS connection check ---------------------------------
 
 
-def _options_input(**overrides) -> dict:
+def _optimizer_input(**overrides) -> dict:
     data = {
-        CONF_SCAN_INTERVAL: 60,
-        CONF_POWER_SCAN_ENABLED: False,
-        CONF_POWER_SCAN_INTERVAL: 5,
-        CONF_BATTERY_MODULES: 0,
-        CONF_TOU_SLOTS: 0,
+        CONF_OPTIMIZER_ENABLED: False,
         CONF_OPTIMIZER_INTERVAL: 300,
+        CONF_BATTERY_MAX_POWER: 0,
     }
     data.update(overrides)
     return data
+
+
+async def _open_optimizer_step(hass, entry):
+    """Navigate the options menu to the EMHASS optimizer step."""
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    return await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "optimizer"}
+    )
 
 
 async def test_options_flow_rejects_unreachable_emhass(
@@ -205,9 +206,9 @@ async def test_options_flow_rejects_unreachable_emhass(
     entry, _fake = setup_storage
     aioclient_mock.get(EMHASS_URL, exc=aiohttp.ClientError("refused"))
 
-    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await _open_optimizer_step(hass, entry)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input=_options_input(emhass_url=EMHASS_URL)
+        result["flow_id"], user_input=_optimizer_input(emhass_url=EMHASS_URL)
     )
 
     assert result["type"] == "form"
@@ -220,9 +221,9 @@ async def test_options_flow_accepts_reachable_emhass(
     entry, _fake = setup_storage
     aioclient_mock.get(EMHASS_URL, text="<html>EMHASS</html>")
 
-    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await _open_optimizer_step(hass, entry)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input=_options_input(emhass_url=EMHASS_URL)
+        result["flow_id"], user_input=_optimizer_input(emhass_url=EMHASS_URL)
     )
     await hass.async_block_till_done()
 
@@ -424,3 +425,42 @@ async def test_mpc_no_op_when_disabled(hass, setup_storage, aioclient_mock):
     # Disabled optimizer must not call EMHASS or write anything.
     assert aioclient_mock.mock_calls == []
     assert fake.writes == []
+
+
+# --- Phase 3 polish: configurable entities + rate control ------------------
+
+
+async def test_configurable_source_entity_id(hass, setup_storage):
+    entry, _fake = setup_storage
+    # EMHASS publishes battery power under a non-default entity id.
+    hass.states.async_set("sensor.custom_batt_power", "-1234")
+
+    await _enable_emhass(
+        hass, entry, **{CONF_EMHASS_SENSOR_BATT_POWER: "sensor.custom_batt_power"}
+    )
+
+    state = _state_for(hass, "optimizer_battery_power_target")
+    assert float(state.state) == -1234.0
+
+
+async def test_mpc_sets_charge_rate_from_max_power(
+    hass, setup_storage, aioclient_mock
+):
+    entry, fake = setup_storage
+    aioclient_mock.post(f"{EMHASS_URL}/action/naive-mpc-optim", text="ok")
+    aioclient_mock.post(f"{EMHASS_URL}/action/publish-data", text="ok")
+    _publish_current_plan(hass, p_batt=-2500, soc=70)
+    await _enable_emhass(
+        hass,
+        entry,
+        **{CONF_OPTIMIZER_ENABLED: True, CONF_BATTERY_MAX_POWER: 5000},
+    )
+
+    coord = entry.runtime_data.main_coordinator
+    fake.writes.clear()
+    await entry.runtime_data.optimizer.async_mpc_step()
+    await hass.async_block_till_done()
+
+    # 2500 W of a 5000 W battery -> 50 %.
+    rate = coord.get_holding_register_by_name(ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST)
+    assert (rate.register, to_register_value(rate, 50)) in fake.writes

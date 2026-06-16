@@ -44,7 +44,9 @@ from homeassistant.util import dt as dt_util
 
 from .API.device_type.base import (
     ATTR_AC_CHARGE_ENABLED,
+    ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
+    ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
     ATTR_BMS_MAX_SOC,
     ATTR_BMS_MIN_SOC,
     ATTR_ON_GRID_DISCHARGE_STOP_SOC,
@@ -58,6 +60,7 @@ from .API.tou_planner import (
     clamp_soc,
     compile_tou_slots,
     minutes_to_hm,
+    power_to_rate,
     priority_for_step,
 )
 from .API.utils import to_register_value
@@ -78,6 +81,23 @@ EMHASS_SENSOR_STATUS = "sensor.optim_status"
 
 # The inverter has 9 hardware time-of-use slots.
 MAX_TOU_SLOTS = 9
+
+
+@dataclass
+class EmhassEntities:
+    """Entity ids of the EMHASS-published sensors the optimizer reads.
+
+    Defaults to the EMHASS defaults; the control-relevant ones can be overridden
+    in the options for instances that publish under different names.
+    """
+
+    batt_power: str = EMHASS_SENSOR_BATT_POWER
+    batt_soc: str = EMHASS_SENSOR_BATT_SOC
+    pv: str = EMHASS_SENSOR_PV
+    load: str = EMHASS_SENSOR_LOAD
+    unit_cost: str = EMHASS_SENSOR_UNIT_COST
+    grid: str = EMHASS_SENSOR_GRID
+    status: str = EMHASS_SENSOR_STATUS
 
 
 @dataclass
@@ -119,16 +139,19 @@ def _read_text(hass: HomeAssistant, entity_id: str) -> str | None:
     return state.state
 
 
-def read_plan(hass: HomeAssistant) -> OptimizationPlan:
+def read_plan(
+    hass: HomeAssistant, entities: EmhassEntities | None = None
+) -> OptimizationPlan:
     """Build an OptimizationPlan from EMHASS's published sensors."""
-    battery_power, battery_power_forecast = _read_float(hass, EMHASS_SENSOR_BATT_POWER)
-    battery_soc, battery_soc_forecast = _read_float(hass, EMHASS_SENSOR_BATT_SOC)
-    pv_power, _ = _read_float(hass, EMHASS_SENSOR_PV)
-    load_power, _ = _read_float(hass, EMHASS_SENSOR_LOAD)
-    unit_cost, _ = _read_float(hass, EMHASS_SENSOR_UNIT_COST)
+    entities = entities or EmhassEntities()
+    battery_power, battery_power_forecast = _read_float(hass, entities.batt_power)
+    battery_soc, battery_soc_forecast = _read_float(hass, entities.batt_soc)
+    pv_power, _ = _read_float(hass, entities.pv)
+    load_power, _ = _read_float(hass, entities.load)
+    unit_cost, _ = _read_float(hass, entities.unit_cost)
 
     return OptimizationPlan(
-        status=_read_text(hass, EMHASS_SENSOR_STATUS),
+        status=_read_text(hass, entities.status),
         battery_power=battery_power,
         battery_soc=battery_soc,
         pv_power=pv_power,
@@ -151,6 +174,8 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         device_coordinator=None,
         enabled: bool = False,
         soc_sensor: str | None = None,
+        entities: EmhassEntities | None = None,
+        battery_max_power: float = 0.0,
     ) -> None:
         super().__init__(
             hass,
@@ -164,11 +189,13 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         self._device_coordinator = device_coordinator
         self.enabled = enabled
         self._soc_sensor = soc_sensor
+        self._entities = entities or EmhassEntities()
+        self._battery_max_power = battery_max_power
 
     async def _async_update_data(self) -> OptimizationPlan:
         # Reading published states never fails; missing sensors just read as
         # None so the diagnostics show "unknown" until EMHASS publishes.
-        return read_plan(self.hass)
+        return read_plan(self.hass, self._entities)
 
     async def async_run_optimization(self) -> None:
         """Trigger a day-ahead optimisation + publish, then re-read the plan.
@@ -227,11 +254,11 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         multi-day horizon cannot be mapped to them unambiguously.
         """
         battery = sorted(
-            self._forecast_series(EMHASS_SENSOR_BATT_POWER), key=lambda item: item[0]
+            self._forecast_series(self._entities.batt_power), key=lambda item: item[0]
         )
         if not battery:
             return []
-        grid = {dt: value for dt, value in self._forecast_series(EMHASS_SENSOR_GRID)}
+        grid = {dt: value for dt, value in self._forecast_series(self._entities.grid)}
 
         intervals = [
             (battery[i + 1][0] - battery[i][0]).total_seconds() / 60
@@ -391,6 +418,17 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
                 await self._write_number(ATTR_BATTERY_CHARGE_STOP_SOC, target)
             elif discharging:
                 await self._write_number(ATTR_ON_GRID_DISCHARGE_STOP_SOC, target)
+
+        # Set the charge/discharge rate from the planned power, when a battery
+        # max power is configured (otherwise leave the inverter's rate as-is).
+        rate = power_to_rate(plan.battery_power, self._battery_max_power)
+        if rate is not None:
+            if charging:
+                await self._write_number(ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST, rate)
+            elif discharging:
+                await self._write_number(
+                    ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST, rate
+                )
 
         await coordinator.async_request_refresh()
 

@@ -95,6 +95,19 @@ def clamp_soc(value: float, low: float = 0.0, high: float = 100.0) -> float:
     return max(low, min(high, value))
 
 
+def power_to_rate(power_w: float, max_power_w: float) -> int | None:
+    """Convert a battery power (W) to a 0-100 % rate of ``max_power_w``.
+
+    Returns ``None`` when no maximum is configured (``<= 0``) so callers can
+    leave the inverter's rate untouched. The sign of ``power_w`` is ignored; the
+    caller decides whether it is a charge or discharge rate.
+    """
+    if max_power_w <= 0:
+        return None
+    rate = round(abs(power_w) / max_power_w * 100)
+    return max(0, min(100, int(rate)))
+
+
 def minutes_to_hm(minutes: int) -> tuple[int, int]:
     """Convert minutes-of-day to ``(hour, minute)`` for slot encoding.
 

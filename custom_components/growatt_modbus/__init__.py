@@ -41,7 +41,7 @@ from .API.client import GrowattSerial, GrowattNetwork
 from .API.device import GrowattDevice
 from .services import async_setup_services
 from .emhass_client import EmhassClient
-from .optimizer import EmhassOptimizerCoordinator
+from .optimizer import EmhassEntities, EmhassOptimizerCoordinator
 from .const import (
     CONF_LAYER,
     CONF_SERIAL,
@@ -63,6 +63,11 @@ from .const import (
     CONF_OPTIMIZER_ENABLED,
     CONF_OPTIMIZER_SOC_SENSOR,
     CONF_OPTIMIZER_INTERVAL,
+    CONF_BATTERY_MAX_POWER,
+    CONF_EMHASS_SENSOR_BATT_POWER,
+    CONF_EMHASS_SENSOR_BATT_SOC,
+    CONF_EMHASS_SENSOR_GRID,
+    CONF_EMHASS_SENSOR_STATUS,
     DEFAULT_OPTIMIZER_INTERVAL,
     DOMAIN,
     PLATFORMS,
@@ -229,6 +234,23 @@ async def async_setup_entry(
         soc_sensor = entry.options.get(
             CONF_OPTIMIZER_SOC_SENSOR, entry.data.get(CONF_OPTIMIZER_SOC_SENSOR)
         )
+        battery_max_power = float(
+            entry.options.get(CONF_BATTERY_MAX_POWER, entry.data.get(CONF_BATTERY_MAX_POWER, 0))
+            or 0
+        )
+        # Entity-id overrides fall back to the EMHASS defaults via EmhassEntities.
+        merged = {**entry.data, **entry.options}
+        entity_overrides = {
+            attr: merged[conf_key]
+            for attr, conf_key in (
+                ("batt_power", CONF_EMHASS_SENSOR_BATT_POWER),
+                ("batt_soc", CONF_EMHASS_SENSOR_BATT_SOC),
+                ("grid", CONF_EMHASS_SENSOR_GRID),
+                ("status", CONF_EMHASS_SENSOR_STATUS),
+            )
+            if merged.get(conf_key)
+        }
+        entities = EmhassEntities(**entity_overrides)
         client = EmhassClient(async_get_clientsession(hass), emhass_url, token)
         optimizer = EmhassOptimizerCoordinator(
             hass,
@@ -237,6 +259,8 @@ async def async_setup_entry(
             device_coordinator=main_coordinator,
             enabled=enabled,
             soc_sensor=soc_sensor,
+            entities=entities,
+            battery_max_power=battery_max_power,
         )
         await optimizer.async_config_entry_first_refresh()
 

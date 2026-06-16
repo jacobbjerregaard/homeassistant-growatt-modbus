@@ -35,6 +35,17 @@ CONF_OPTIMIZER_ENABLED = "optimizer_enabled"
 CONF_OPTIMIZER_SOC_SENSOR = "optimizer_soc_sensor"
 CONF_OPTIMIZER_INTERVAL = "optimizer_interval"
 
+# Battery max (dis)charge power in W, used to convert EMHASS watt targets into
+# the inverter's charge/discharge rate percentage. 0 = leave rates untouched.
+CONF_BATTERY_MAX_POWER = "battery_max_power"
+
+# Optional overrides for the EMHASS source sensors the optimizer reads. Empty =
+# use the EMHASS defaults (see DEFAULT_* in optimizer.py).
+CONF_EMHASS_SENSOR_BATT_POWER = "emhass_sensor_batt_power"
+CONF_EMHASS_SENSOR_BATT_SOC = "emhass_sensor_batt_soc"
+CONF_EMHASS_SENSOR_GRID = "emhass_sensor_grid"
+CONF_EMHASS_SENSOR_STATUS = "emhass_sensor_status"
+
 DEFAULT_OPTIMIZER_INTERVAL = 300
 
 
