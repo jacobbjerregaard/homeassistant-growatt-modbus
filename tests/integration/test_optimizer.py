@@ -5,6 +5,8 @@ the fake transport patched across the options reload) and the EMHASS HTTP wire
 is faked via ``aioclient_mock``; the plan parsing, entity wiring and service are
 all real.
 """
+from datetime import timedelta
+
 import aiohttp
 
 from homeassistant.const import (
@@ -12,10 +14,17 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
 )
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 
+from custom_components.growatt_modbus.API.device_type.base import ATTR_AC_CHARGE_ENABLED
+from custom_components.growatt_modbus.API.device_type.storage_120 import (
+    encode_time_slot,
+    time_slot_register,
+)
 from custom_components.growatt_modbus.const import (
     CONF_BATTERY_MODULES,
     CONF_EMHASS_URL,
+    CONF_OPTIMIZER_ENABLED,
     CONF_OPTIMIZER_INTERVAL,
     CONF_POWER_SCAN_ENABLED,
     CONF_POWER_SCAN_INTERVAL,
@@ -26,6 +35,36 @@ from custom_components.growatt_modbus.optimizer import read_plan
 
 TEST_SERIAL = "TESTSERIAL0001"
 EMHASS_URL = "http://emhass.local:5000"
+
+
+def _publish_hourly_batt_forecast(hass, hourly_values, grid_values=None) -> None:
+    """Publish a regular 24-step hourly EMHASS battery (and grid) forecast."""
+    base = dt_util.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    def _series(values):
+        return [
+            {
+                "date": (base + timedelta(hours=h)).isoformat(),
+                "value": values[h],
+            }
+            for h in range(len(values))
+        ]
+
+    hass.states.async_set(
+        "sensor.p_batt_forecast",
+        str(hourly_values[0]),
+        {"forecasts": _series(hourly_values)},
+    )
+    if grid_values is not None:
+        hass.states.async_set(
+            "sensor.p_grid_forecast",
+            str(grid_values[0]),
+            {"forecasts": _series(grid_values)},
+        )
+
+
+def _slot_registers(reg, fake):
+    return [(r, v) for r, v in fake.writes if r == reg]
 
 
 def _publish_emhass_sensors(hass) -> None:
@@ -184,3 +223,89 @@ async def test_options_flow_accepts_reachable_emhass(
 
     assert result["type"] == "create_entry"
     assert result["data"][CONF_EMHASS_URL] == EMHASS_URL
+
+
+# --- Phase 2: day-ahead TOU compile (actuation) ---------------------------
+
+
+async def test_compile_writes_tou_slots_when_enabled(hass, setup_storage):
+    entry, fake = setup_storage
+    values = [0] * 24
+    values[2] = values[3] = -2000  # charge 02:00-04:00 -> Battery First
+    values[18] = values[19] = 1500  # self-consume discharge -> Load First (dropped)
+    _publish_hourly_batt_forecast(hass, values)
+
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    # Slot 1 = 02:00-04:00 Battery First, enabled.
+    base = time_slot_register(1)
+    reg1, reg2 = encode_time_slot(2, 0, 4, 0, 1, True)
+    assert (base, reg1) in fake.writes
+    assert (base + 1, reg2) in fake.writes
+
+    # Unused slot 2 is written disabled so a stale window can't linger.
+    base2 = time_slot_register(2)
+    d1, d2 = encode_time_slot(0, 0, 0, 0, 0, False)
+    assert (base2, d1) in fake.writes
+    assert (base2 + 1, d2) in fake.writes
+
+    # AC charge enabled because the plan charges from grid.
+    ac_reg = entry.runtime_data.main_coordinator.get_holding_register_by_name(
+        ATTR_AC_CHARGE_ENABLED
+    )
+    assert ac_reg is not None
+    assert (ac_reg.register, 1) in fake.writes
+
+
+async def test_export_window_maps_to_grid_first(hass, setup_storage):
+    entry, fake = setup_storage
+    values = [0] * 24
+    grid = [0] * 24
+    values[19] = values[20] = 2500  # discharging 19:00-21:00
+    grid[19] = grid[20] = -2500  # ...and exporting -> Grid First
+    _publish_hourly_batt_forecast(hass, values, grid_values=grid)
+
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    base = time_slot_register(1)
+    reg1, reg2 = encode_time_slot(19, 0, 21, 0, 2, True)  # priority 2 = Grid First
+    assert (base, reg1) in fake.writes
+    assert (base + 1, reg2) in fake.writes
+
+
+async def test_no_tou_writes_when_optimizer_disabled(hass, setup_storage):
+    entry, fake = setup_storage
+    values = [0] * 24
+    values[2] = -2000
+    _publish_hourly_batt_forecast(hass, values)
+
+    await _enable_emhass(hass, entry)  # URL set, actuation left off
+
+    assert _slot_registers(time_slot_register(1), fake) == []
+
+
+async def test_compile_without_plan_leaves_slots_untouched(hass, setup_storage):
+    entry, fake = setup_storage
+    # No forecast published at all.
+
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    assert _slot_registers(time_slot_register(1), fake) == []
+
+
+async def test_run_optimization_compiles_when_enabled(
+    hass, setup_storage, aioclient_mock
+):
+    entry, fake = setup_storage
+    aioclient_mock.post(f"{EMHASS_URL}/action/dayahead-optim", text="ok")
+    aioclient_mock.post(f"{EMHASS_URL}/action/publish-data", text="ok")
+    values = [0] * 24
+    values[2] = values[3] = -2000
+    _publish_hourly_batt_forecast(hass, values)
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    fake.writes.clear()
+    await hass.services.async_call(DOMAIN, "run_optimization", {}, blocking=True)
+    await hass.async_block_till_done()
+
+    assert _slot_registers(time_slot_register(1), fake)

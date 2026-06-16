@@ -59,6 +59,7 @@ from .const import (
     CONF_SERIAL_NUMBER,
     CONF_EMHASS_URL,
     CONF_EMHASS_TOKEN,
+    CONF_OPTIMIZER_ENABLED,
     CONF_OPTIMIZER_INTERVAL,
     DEFAULT_OPTIMIZER_INTERVAL,
     DOMAIN,
@@ -218,11 +219,32 @@ async def async_setup_entry(
         interval = int(
             entry.options.get(CONF_OPTIMIZER_INTERVAL, DEFAULT_OPTIMIZER_INTERVAL)
         )
+        enabled = bool(
+            entry.options.get(
+                CONF_OPTIMIZER_ENABLED, entry.data.get(CONF_OPTIMIZER_ENABLED, False)
+            )
+        )
         client = EmhassClient(async_get_clientsession(hass), emhass_url, token)
         optimizer = EmhassOptimizerCoordinator(
-            hass, client, timedelta(seconds=interval)
+            hass,
+            client,
+            timedelta(seconds=interval),
+            device_coordinator=main_coordinator,
+            enabled=enabled,
         )
         await optimizer.async_config_entry_first_refresh()
+
+        if enabled:
+            # Apply the current plan now, and recompile once daily just after
+            # midnight from whatever day-ahead plan EMHASS has published.
+            await optimizer.async_compile_tou()
+
+            async def _daily_compile(_now) -> None:
+                await optimizer.async_compile_tou()
+
+            entry.async_on_unload(
+                async_track_time_change(hass, _daily_compile, hour=0, minute=10, second=0)
+            )
 
     entry.runtime_data = GrowattRuntimeData(
         device=device,

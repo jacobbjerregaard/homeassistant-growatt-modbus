@@ -83,13 +83,15 @@
           "emhass_url": "EMHASS URL",
           "emhass_token": "EMHASS token (optioneel)",
           "optimizer_soc_sensor": "Batterij SOC sensor",
-          "optimizer_interval": "Optimizer update interval (seconden)"
+          "optimizer_interval": "Optimizer update interval (seconden)",
+          "optimizer_enabled": "Laat de optimizer de batterij aansturen"
         },
         "data_description": {
           "emhass_url": "Basis-URL van je EMHASS instantie, bijv. http://homeassistant.local:5000. Laat leeg om de optimizer uit te schakelen.",
           "emhass_token": "Bearer token, alleen als je EMHASS instantie authenticatie vereist.",
           "optimizer_soc_sensor": "Batterij state-of-charge sensor die als live start-SOC aan EMHASS wordt doorgegeven (gebruikt in latere fases).",
-          "optimizer_interval": "Hoe vaak het gepubliceerde EMHASS plan opnieuw wordt gelezen."
+          "optimizer_interval": "Hoe vaak het gepubliceerde EMHASS plan opnieuw wordt gelezen.",
+          "optimizer_enabled": "Indien aan schrijft de optimizer het EMHASS plan naar de tijdslots en AC-laden van de omvormer. Laat uit om alleen-lezen te blijven (alleen diagnostiek)."
         }
       }
     }

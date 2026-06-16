@@ -49,6 +49,7 @@ from .const import (
     CONF_FIRMWARE,
     CONF_EMHASS_URL,
     CONF_EMHASS_TOKEN,
+    CONF_OPTIMIZER_ENABLED,
     CONF_OPTIMIZER_SOC_SENSOR,
     CONF_OPTIMIZER_INTERVAL,
     DEFAULT_OPTIMIZER_INTERVAL,
@@ -573,6 +574,10 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
                         min=30, max=3600, mode=selector.NumberSelectorMode.BOX
                     ),
                 ),
+                vol.Required(
+                    CONF_OPTIMIZER_ENABLED,
+                    default=current.get(CONF_OPTIMIZER_ENABLED, False),
+                ): bool,
             }
         )
 

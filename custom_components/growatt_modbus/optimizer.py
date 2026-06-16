@@ -42,6 +42,15 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.util import dt as dt_util
 
+from .API.device_type.base import ATTR_AC_CHARGE_ENABLED
+from .API.device_type.storage_120 import encode_time_slot, time_slot_register
+from .API.tou_planner import (
+    BATTERY_FIRST,
+    LOAD_FIRST,
+    compile_tou_slots,
+    minutes_to_hm,
+    priority_for_step,
+)
 from .const import CONF_FIRMWARE, CONF_SERIAL_NUMBER, DOMAIN
 from .emhass_client import EmhassClient, EmhassError
 
@@ -54,7 +63,11 @@ EMHASS_SENSOR_BATT_SOC = "sensor.soc_batt_forecast"
 EMHASS_SENSOR_PV = "sensor.p_pv_forecast"
 EMHASS_SENSOR_LOAD = "sensor.p_load_forecast"
 EMHASS_SENSOR_UNIT_COST = "sensor.unit_load_cost"
+EMHASS_SENSOR_GRID = "sensor.p_grid_forecast"
 EMHASS_SENSOR_STATUS = "sensor.optim_status"
+
+# The inverter has 9 hardware time-of-use slots.
+MAX_TOU_SLOTS = 9
 
 
 @dataclass
@@ -125,6 +138,8 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         hass: HomeAssistant,
         client: EmhassClient,
         update_interval: timedelta,
+        device_coordinator=None,
+        enabled: bool = False,
     ) -> None:
         super().__init__(
             hass,
@@ -133,6 +148,10 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
             update_interval=update_interval,
         )
         self.client = client
+        # Handle used to write the inverter's registers (the main register
+        # coordinator). When ``enabled`` is False the optimizer stays read-only.
+        self._device_coordinator = device_coordinator
+        self.enabled = enabled
 
     async def _async_update_data(self) -> OptimizationPlan:
         # Reading published states never fails; missing sensors just read as
@@ -140,13 +159,132 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         return read_plan(self.hass)
 
     async def async_run_optimization(self) -> None:
-        """Trigger a day-ahead optimisation + publish, then re-read the plan."""
+        """Trigger a day-ahead optimisation + publish, then re-read the plan.
+
+        When actuation is enabled the freshly published plan is also compiled
+        onto the inverter's time-of-use slots.
+        """
         try:
             await self.client.async_dayahead_optim()
             await self.client.async_publish_data()
         except EmhassError as err:
             raise HomeAssistantError(str(err)) from err
         await self.async_request_refresh()
+        if self.enabled:
+            await self.async_compile_tou()
+
+    # --- day-ahead TOU compile (actuation) ---------------------------------
+
+    def _forecast_series(self, entity_id: str) -> list[tuple[datetime, float | None]]:
+        """Parse a published EMHASS sensor's ``forecasts`` attribute.
+
+        Returns ``(datetime, value)`` pairs, tolerating whatever value column
+        name EMHASS used (the first non-``date`` field per entry).
+        """
+        state = self.hass.states.get(entity_id)
+        if state is None:
+            return []
+        forecasts = state.attributes.get("forecasts")
+        if not forecasts:
+            return []
+
+        series: list[tuple[datetime, float | None]] = []
+        for entry in forecasts:
+            if not isinstance(entry, dict):
+                continue
+            raw_date = entry.get("date")
+            parsed = dt_util.parse_datetime(raw_date) if raw_date else None
+            if parsed is None:
+                continue
+            value: float | None = None
+            for key, raw in entry.items():
+                if key == "date":
+                    continue
+                try:
+                    value = float(raw)
+                except (TypeError, ValueError):
+                    value = None
+                break
+            series.append((parsed, value))
+        return series
+
+    def _plan_steps(self) -> list[tuple[int, int, int]]:
+        """Build ``(start_min, end_min, priority)`` steps from the published plan.
+
+        Only the first forecast day is used; time-of-use slots repeat daily, so a
+        multi-day horizon cannot be mapped to them unambiguously.
+        """
+        battery = sorted(
+            self._forecast_series(EMHASS_SENSOR_BATT_POWER), key=lambda item: item[0]
+        )
+        if not battery:
+            return []
+        grid = {dt: value for dt, value in self._forecast_series(EMHASS_SENSOR_GRID)}
+
+        intervals = [
+            (battery[i + 1][0] - battery[i][0]).total_seconds() / 60
+            for i in range(len(battery) - 1)
+        ]
+        default_interval = intervals[0] if intervals else 60.0
+        day = dt_util.as_local(battery[0][0]).date()
+
+        steps: list[tuple[int, int, int]] = []
+        for index, (when, p_batt) in enumerate(battery):
+            local = dt_util.as_local(when)
+            if local.date() != day:
+                break
+            start_min = local.hour * 60 + local.minute
+            interval = intervals[index] if index < len(intervals) else default_interval
+            end_min = start_min + int(round(interval))
+            priority = priority_for_step(p_batt, grid.get(when))
+            steps.append((start_min, end_min, priority))
+        return steps
+
+    async def async_compile_tou(self) -> None:
+        """Compile the published day-ahead plan onto the inverter's TOU slots."""
+        if not self.enabled or self._device_coordinator is None:
+            return
+        steps = self._plan_steps()
+        if not steps:
+            # Fail safe: with no plan, leave the existing slots untouched rather
+            # than stranding the battery.
+            _LOGGER.warning(
+                "optimizer: no EMHASS plan forecast available; TOU slots unchanged"
+            )
+            return
+        slots = compile_tou_slots(steps, MAX_TOU_SLOTS)
+        await self._write_tou_slots(slots)
+
+    async def _write_tou_slots(self, slots: list[tuple[int, int, int]]) -> None:
+        coordinator = self._device_coordinator
+        for slot_num in range(1, MAX_TOU_SLOTS + 1):
+            base = time_slot_register(slot_num)
+            if slot_num <= len(slots):
+                start_min, end_min, priority = slots[slot_num - 1]
+                start_hour, start_minute = minutes_to_hm(start_min)
+                end_hour, end_minute = minutes_to_hm(end_min)
+                reg1, reg2 = encode_time_slot(
+                    start_hour, start_minute, end_hour, end_minute, priority, True
+                )
+            else:
+                # Disable unused slots so a stale window doesn't linger.
+                reg1, reg2 = encode_time_slot(0, 0, 0, 0, LOAD_FIRST, False)
+            await coordinator.write_register_value(base, reg1)
+            await coordinator.write_register_value(base + 1, reg2)
+
+        # Grid charging only happens in a Battery-First slot when AC charge is on.
+        await self._set_ac_charge(
+            any(priority == BATTERY_FIRST for _start, _end, priority in slots)
+        )
+        await coordinator.async_request_refresh()
+
+    async def _set_ac_charge(self, enable: bool) -> None:
+        coordinator = self._device_coordinator
+        register = coordinator.get_holding_register_by_name(ATTR_AC_CHARGE_ENABLED)
+        if register is None:
+            _LOGGER.debug("optimizer: AC charge register not available on this model")
+            return
+        await coordinator.write_register(register.register, 1 if enable else 0)
 
 
 @dataclass(frozen=True, kw_only=True)

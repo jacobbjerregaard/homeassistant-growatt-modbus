@@ -90,10 +90,9 @@ dynamic electricity prices and a PV forecast. EMHASS does the optimisation; this
 integration reads back the plan and (in later phases) drives the battery's
 time-of-use slots and charge controls to follow it.
 
-**Phase 1 (current) is read-only.** Set the *EMHASS URL* in the integration
-options (optionally a bearer token, a battery-SOC sensor and an update
-interval). When configured, four diagnostic sensors appear under the inverter
-device, mirroring the plan EMHASS publishes:
+Set the *EMHASS URL* in the integration options (optionally a bearer token, a
+battery-SOC sensor and an update interval). When configured, four diagnostic
+sensors appear under the inverter device, mirroring the plan EMHASS publishes:
 
 * *Optimizer Status* — EMHASS optimisation result (e.g. `Optimal`).
 * *Optimizer Battery Power Target* — planned battery power (W; negative =
@@ -102,8 +101,30 @@ device, mirroring the plan EMHASS publishes:
 * *Optimizer Plan Updated* — when the plan was last read.
 
 The `growatt_modbus.run_optimization` service triggers a fresh EMHASS day-ahead
-optimisation + publish and refreshes those sensors. No battery actuation happens
-in this phase, so the plan can be verified safely before any control is wired up.
+optimisation + publish and refreshes those sensors.
+
+### Letting the optimizer control the battery (day-ahead)
+
+Reading the plan is **read-only by default**. To let the optimizer act on it,
+turn on *Let the optimizer control the battery* in the options. When enabled it
+compiles the published day-ahead plan onto the inverter:
+
+* Each forecast step is mapped to a priority — charging → **Battery First**,
+  discharging while exporting → **Grid First**, everything else →
+  **Load First** (the inverter's resting behaviour).
+* Adjacent same-priority steps are merged into contiguous windows and written to
+  the 9 time-of-use slots (Load-First windows need no slot; the longest windows
+  win if the plan needs more than 9). Unused slots are disabled so a stale
+  window can't linger.
+* **AC charge** is enabled whenever the plan includes a grid-charging window, so
+  the battery actually charges from the grid during cheap hours.
+
+Compilation runs once just after midnight (from the freshly published day-ahead
+plan) and on every `run_optimization` call. With no plan available the existing
+slots are left untouched rather than stranding the battery. **While enabled the
+optimizer owns all 9 time-of-use slots and the AC-charge control**, so don't
+also drive them by hand. Intraday model-predictive corrections come in a later
+phase.
 
 ## Testing
 

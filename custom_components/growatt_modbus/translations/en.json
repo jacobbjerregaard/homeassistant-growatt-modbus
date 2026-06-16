@@ -83,7 +83,8 @@
           "emhass_url": "EMHASS URL",
           "emhass_token": "EMHASS token (optional)",
           "optimizer_soc_sensor": "Battery SOC sensor",
-          "optimizer_interval": "Optimizer update interval (seconds)"
+          "optimizer_interval": "Optimizer update interval (seconds)",
+          "optimizer_enabled": "Let the optimizer control the battery"
         },
         "data_description": {
           "power_scan_enabled": "Allows a higher update rate of the various power values of your device.",
@@ -92,7 +93,8 @@
           "emhass_url": "Base URL of your EMHASS instance, e.g. http://homeassistant.local:5000. Leave empty to disable the optimizer.",
           "emhass_token": "Bearer token, only if your EMHASS instance requires authentication.",
           "optimizer_soc_sensor": "Battery state-of-charge sensor fed back to EMHASS as the live starting SOC (used in later phases).",
-          "optimizer_interval": "How often the published EMHASS plan is re-read."
+          "optimizer_interval": "How often the published EMHASS plan is re-read.",
+          "optimizer_enabled": "When on, the optimizer writes the EMHASS plan to the inverter's time-of-use slots and AC-charge control. Leave off to keep it read-only (diagnostics only)."
         }
       }
     }
