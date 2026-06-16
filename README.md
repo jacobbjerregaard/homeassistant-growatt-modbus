@@ -61,6 +61,10 @@ exposes:
   `growatt_modbus.set_time_slot` service is also available for automations.
 * **Firmware readouts** (diagnostic): inverter, control, DSP, BDC and BMS
   firmware versions, plus per-module DSP/MCU firmware where available.
+* **Nameplate / rated values** (diagnostic): inverter rated power (Pmax,
+  holding 6–7, VA), cell rated capacity (holding 3119, Ah) and — APX only —
+  battery rated capacity (holding 3121; the spec lists no unit, so the raw
+  value is shown).
 
 The writable controls are grouped under *Configuration* on the device page and
 internal readings under *Diagnostic*. A redacted diagnostics download is
@@ -140,9 +144,11 @@ rewriting the slots —
 * **AC charge** is switched on/off to match whether the plan charges right now;
 * the **stop-charge / stop-discharge SOC** tracks the plan's SOC target, so the
   battery follows the planned trajectory and stops at the right level;
-* the **charge / discharge rate** is set from the planned power when a *Battery
-  max power* is configured (it converts EMHASS watts to the inverter's
-  percentage; leave it at 0 to keep the rates untouched).
+* the **charge / discharge rate** is set from the planned power, converting
+  EMHASS watts to the inverter's percentage. The battery max power is taken from
+  the *Battery max power* option, or — when that is left at 0 — derived live from
+  the BMS current limit × battery voltage; with neither available the rates are
+  left untouched.
 
 Fail-safes guard every write: corrections are skipped unless the plan is
 `Optimal`, and any SOC target is clamped to the battery's BMS-reported safe

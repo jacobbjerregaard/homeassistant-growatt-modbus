@@ -17,7 +17,12 @@ from custom_components.growatt_modbus.API.device_type.base import (
     ATTR_AC_CHARGE_ENABLED,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_BMS_MAX_CHARGE_CURRENT,
     ATTR_BMS_MAX_SOC,
+    ATTR_INVERTER_RATED_POWER,
+    ATTR_RATED_BATTERY_CAPACITY,
+    ATTR_RATED_CELL_CAPACITY,
 )
 from custom_components.growatt_modbus.API.device_type.storage_120 import (
     encode_time_slot,
@@ -464,3 +469,40 @@ async def test_mpc_sets_charge_rate_from_max_power(
     # 2500 W of a 5000 W battery -> 50 %.
     rate = coord.get_holding_register_by_name(ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST)
     assert (rate.register, to_register_value(rate, 50)) in fake.writes
+
+
+async def test_mpc_derives_max_power_from_bms(hass, setup_storage, aioclient_mock):
+    entry, fake = setup_storage
+    aioclient_mock.post(f"{EMHASS_URL}/action/naive-mpc-optim", text="ok")
+    aioclient_mock.post(f"{EMHASS_URL}/action/publish-data", text="ok")
+    _publish_current_plan(hass, p_batt=-2500, soc=70)
+    # No battery max power configured -> derive it from the BMS.
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    coord = entry.runtime_data.main_coordinator
+    coord.data[ATTR_BMS_MAX_CHARGE_CURRENT] = 50.0  # A
+    coord.data[ATTR_BATTERY_VOLTAGE] = 100.0  # V -> 5000 W max
+    fake.writes.clear()
+    await entry.runtime_data.optimizer.async_mpc_step()
+    await hass.async_block_till_done()
+
+    # 2500 W of the derived 5000 W -> 50 %.
+    rate = coord.get_holding_register_by_name(ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST)
+    assert (rate.register, to_register_value(rate, 50)) in fake.writes
+
+
+# --- nameplate / rated-value sensors --------------------------------------
+
+
+async def test_rated_value_sensors(hass, setup_storage):
+    entry, fake = setup_storage
+    fake.registers[6] = 1  # PmaxH/PmaxL: (1<<16)+14464 = 80000 -> /10 = 8000 VA
+    fake.registers[7] = 14464
+    fake.registers[3119] = 280  # cell rated capacity, Ah
+    fake.registers[3121] = 12345  # battery rated capacity, raw (APX)
+    await entry.runtime_data.main_coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert float(_state_for(hass, ATTR_INVERTER_RATED_POWER).state) == 8000.0
+    assert float(_state_for(hass, ATTR_RATED_CELL_CAPACITY).state) == 280
+    assert float(_state_for(hass, ATTR_RATED_BATTERY_CAPACITY).state) == 12345

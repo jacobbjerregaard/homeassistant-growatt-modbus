@@ -39,6 +39,12 @@ ATTR_DRY_CONTACT_ENABLED = "dry_contact_enabled"  # holding 3016
 ATTR_EXPORT_LIMIT_MODE = "export_limit_mode"  # holding 122
 ATTR_EXPORT_LIMIT_RATE = "export_limit_rate"  # holding 123, 0.1% signed
 
+# Nameplate / rated values (read-only config registers).
+ATTR_INVERTER_RATED_POWER = "inverter_rated_power"  # holding 6-7 (Pmax), 0.1VA
+ATTR_RATED_CELL_CAPACITY = "rated_cell_capacity"  # holding 3119, 1Ah
+# Holding 3121, APX only; the spec documents no unit, so the raw value is shown.
+ATTR_RATED_BATTERY_CAPACITY = "rated_battery_capacity"
+
 # Telemetry registers added in Protocol II V1.39 (Storage input)
 ATTR_BATTERY_VOLTAGE = "battery_voltage"  # input 3169, 0.01V
 ATTR_BATTERY_CURRENT = "battery_current"  # input 3170, 0.1A

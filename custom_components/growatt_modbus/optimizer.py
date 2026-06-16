@@ -47,6 +47,9 @@ from .API.device_type.base import (
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_BMS_MAX_CHARGE_CURRENT,
+    ATTR_BMS_MAX_DISCHARGE_CURRENT,
     ATTR_BMS_MAX_SOC,
     ATTR_BMS_MIN_SOC,
     ATTR_ON_GRID_DISCHARGE_STOP_SOC,
@@ -419,9 +422,10 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
             elif discharging:
                 await self._write_number(ATTR_ON_GRID_DISCHARGE_STOP_SOC, target)
 
-        # Set the charge/discharge rate from the planned power, when a battery
-        # max power is configured (otherwise leave the inverter's rate as-is).
-        rate = power_to_rate(plan.battery_power, self._battery_max_power)
+        # Set the charge/discharge rate from the planned power. The max power is
+        # the configured override, or else derived live from the BMS current
+        # limit and battery voltage; with neither, rates are left untouched.
+        rate = power_to_rate(plan.battery_power, self._max_power(charging))
         if rate is not None:
             if charging:
                 await self._write_number(ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST, rate)
@@ -431,6 +435,26 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
                 )
 
         await coordinator.async_request_refresh()
+
+    def _max_power(self, charging: bool) -> float:
+        """Battery max (dis)charge power in W for the rate calculation.
+
+        Uses the configured override when set, otherwise derives it from the
+        BMS-reported current limit (charge or discharge) and the battery voltage.
+        Returns 0 when nothing usable is available, so the rate is left alone.
+        """
+        if self._battery_max_power > 0:
+            return self._battery_max_power
+        data = getattr(self._device_coordinator, "data", None) or {}
+        current = data.get(
+            ATTR_BMS_MAX_CHARGE_CURRENT if charging else ATTR_BMS_MAX_DISCHARGE_CURRENT
+        )
+        voltage = data.get(ATTR_BATTERY_VOLTAGE)
+        try:
+            power = float(current) * float(voltage)
+        except (TypeError, ValueError):
+            return 0.0
+        return power if power > 0 else 0.0
 
     async def _write_number(self, key: str, value: float) -> None:
         """Write a scaled value to a named holding register (number control)."""

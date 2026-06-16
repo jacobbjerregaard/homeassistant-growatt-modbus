@@ -5,6 +5,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
@@ -22,6 +23,9 @@ from ..API.device_type.base import (
     ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
+    ATTR_INVERTER_RATED_POWER,
+    ATTR_RATED_CELL_CAPACITY,
+    ATTR_RATED_BATTERY_CAPACITY,
     ATTR_AC_CHARGE_ENABLED,
     ATTR_GRID_FIRST_STOP_SOC,
     ATTR_ON_GRID_DISCHARGE_STOP_SOC,
@@ -318,6 +322,28 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_BATTERY_PACK_NUMBER,
         name="Battery pack number ",
         entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    # --- Nameplate / rated values (read-only config registers) ---
+    GrowattSensorEntityDescription(
+        key=ATTR_INVERTER_RATED_POWER,
+        name="Inverter Rated Power",
+        native_unit_of_measurement=UnitOfApparentPower.VOLT_AMPERE,
+        device_class=SensorDeviceClass.APPARENT_POWER,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    GrowattSensorEntityDescription(
+        key=ATTR_RATED_CELL_CAPACITY,
+        name="Cell Rated Capacity",
+        native_unit_of_measurement="Ah",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        icon="mdi:battery-high",
+    ),
+    GrowattSensorEntityDescription(
+        # APX-only; the spec documents no unit, so the raw value is surfaced.
+        key=ATTR_RATED_BATTERY_CAPACITY,
+        name="Battery Rated Capacity",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        icon="mdi:battery-high",
     ),
     # --- Telemetry added in Protocol II V1.39 ---
     GrowattSensorEntityDescription(
