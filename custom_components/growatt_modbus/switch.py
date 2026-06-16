@@ -23,6 +23,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import GrowattConfigEntry
 from .const import (
     CONF_FIRMWARE,
+    CONF_OPTIMIZER_ENABLED,
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
@@ -61,7 +62,54 @@ async def async_setup_entry(
         coordinator.get_keys_by_name({f"tou_slot_{slot}_word1"}, True)
         entities.append(GrowattSlotEnable(coordinator, config_entry, slot))
 
+    # Master switch for the EMHASS optimizer's battery control (only when an
+    # EMHASS instance is configured).
+    if config_entry.runtime_data.optimizer is not None:
+        entities.append(GrowattOptimizerSwitch(config_entry))
+
     async_add_entities(entities, True)
+
+
+class GrowattOptimizerSwitch(SwitchEntity):
+    """Enables/disables the EMHASS optimizer's control of the battery.
+
+    Off keeps the optimizer read-only (diagnostics only). The state is persisted
+    in the config-entry options so it survives restarts; toggling reloads the
+    entry, which (re)applies the day-ahead plan when turned on.
+    """
+
+    _attr_has_entity_name = True
+    _attr_name = "Optimizer Control"
+    _attr_icon = "mdi:auto-fix"
+
+    def __init__(self, entry: GrowattConfigEntry) -> None:
+        self._entry = entry
+        serial = entry.data[CONF_SERIAL_NUMBER]
+        self._attr_unique_id = f"{DOMAIN}_{serial}_optimizer_control"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, serial)},
+            manufacturer="Growatt",
+            model=entry.data[CONF_MODEL],
+            sw_version=entry.data[CONF_FIRMWARE],
+            name=entry.data[CONF_NAME],
+        )
+
+    @property
+    def is_on(self) -> bool:
+        optimizer = self._entry.runtime_data.optimizer
+        return bool(optimizer and optimizer.enabled)
+
+    async def _async_set(self, value: bool) -> None:
+        self.hass.config_entries.async_update_entry(
+            self._entry,
+            options={**self._entry.options, CONF_OPTIMIZER_ENABLED: value},
+        )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._async_set(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._async_set(False)
 
 
 class GrowattSlotEnable(CoordinatorEntity, SwitchEntity):

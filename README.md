@@ -123,8 +123,28 @@ Compilation runs once just after midnight (from the freshly published day-ahead
 plan) and on every `run_optimization` call. With no plan available the existing
 slots are left untouched rather than stranding the battery. **While enabled the
 optimizer owns all 9 time-of-use slots and the AC-charge control**, so don't
-also drive them by hand. Intraday model-predictive corrections come in a later
-phase.
+also drive them by hand.
+
+The *Optimizer Control* switch (under the inverter device) is the master on/off
+for this actuation and mirrors the option above, so you can stop the optimizer
+from a dashboard without re-opening the options.
+
+### Intraday corrections (model-predictive)
+
+The day-ahead slots are a baseline. While control is enabled the optimizer also
+runs a lightweight correction every *optimizer update interval*: it re-runs the
+EMHASS naive-MPC optimisation seeded with the live battery SOC (from the
+configured SOC sensor) and then adjusts the **current** controls without
+rewriting the slots —
+
+* **AC charge** is switched on/off to match whether the plan charges right now;
+* the **stop-charge / stop-discharge SOC** tracks the plan's SOC target, so the
+  battery follows the planned trajectory and stops at the right level.
+
+Fail-safes guard every write: corrections are skipped unless the plan is
+`Optimal`, and any SOC target is clamped to the battery's BMS-reported safe
+window (a missing or bogus BMS reading falls back to 0–100 % rather than
+stranding the battery).
 
 ## Testing
 

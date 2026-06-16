@@ -84,6 +84,17 @@ def compile_tou_slots(
     return runs
 
 
+def clamp_soc(value: float, low: float = 0.0, high: float = 100.0) -> float:
+    """Clamp a state-of-charge percentage to ``[low, high]``.
+
+    Used before writing any SOC limit so a plan value can never exceed the
+    battery's BMS-reported safe window.
+    """
+    if low > high:
+        low, high = high, low
+    return max(low, min(high, value))
+
+
 def minutes_to_hm(minutes: int) -> tuple[int, int]:
     """Convert minutes-of-day to ``(hour, minute)`` for slot encoding.
 

@@ -42,15 +42,25 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.util import dt as dt_util
 
-from .API.device_type.base import ATTR_AC_CHARGE_ENABLED
+from .API.device_type.base import (
+    ATTR_AC_CHARGE_ENABLED,
+    ATTR_BATTERY_CHARGE_STOP_SOC,
+    ATTR_BMS_MAX_SOC,
+    ATTR_BMS_MIN_SOC,
+    ATTR_ON_GRID_DISCHARGE_STOP_SOC,
+)
 from .API.device_type.storage_120 import encode_time_slot, time_slot_register
 from .API.tou_planner import (
     BATTERY_FIRST,
+    DEFAULT_CHARGE_THRESHOLD,
+    DEFAULT_DISCHARGE_THRESHOLD,
     LOAD_FIRST,
+    clamp_soc,
     compile_tou_slots,
     minutes_to_hm,
     priority_for_step,
 )
+from .API.utils import to_register_value
 from .const import CONF_FIRMWARE, CONF_SERIAL_NUMBER, DOMAIN
 from .emhass_client import EmhassClient, EmhassError
 
@@ -140,6 +150,7 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         update_interval: timedelta,
         device_coordinator=None,
         enabled: bool = False,
+        soc_sensor: str | None = None,
     ) -> None:
         super().__init__(
             hass,
@@ -152,6 +163,7 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         # coordinator). When ``enabled`` is False the optimizer stays read-only.
         self._device_coordinator = device_coordinator
         self.enabled = enabled
+        self._soc_sensor = soc_sensor
 
     async def _async_update_data(self) -> OptimizationPlan:
         # Reading published states never fails; missing sensors just read as
@@ -285,6 +297,111 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
             _LOGGER.debug("optimizer: AC charge register not available on this model")
             return
         await coordinator.write_register(register.register, 1 if enable else 0)
+
+    # --- intraday model-predictive corrections -----------------------------
+
+    def _live_soc(self) -> float | None:
+        """Current battery SOC (%) from the configured sensor, for EMHASS."""
+        if not self._soc_sensor:
+            return None
+        state = self.hass.states.get(self._soc_sensor)
+        if state is None or state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            return None
+        try:
+            return float(state.state)
+        except (ValueError, TypeError):
+            return None
+
+    def _bms_soc_limits(self) -> tuple[float, float]:
+        """BMS-reported safe SOC window, falling back to 0..100.
+
+        A missing or degenerate reading (e.g. an unsupported model reporting 0)
+        must not clamp the target down to 0 and strand charging, so anything that
+        isn't a sane ``0 <= low < high <= 100`` window falls back to no limit.
+        """
+        data = getattr(self._device_coordinator, "data", None) or {}
+        try:
+            low = float(data.get(ATTR_BMS_MIN_SOC))
+        except (TypeError, ValueError):
+            low = 0.0
+        try:
+            high = float(data.get(ATTR_BMS_MAX_SOC))
+        except (TypeError, ValueError):
+            high = 100.0
+        if not 0 <= low < 100:
+            low = 0.0
+        if not 0 < high <= 100:
+            high = 100.0
+        if low >= high:
+            low, high = 0.0, 100.0
+        return low, high
+
+    @staticmethod
+    def _plan_is_actionable(plan: OptimizationPlan) -> bool:
+        """Only act on a fresh, feasible plan (the core MPC fail-safe)."""
+        if plan is None or plan.battery_power is None:
+            return False
+        if plan.status is None or plan.status.lower() != "optimal":
+            return False
+        return True
+
+    async def async_mpc_step(self) -> None:
+        """Re-run EMHASS naive-MPC with the live SOC and correct current controls.
+
+        This nudges the AC-charge switch and the relevant stop-SOC for *now*
+        without rewriting the day-ahead TOU slots, so the schedule adapts to SOC
+        drift and forecast error between daily compiles.
+        """
+        if not self.enabled or self._device_coordinator is None:
+            return
+
+        params: dict = {}
+        soc = self._live_soc()
+        if soc is not None:
+            # EMHASS expects the initial SOC as a 0..1 fraction.
+            params["soc_init"] = round(soc / 100.0, 4)
+        try:
+            await self.client.async_naive_mpc_optim(params)
+            await self.client.async_publish_data()
+        except EmhassError as err:
+            # Act on whatever is currently published rather than failing.
+            _LOGGER.warning("optimizer MPC: EMHASS request failed: %s", err)
+
+        await self.async_request_refresh()
+        plan = self.data
+        if not self._plan_is_actionable(plan):
+            _LOGGER.debug("optimizer MPC: plan not actionable; leaving controls")
+            return
+        await self._apply_mpc_corrections(plan)
+
+    async def _apply_mpc_corrections(self, plan: OptimizationPlan) -> None:
+        coordinator = self._device_coordinator
+        charging = plan.battery_power < -DEFAULT_CHARGE_THRESHOLD
+        discharging = plan.battery_power > DEFAULT_DISCHARGE_THRESHOLD
+
+        # AC charge tracks whether we should be charging from grid right now.
+        await self._set_ac_charge(charging)
+
+        # Track the plan's SOC target via the matching stop-SOC, clamped to the
+        # BMS safe window so a bad plan value can never push past it.
+        if plan.battery_soc is not None:
+            low, high = self._bms_soc_limits()
+            target = clamp_soc(plan.battery_soc, low, high)
+            if charging:
+                await self._write_number(ATTR_BATTERY_CHARGE_STOP_SOC, target)
+            elif discharging:
+                await self._write_number(ATTR_ON_GRID_DISCHARGE_STOP_SOC, target)
+
+        await coordinator.async_request_refresh()
+
+    async def _write_number(self, key: str, value: float) -> None:
+        """Write a scaled value to a named holding register (number control)."""
+        coordinator = self._device_coordinator
+        register = coordinator.get_holding_register_by_name(key)
+        if register is None:
+            _LOGGER.debug("optimizer: register %s not available on this model", key)
+            return
+        await coordinator.write_register(register.register, to_register_value(register, value))
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -16,11 +16,16 @@ from homeassistant.const import (
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
-from custom_components.growatt_modbus.API.device_type.base import ATTR_AC_CHARGE_ENABLED
+from custom_components.growatt_modbus.API.device_type.base import (
+    ATTR_AC_CHARGE_ENABLED,
+    ATTR_BATTERY_CHARGE_STOP_SOC,
+    ATTR_BMS_MAX_SOC,
+)
 from custom_components.growatt_modbus.API.device_type.storage_120 import (
     encode_time_slot,
     time_slot_register,
 )
+from custom_components.growatt_modbus.API.utils import to_register_value
 from custom_components.growatt_modbus.const import (
     CONF_BATTERY_MODULES,
     CONF_EMHASS_URL,
@@ -309,3 +314,113 @@ async def test_run_optimization_compiles_when_enabled(
     await hass.async_block_till_done()
 
     assert _slot_registers(time_slot_register(1), fake)
+
+
+# --- Phase 3: master switch ------------------------------------------------
+
+
+async def test_optimizer_switch_present_only_with_emhass(hass, setup_storage):
+    entry, _fake = setup_storage
+    ent_reg = er.async_get(hass)
+
+    # No EMHASS configured yet -> no switch.
+    uid = f"{DOMAIN}_{TEST_SERIAL}_optimizer_control"
+    assert ent_reg.async_get_entity_id("switch", DOMAIN, uid) is None
+
+    await _enable_emhass(hass, entry)
+    assert ent_reg.async_get_entity_id("switch", DOMAIN, uid) is not None
+
+
+async def test_optimizer_switch_toggles_and_persists(hass, setup_storage):
+    entry, _fake = setup_storage
+    await _enable_emhass(hass, entry)  # actuation off
+    assert entry.runtime_data.optimizer.enabled is False
+
+    sid = er.async_get(hass).async_get_entity_id(
+        "switch", DOMAIN, f"{DOMAIN}_{TEST_SERIAL}_optimizer_control"
+    )
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": sid}, blocking=True
+    )
+    await hass.async_block_till_done()
+
+    assert entry.options.get(CONF_OPTIMIZER_ENABLED) is True
+    assert entry.runtime_data.optimizer.enabled is True
+
+
+# --- Phase 3: intraday MPC corrections + fail-safes ------------------------
+
+
+def _publish_current_plan(hass, status="Optimal", p_batt=-2000, soc=70) -> None:
+    hass.states.async_set("sensor.optim_status", status)
+    hass.states.async_set("sensor.p_batt_forecast", str(p_batt))
+    hass.states.async_set("sensor.soc_batt_forecast", str(soc))
+
+
+async def test_mpc_enables_ac_charge_and_sets_stop_soc(
+    hass, setup_storage, aioclient_mock
+):
+    entry, fake = setup_storage
+    aioclient_mock.post(f"{EMHASS_URL}/action/naive-mpc-optim", text="ok")
+    aioclient_mock.post(f"{EMHASS_URL}/action/publish-data", text="ok")
+    _publish_current_plan(hass, p_batt=-2000, soc=70)
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    coord = entry.runtime_data.main_coordinator
+    fake.writes.clear()
+    await entry.runtime_data.optimizer.async_mpc_step()
+    await hass.async_block_till_done()
+
+    ac = coord.get_holding_register_by_name(ATTR_AC_CHARGE_ENABLED)
+    stop = coord.get_holding_register_by_name(ATTR_BATTERY_CHARGE_STOP_SOC)
+    assert (ac.register, 1) in fake.writes
+    assert (stop.register, to_register_value(stop, 70)) in fake.writes
+
+
+async def test_mpc_skips_when_plan_not_optimal(hass, setup_storage, aioclient_mock):
+    entry, fake = setup_storage
+    aioclient_mock.post(f"{EMHASS_URL}/action/naive-mpc-optim", text="ok")
+    aioclient_mock.post(f"{EMHASS_URL}/action/publish-data", text="ok")
+    _publish_current_plan(hass, status="Infeasible", p_batt=-2000, soc=70)
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    coord = entry.runtime_data.main_coordinator
+    fake.writes.clear()
+    await entry.runtime_data.optimizer.async_mpc_step()
+    await hass.async_block_till_done()
+
+    ac = coord.get_holding_register_by_name(ATTR_AC_CHARGE_ENABLED)
+    # No actuation at all on an infeasible plan.
+    assert not any(reg == ac.register for reg, _ in fake.writes)
+
+
+async def test_mpc_clamps_stop_soc_to_bms_max(hass, setup_storage, aioclient_mock):
+    entry, fake = setup_storage
+    aioclient_mock.post(f"{EMHASS_URL}/action/naive-mpc-optim", text="ok")
+    aioclient_mock.post(f"{EMHASS_URL}/action/publish-data", text="ok")
+    _publish_current_plan(hass, p_batt=-2000, soc=95)
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    coord = entry.runtime_data.main_coordinator
+    coord.data[ATTR_BMS_MAX_SOC] = 80  # BMS caps the safe window at 80%
+    fake.writes.clear()
+    await entry.runtime_data.optimizer.async_mpc_step()
+    await hass.async_block_till_done()
+
+    stop = coord.get_holding_register_by_name(ATTR_BATTERY_CHARGE_STOP_SOC)
+    assert (stop.register, to_register_value(stop, 80)) in fake.writes
+    assert (stop.register, to_register_value(stop, 95)) not in fake.writes
+
+
+async def test_mpc_no_op_when_disabled(hass, setup_storage, aioclient_mock):
+    entry, fake = setup_storage
+    _publish_current_plan(hass, p_batt=-2000, soc=70)
+    await _enable_emhass(hass, entry)  # actuation off
+
+    fake.writes.clear()
+    await entry.runtime_data.optimizer.async_mpc_step()
+    await hass.async_block_till_done()
+
+    # Disabled optimizer must not call EMHASS or write anything.
+    assert aioclient_mock.mock_calls == []
+    assert fake.writes == []

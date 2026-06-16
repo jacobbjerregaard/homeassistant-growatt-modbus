@@ -26,6 +26,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import (
     async_track_time_change,
+    async_track_time_interval,
 )
 
 from homeassistant.helpers.update_coordinator import (
@@ -60,6 +61,7 @@ from .const import (
     CONF_EMHASS_URL,
     CONF_EMHASS_TOKEN,
     CONF_OPTIMIZER_ENABLED,
+    CONF_OPTIMIZER_SOC_SENSOR,
     CONF_OPTIMIZER_INTERVAL,
     DEFAULT_OPTIMIZER_INTERVAL,
     DOMAIN,
@@ -224,6 +226,9 @@ async def async_setup_entry(
                 CONF_OPTIMIZER_ENABLED, entry.data.get(CONF_OPTIMIZER_ENABLED, False)
             )
         )
+        soc_sensor = entry.options.get(
+            CONF_OPTIMIZER_SOC_SENSOR, entry.data.get(CONF_OPTIMIZER_SOC_SENSOR)
+        )
         client = EmhassClient(async_get_clientsession(hass), emhass_url, token)
         optimizer = EmhassOptimizerCoordinator(
             hass,
@@ -231,19 +236,29 @@ async def async_setup_entry(
             timedelta(seconds=interval),
             device_coordinator=main_coordinator,
             enabled=enabled,
+            soc_sensor=soc_sensor,
         )
         await optimizer.async_config_entry_first_refresh()
 
         if enabled:
-            # Apply the current plan now, and recompile once daily just after
-            # midnight from whatever day-ahead plan EMHASS has published.
+            # Apply the current plan now, recompile once daily just after
+            # midnight from EMHASS's published day-ahead plan, and run intraday
+            # model-predictive corrections every optimizer interval.
             await optimizer.async_compile_tou()
 
             async def _daily_compile(_now) -> None:
                 await optimizer.async_compile_tou()
 
+            async def _mpc_step(_now) -> None:
+                await optimizer.async_mpc_step()
+
             entry.async_on_unload(
                 async_track_time_change(hass, _daily_compile, hour=0, minute=10, second=0)
+            )
+            entry.async_on_unload(
+                async_track_time_interval(
+                    hass, _mpc_step, timedelta(seconds=interval)
+                )
             )
 
     entry.runtime_data = GrowattRuntimeData(

@@ -3,6 +3,7 @@ from growatt_api.tou_planner import (
     BATTERY_FIRST,
     GRID_FIRST,
     LOAD_FIRST,
+    clamp_soc,
     compile_tou_slots,
     minutes_to_hm,
     priority_for_step,
@@ -96,3 +97,17 @@ def test_minutes_to_hm():
     assert minutes_to_hm(1439) == (23, 59)
     # End-of-day clamps to 23:59 so it fits a same-day slot end.
     assert minutes_to_hm(1440) == (23, 59)
+
+
+# --- clamp_soc -------------------------------------------------------------
+
+
+def test_clamp_soc_within_and_outside_range():
+    assert clamp_soc(50, 10, 90) == 50
+    assert clamp_soc(5, 10, 90) == 10
+    assert clamp_soc(95, 10, 90) == 90
+    # Defaults clamp to 0..100.
+    assert clamp_soc(-5) == 0
+    assert clamp_soc(150) == 100
+    # Swapped bounds are tolerated.
+    assert clamp_soc(50, 90, 10) == 50
