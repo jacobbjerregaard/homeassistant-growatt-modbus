@@ -27,6 +27,16 @@ CONF_INVERTER_POWER_CONTROL = "inverter_power_control"
 CONF_SERIAL_NUMBER = "serial_number"
 CONF_FIRMWARE = "firmware"
 
+# EMHASS energy optimizer (see emhass_client.py / optimizer.py). The optimizer
+# is optional: it is only wired up when an EMHASS URL is configured.
+CONF_EMHASS_URL = "emhass_url"
+CONF_EMHASS_TOKEN = "emhass_token"
+CONF_OPTIMIZER_ENABLED = "optimizer_enabled"
+CONF_OPTIMIZER_SOC_SENSOR = "optimizer_soc_sensor"
+CONF_OPTIMIZER_INTERVAL = "optimizer_interval"
+
+DEFAULT_OPTIMIZER_INTERVAL = 300
+
 
 class ParityOptions(StrEnum):
     NONE = "None"
