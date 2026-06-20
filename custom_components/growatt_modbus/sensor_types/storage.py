@@ -23,6 +23,8 @@ from ..API.device_type.base import (
     ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
+    ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC,
+    ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC,
     ATTR_INVERTER_RATED_POWER,
     ATTR_RATED_CELL_CAPACITY,
     ATTR_RATED_BATTERY_CAPACITY,
@@ -151,6 +153,22 @@ STORAGE_NUMBER_TYPES: tuple[GrowattNumberEntityDescription, ...] = (
         key=ATTR_ON_GRID_DISCHARGE_STOP_SOC,
         name="On-Grid Stop Discharge SOC",
         native_min_value=1,
+        native_max_value=100,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC,  # holding 951, spec range 0-100
+        name="Battery Charge Stop SOC",
+        native_min_value=0,
+        native_max_value=100,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC,  # holding 952, spec range 0-100
+        name="Battery Discharge Stop SOC",
+        native_min_value=0,
         native_max_value=100,
         native_step=1,
         native_unit_of_measurement=PERCENTAGE,

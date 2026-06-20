@@ -28,6 +28,8 @@ from .base import (
     ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
+    ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC,
+    ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC,
     ATTR_BATTERY_PACK_NUMBER,
     ATTR_AC_CHARGE_ENABLED,
     ATTR_GRID_FIRST_STOP_SOC,
@@ -580,6 +582,16 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     # --- Writable command registers added in Protocol II V1.39 ---
     GrowattDeviceRegisters(
         name=ATTR_DRY_CONTACT_ENABLED, register=3016, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC,  # holding 951 uwBatChargeStopSoc, 0-100%
+        register=951,
+        value_type=int,
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC,  # holding 952 uwBatDisChargeStopSoc, 0-100%
+        register=952,
+        value_type=int,
     ),
     GrowattDeviceRegisters(
         name=ATTR_GRID_FIRST_STOP_SOC, register=3037, value_type=int

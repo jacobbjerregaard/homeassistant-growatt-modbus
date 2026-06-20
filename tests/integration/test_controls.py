@@ -70,3 +70,23 @@ async def test_number_reflects_register_after_refresh(hass, setup_storage):
     await entry.runtime_data.main_coordinator.async_refresh()
     await hass.async_block_till_done()
     assert float(hass.states.get(eid).state) == 90.0
+
+
+async def test_battery_global_charge_stop_soc_writes(hass, setup_storage):
+    entry, fake = setup_storage
+    # holding 951 uwBatChargeStopSoc, int % (generic, not mode-specific)
+    eid = _entity_id(hass, entry, "number", "_battery_global_charge_stop_soc")
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": eid, "value": 95}, blocking=True
+    )
+    assert (951, 95) in fake.writes
+
+
+async def test_battery_global_discharge_stop_soc_writes(hass, setup_storage):
+    entry, fake = setup_storage
+    # holding 952 uwBatDisChargeStopSoc, int %
+    eid = _entity_id(hass, entry, "number", "_battery_global_discharge_stop_soc")
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": eid, "value": 10}, blocking=True
+    )
+    assert (952, 10) in fake.writes

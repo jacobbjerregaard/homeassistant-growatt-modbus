@@ -28,7 +28,8 @@ exposes:
   * `number`: Grid-First stop-discharge SOC, On-Grid stop-discharge SOC, and
     the Grid-First discharge rate / Battery-First charge rate / Battery-First
     stop SOC (these three moved from read-only `sensor.*` to writable
-    `number.*`).
+    `number.*`), plus the generic Battery charge stop SOC / Battery discharge
+    stop SOC (holding 951/952, not tied to a priority mode).
   * `select`: export limit (disable / RS485 / RS232 / CT), battery type,
     generator force, UPS output voltage, UPS output frequency.
   * `number`: export limit power rate (%), in addition to the SOC settings.

@@ -61,6 +61,17 @@ def test_storage_120_uses_storage_layout_only():
     assert info.input == _by_register(STORAGE_INPUT_REGISTERS_120)
 
 
+def test_storage_exposes_battery_charge_discharge_stop_soc():
+    """951/952 (uwBatChargeStopSoc / uwBatDisChargeStopSoc) are writable SOC limits."""
+    by_reg = _by_register(STORAGE_HOLDING_REGISTERS_120)
+    assert 951 in by_reg, "missing uwBatChargeStopSoc (holding 951)"
+    assert 952 in by_reg, "missing uwBatDisChargeStopSoc (holding 952)"
+    assert by_reg[951].name == "battery_global_charge_stop_soc"
+    assert by_reg[952].name == "battery_global_discharge_stop_soc"
+    assert by_reg[951].value_type is int
+    assert by_reg[952].value_type is int
+
+
 def test_unsupported_device_type_raises():
     with pytest.raises(TypeError):
         get_register_information("not-a-device-type")

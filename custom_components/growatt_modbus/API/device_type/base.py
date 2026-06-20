@@ -26,6 +26,11 @@ ATTR_INVERTER_ENABLED = "inverter_enabled"
 ATTR_AC_CHARGE_ENABLED = "ac_charge_enabled"
 
 # Writable command registers added in Protocol II V1.39 (Storage)
+# Generic (non-mode-specific) battery charge/discharge stop SOC. The siblings
+# above (3037/3048/3067) are mode-specific (Grid-First / Battery-First); these
+# two carry no mode qualifier in the spec.
+ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC = "battery_global_charge_stop_soc"  # holding 951 uwBatChargeStopSoc
+ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC = "battery_global_discharge_stop_soc"  # holding 952 uwBatDisChargeStopSoc
 ATTR_GRID_FIRST_STOP_SOC = "grid_first_stop_soc"  # holding 3037
 ATTR_ON_GRID_DISCHARGE_STOP_SOC = "on_grid_discharge_stop_soc"  # holding 3067
 ATTR_BATTERY_TYPE = "battery_type"  # holding 3070
