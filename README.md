@@ -1,7 +1,5 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
-<img src="brands/logo.png" alt="Growatt Modbus" width="420">
-
 # Home Assistant Growatt Modbus Intergration
  Growatt Modbus is a custom component for Home Assistant that connects directly to your Growatt inverter using the Modbus protocol and supports Serial, TCP and UDP communication layers to connect to your inverter
 
