@@ -1,13 +1,13 @@
 {
     "domain": "growatt_modbus",
     "name": "Growatt Modbus",
+    "codeowners": ["@jacobbjerregaard"],
     "config_flow": true,
     "documentation": "https://github.com/jacobbjerregaard/homeassistant-growatt-modbus",
-    "issue_tracker": "https://github.com/jacobbjerregaard/homeassistant-growatt-modbus/issues",
-    "requirements": ["pymodbus>=3.8.3"],
-    "codeowners": ["@jacobbjerregaard"],
     "iot_class": "local_polling",
+    "issue_tracker": "https://github.com/jacobbjerregaard/homeassistant-growatt-modbus/issues",
     "loggers": ["custom_components.growatt_modbus"],
     "quality_scale": "silver",
+    "requirements": ["pymodbus>=3.8.3"],
     "version": "0.17.0"
   }

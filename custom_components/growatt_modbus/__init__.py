@@ -22,6 +22,7 @@ from homeassistant.const import (
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import (
@@ -74,6 +75,12 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+# This integration is configured exclusively through config entries (the UI
+# config flow); it has no YAML configuration. async_setup only registers
+# integration-level services.
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config) -> bool:

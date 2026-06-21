@@ -104,7 +104,7 @@
           "emhass_sensor_status": "EMHASS status sensor"
         },
         "data_description": {
-          "emhass_url": "Basis-URL van je EMHASS instantie, bijv. http://homeassistant.local:5000. Laat leeg om de optimizer uit te schakelen.",
+          "emhass_url": "Basis-URL van je EMHASS instantie, inclusief host en poort. Laat leeg om de optimizer uit te schakelen.",
           "emhass_token": "Bearer token, alleen als je EMHASS instantie authenticatie vereist.",
           "optimizer_enabled": "Indien aan schrijft de optimizer het EMHASS plan naar de tijdslots en AC-laden van de omvormer. Laat uit om alleen-lezen te blijven (alleen diagnostiek).",
           "optimizer_soc_sensor": "Batterij state-of-charge sensor die als live start-SOC aan EMHASS wordt doorgegeven voor intraday correcties.",
