@@ -1,5 +1,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
+<img src="brands/logo.png" alt="Growatt Modbus" width="420">
+
 # Home Assistant Growatt Modbus Intergration
  Growatt Modbus is a custom component for Home Assistant that connects directly to your Growatt inverter using the Modbus protocol and supports Serial, TCP and UDP communication layers to connect to your inverter
 
@@ -186,3 +188,17 @@ Two test suites:
   ```
 
 Both run in CI on every push/PR.
+
+## Credits
+
+This project was originally based on
+[Homeassistant-Growatt-Local-Modbus](https://github.com/WouterTuinstra/Homeassistant-Growatt-Local-Modbus)
+by Wouter Tuinstra and contributors, and started as a fork of it. It has since
+been substantially rewritten and extended (Protocol II V1.39 storage/hybrid
+support, per-battery-module telemetry, writable controls, time-of-use
+scheduling, an EMHASS optimization bridge and a full test suite), and is
+maintained independently under the `growatt_modbus` domain. Thanks to the
+original authors for the foundation.
+
+Licensed under the Apache License 2.0 (see [LICENSE](LICENSE)), the same license
+as the upstream project.
