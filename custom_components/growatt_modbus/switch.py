@@ -33,6 +33,10 @@ from .tou import read_slot_fields, slot_device_info, slot_unique_id, write_slot_
 
 _LOGGER = logging.getLogger(__name__)
 
+# Writes go to the inverter over a single Modbus connection (serialized by the
+# transport lock); be explicit and let Home Assistant issue them one at a time.
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,

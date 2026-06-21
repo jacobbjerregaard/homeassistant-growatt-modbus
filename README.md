@@ -76,6 +76,12 @@ State sensors (system / balance / derating / BMS status) are exposed as
 *unavailable* (rather than holding a stale value), and setup retries
 automatically with Home Assistant's normal backoff until the device responds.
 
+If the connection details change (for example the inverter gets a new IP, or
+you move it to a different serial port), use **Reconfigure** on the device's
+three-dot menu to update them in place — the integration verifies the same
+device answers (by serial number) before saving, so its entities and history
+are preserved.
+
 Some command registers are model-specific (US / XH variants); on a model that
 does not implement a register it may simply read `0` and ignore writes.
 
@@ -186,6 +192,9 @@ Two test suites:
   ```
 
 Both run in CI on every push/PR.
+
+The two suites run in different interpreters, so combined coverage is collected
+separately and merged by `scripts/coverage.sh` (≈95%).
 
 ## Credits
 

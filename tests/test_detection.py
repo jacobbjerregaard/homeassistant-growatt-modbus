@@ -37,3 +37,43 @@ def test_fixed_120_family_uses_120_registers(device_type):
     device = _StubDevice()
     result = asyncio.run(get_device_info(device, 1, device_type))
     assert result is not None
+
+
+def test_fixed_unknown_type_returns_none():
+    # A device type outside the 120 family / 315 falls through to None.
+    assert asyncio.run(get_device_info(_StubDevice(), 1, DeviceTypes.INVERTER)) is None
+
+
+from growatt_api.device_type.base import GrowattDeviceInfo  # noqa: E402
+from growatt_api.device_type.inverter_120 import HOLDING_REGISTERS_120  # noqa: E402
+
+
+def _info(version):
+    return GrowattDeviceInfo(
+        serial_number="S", model="M", firmware="F",
+        mppt_trackers=1, grid_phases=1, modbus_version=version, device_type="t",
+    )
+
+
+class _VersionDevice:
+    """Returns a different modbus_version per holding-register set probed."""
+
+    def __init__(self, v120, v315):
+        self.v120, self.v315 = v120, v315
+
+    async def get_device_info(self, registers, max_length, unit):
+        return _info(self.v120 if registers is HOLDING_REGISTERS_120 else self.v315)
+
+
+def test_autodetect_selects_v120():
+    result = asyncio.run(get_device_info(_VersionDevice(1.24, 0.0), 1))
+    assert result.modbus_version == 1.24
+
+
+def test_autodetect_selects_v315():
+    result = asyncio.run(get_device_info(_VersionDevice(0.0, 3.05), 1))
+    assert result.modbus_version == 3.05
+
+
+def test_autodetect_unknown_version_returns_none():
+    assert asyncio.run(get_device_info(_VersionDevice(0.0, 0.0), 1)) is None

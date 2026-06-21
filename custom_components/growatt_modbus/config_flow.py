@@ -121,7 +121,7 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     @callback
-    def _async_show_serial_form(self, default_values=(None, 9600, 1, ParityOptions.NONE, 8, None), errors=None):
+    def _async_show_serial_form(self, default_values=(None, 9600, 1, ParityOptions.NONE, 8, None), errors=None, step_id="serial"):
         """Show the serial form to the user."""
         data_schema = vol.Schema(
             {
@@ -151,11 +151,11 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
         return self.async_show_form(
-            step_id="serial", data_schema=data_schema, errors=errors
+            step_id=step_id, data_schema=data_schema, errors=errors
         )
 
     @callback
-    def _async_show_network_form(self, default_values=("", 502, None, 'socket'), errors=None):
+    def _async_show_network_form(self, default_values=("", 502, None, 'socket'), errors=None, step_id="network"):
         """Show the network form to the user."""
         data_schema = vol.Schema(
             {
@@ -171,7 +171,7 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
         return self.async_show_form(
-            step_id="network", data_schema=data_schema, errors=errors
+            step_id=step_id, data_schema=data_schema, errors=errors
         )
 
     @callback
@@ -491,6 +491,140 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_create_entry(
             title=f"Growatt {self.data[CONF_MODEL]}", data=self.data
         )
+
+    # --- Reconfigure: change the connection without re-adding the device -------
+
+    async def _async_validate_serial(self, user_input):
+        """Connect over serial and read device info. Return (info, errors)."""
+        try:
+            server = GrowattSerial(
+                user_input[CONF_SERIAL_PORT],
+                user_input[CONF_BAUDRATE],
+                user_input[CONF_STOPBITS],
+                user_input[CONF_PARITY],
+                user_input[CONF_BYTESIZE],
+            )
+            await server.connect()
+        except ModbusPortException:
+            return None, {CONF_SERIAL_PORT: "serial_port"}
+        try:
+            info = await get_device_info(server, user_input[CONF_ADDRESS])
+        except TimeoutError:
+            return None, {CONF_ADDRESS: "device_address", "base": "device_timeout"}
+        except ConnectionException:
+            return None, {"base": "device_disconnect"}
+        finally:
+            server.close()
+        if info is None:
+            return None, {"base": "device_type"}
+        return info, None
+
+    async def _async_validate_network(self, user_input):
+        """Connect over the network and read device info. Return (info, errors)."""
+        try:
+            server = GrowattNetwork(
+                self.data[CONF_LAYER],
+                user_input[CONF_IP_ADDRESS],
+                user_input[CONF_PORT],
+                user_input[CONF_FRAME],
+                timeout=5,
+                retries=0,
+            )
+            await asyncio.wait_for(server.connect(), 3)
+        except (TimeoutError, ConnectionException):
+            return None, {"base": "network_connection"}
+        if not server.connected():
+            server.close()
+            return None, {"base": "network_connection"}
+        try:
+            info = await get_device_info(server, user_input[CONF_ADDRESS])
+        except TimeoutError:
+            return None, {CONF_ADDRESS: "device_address", "base": "device_timeout"}
+        except ConnectionException:
+            return None, {"base": "device_disconnect"}
+        finally:
+            server.close()
+        if info is None:
+            return None, {"base": "device_type"}
+        return info, None
+
+    async def _async_apply_reconfigure(self, info: GrowattDeviceInfo, user_input):
+        """Verify it is the same device, then update the entry and reload."""
+        await self.async_set_unique_id(info.serial_number)
+        self._abort_if_unique_id_mismatch(reason="wrong_device")
+        return self.async_update_reload_and_abort(
+            self._get_reconfigure_entry(),
+            data_updates={
+                **user_input,
+                CONF_SERIAL_NUMBER: info.serial_number,
+                CONF_FIRMWARE: info.firmware,
+            },
+        )
+
+    async def async_step_reconfigure(self, user_input=None) -> FlowResult:
+        """Start reconfiguring an existing device's connection parameters."""
+        self.data = dict(self._get_reconfigure_entry().data)
+        if self.data.get(CONF_LAYER) == CONF_SERIAL:
+            return await self.async_step_reconfigure_serial()
+        return await self.async_step_reconfigure_network()
+
+    async def async_step_reconfigure_serial(self, user_input=None) -> FlowResult:
+        """Change serial connection parameters of an existing device."""
+        if user_input is None:
+            d = self.data
+            return self._async_show_serial_form(
+                default_values=(
+                    d.get(CONF_SERIAL_PORT),
+                    d.get(CONF_BAUDRATE, 9600),
+                    d.get(CONF_STOPBITS, 1),
+                    d.get(CONF_PARITY, ParityOptions.NONE),
+                    d.get(CONF_BYTESIZE, 8),
+                    d.get(CONF_ADDRESS, 1),
+                ),
+                step_id="reconfigure_serial",
+            )
+        info, errors = await self._async_validate_serial(user_input)
+        if errors:
+            return self._async_show_serial_form(
+                default_values=(
+                    user_input[CONF_SERIAL_PORT],
+                    user_input[CONF_BAUDRATE],
+                    user_input[CONF_STOPBITS],
+                    user_input[CONF_PARITY],
+                    user_input[CONF_BYTESIZE],
+                    user_input[CONF_ADDRESS],
+                ),
+                errors=errors,
+                step_id="reconfigure_serial",
+            )
+        return await self._async_apply_reconfigure(info, user_input)
+
+    async def async_step_reconfigure_network(self, user_input=None) -> FlowResult:
+        """Change network connection parameters of an existing device."""
+        if user_input is None:
+            d = self.data
+            return self._async_show_network_form(
+                default_values=(
+                    d.get(CONF_IP_ADDRESS, ""),
+                    d.get(CONF_PORT, 502),
+                    d.get(CONF_ADDRESS, 1),
+                    d.get(CONF_FRAME, "socket"),
+                ),
+                step_id="reconfigure_network",
+            )
+        info, errors = await self._async_validate_network(user_input)
+        if errors:
+            return self._async_show_network_form(
+                default_values=(
+                    user_input[CONF_IP_ADDRESS],
+                    user_input[CONF_PORT],
+                    user_input[CONF_ADDRESS],
+                    user_input[CONF_FRAME],
+                ),
+                errors=errors,
+                step_id="reconfigure_network",
+            )
+        return await self._async_apply_reconfigure(info, user_input)
 
 
 class GrowattOptionsFlowHandler(config_entries.OptionsFlow):

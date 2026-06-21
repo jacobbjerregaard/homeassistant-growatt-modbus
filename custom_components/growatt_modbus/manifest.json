@@ -9,5 +9,5 @@
     "loggers": ["custom_components.growatt_modbus"],
     "quality_scale": "silver",
     "requirements": ["pymodbus>=3.8.3"],
-    "version": "0.17.0"
+    "version": "0.18.0"
   }
