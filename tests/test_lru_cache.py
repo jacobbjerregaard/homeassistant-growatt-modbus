@@ -52,3 +52,16 @@ def test_clear_empties_cache():
     cache["a"] = 1
     cache.clear()
     assert len(cache) == 0
+
+
+def test_lru_order_delitem_iter_and_set_existing():
+    cache: LRUCache[str, int] = LRUCache(capacity=3)
+    cache["a"] = 1
+    cache["b"] = 2
+    assert cache.lru == ["a", "b"]          # lru property
+    cache["a"] = 10                          # set existing -> move to front
+    assert cache.lru == ["b", "a"]
+    assert list(iter(cache)) == ["b", "a"]   # __iter__
+    del cache["b"]                           # __delitem__
+    assert "b" not in cache
+    assert cache.length == 1

@@ -48,6 +48,10 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# All entity data is served from the DataUpdateCoordinator (no per-entity
+# polling), so reads need no throttling.
+PARALLEL_UPDATES = 0
+
 SCAN_INTERVAL = timedelta(minutes=1)
 
 # Per-module sensor keys look like ``battery_module_<slot>_<field>``.

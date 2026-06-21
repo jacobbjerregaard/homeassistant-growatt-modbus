@@ -31,6 +31,10 @@ from .sensor_types.storage import STORAGE_NUMBER_TYPES
 
 _LOGGER = logging.getLogger(__name__)
 
+# Writes go to the inverter over a single Modbus connection (serialized by the
+# transport lock); be explicit and let Home Assistant issue them one at a time.
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,

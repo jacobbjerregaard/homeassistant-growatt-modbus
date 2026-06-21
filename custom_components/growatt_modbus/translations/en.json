@@ -2,7 +2,8 @@
   "title": "Growatt Modbus",
   "config": {
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "wrong_device": "The connected device reports a different serial number, so it is not the device you are reconfiguring."
     },
     "error": {
       "serial_port": "Unable to connect to serial port",
@@ -63,6 +64,33 @@
         "data_description": {
           "type": "Select the protocol version used by your device detected modbus version: `{modbus_version}`",
           "power_scan_enabled": "Allows to have a higher update rate of the various power values of your device."
+        }
+      },
+      "reconfigure_serial": {
+        "title": "Update serial connection",
+        "data": {
+          "port": "[%key:component::growatt_modbus::config::step::serial::data::port%]",
+          "baudrate": "[%key:component::growatt_modbus::config::step::serial::data::baudrate%]",
+          "stopbits": "[%key:component::growatt_modbus::config::step::serial::data::stopbits%]",
+          "parity": "[%key:component::growatt_modbus::config::step::serial::data::parity%]",
+          "bytesize": "[%key:component::growatt_modbus::config::step::serial::data::bytesize%]",
+          "address": "[%key:component::growatt_modbus::config::step::serial::data::address%]"
+        },
+        "data_description": {
+          "address": "[%key:component::growatt_modbus::config::step::serial::data_description::address%]"
+        }
+      },
+      "reconfigure_network": {
+        "title": "Update network connection",
+        "data": {
+          "ip_address": "[%key:component::growatt_modbus::config::step::network::data::ip_address%]",
+          "port": "[%key:component::growatt_modbus::config::step::network::data::port%]",
+          "address": "[%key:component::growatt_modbus::config::step::network::data::address%]",
+          "modbus_frame": "[%key:component::growatt_modbus::config::step::network::data::modbus_frame%]"
+        },
+        "data_description": {
+          "address": "[%key:component::growatt_modbus::config::step::network::data_description::address%]",
+          "modbus_frame": "[%key:component::growatt_modbus::config::step::network::data_description::modbus_frame%]"
         }
       }
     }

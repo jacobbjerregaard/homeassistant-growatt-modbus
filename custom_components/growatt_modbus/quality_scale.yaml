@@ -1,0 +1,80 @@
+# Integration Quality Scale assessment for growatt_modbus.
+# Declared tier in manifest.json: silver (all bronze + silver rules met).
+rules:
+  # --- Bronze ---------------------------------------------------------------
+  action-setup: done
+  appropriate-polling: done
+  brands: done
+  common-modules:
+    status: done
+    comment: >-
+      The DataUpdateCoordinators are defined in __init__.py and the base entity
+      classes in each platform module rather than in dedicated coordinator.py /
+      entity.py files, but the common patterns are used throughout.
+  config-flow: done
+  config-flow-test-coverage: done
+  dependency-transparency: done
+  docs-actions: done
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  entity-event-setup: done
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup: done
+  unique-config-entry: done
+
+  # --- Silver ---------------------------------------------------------------
+  action-exceptions: done
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable: done
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: >-
+      Local Modbus over serial/TCP has no credentials to re-authenticate; the
+      reconfigure flow handles changed connection parameters instead.
+  test-coverage:
+    status: done
+    comment: >-
+      Combined pure-logic + Home Assistant test coverage is ~95% (see
+      scripts/coverage.sh). The remaining gaps are mostly the EMHASS optimizer
+      internals and rarely-hit transport error branches.
+
+  # --- Gold (partial; not yet claimed) --------------------------------------
+  devices: done
+  diagnostics: done
+  discovery:
+    status: exempt
+    comment: Serial/TCP Modbus devices expose no network discovery protocol.
+  discovery-update-info:
+    status: exempt
+    comment: No discovery, so there is nothing to update.
+  docs-supported-devices: done
+  docs-supported-functions: done
+  docs-known-limitations: done
+  docs-use-cases: done
+  entity-category: done
+  entity-device-class: done
+  reconfiguration-flow: done
+  docs-data-update: todo
+  docs-examples: todo
+  docs-troubleshooting: todo
+  dynamic-devices: todo
+  entity-disabled-by-default: todo
+  entity-translations: todo
+  exception-translations: todo
+  icon-translations: todo
+  repair-issues: todo
+  stale-devices: todo
+
+  # --- Platinum -------------------------------------------------------------
+  async-dependency: done
+  inject-websession: done
+  strict-typing: todo

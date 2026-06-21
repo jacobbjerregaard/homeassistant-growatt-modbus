@@ -105,3 +105,19 @@ def test_register_sequences_skips_empty_side():
     seqs = register_sequences(RegisterKeys(holding={1}), device)
     assert seqs.input == set()
     assert _covers(seqs.holding, [1])
+
+
+def test_register_sequences_empty_side_branches():
+    regs = DeviceRegisters(
+        holding={1: _u16("a", 1), 2: _u16("b", 2)},
+        input={10: _u16("c", 10)},
+        max_length=20,
+    )
+    # Only holding requested -> the input sequence stays empty.
+    only_h = register_sequences(RegisterKeys(holding={1, 2}, input=set()), regs)
+    assert only_h.holding and not only_h.input
+    assert len(only_h) == len(only_h.holding)  # __len__
+
+    # Only input requested -> the holding sequence stays empty.
+    only_i = register_sequences(RegisterKeys(holding=set(), input={10}), regs)
+    assert only_i.input and not only_i.holding
