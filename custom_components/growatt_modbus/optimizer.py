@@ -350,12 +350,14 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         isn't a sane ``0 <= low < high <= 100`` window falls back to no limit.
         """
         data = getattr(self._device_coordinator, "data", None) or {}
+        raw_low = data.get(ATTR_BMS_MIN_SOC)
+        raw_high = data.get(ATTR_BMS_MAX_SOC)
         try:
-            low = float(data.get(ATTR_BMS_MIN_SOC))
+            low = float(raw_low) if raw_low is not None else 0.0
         except (TypeError, ValueError):
             low = 0.0
         try:
-            high = float(data.get(ATTR_BMS_MAX_SOC))
+            high = float(raw_high) if raw_high is not None else 100.0
         except (TypeError, ValueError):
             high = 100.0
         if not 0 <= low < 100:
@@ -405,6 +407,9 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         await self._apply_mpc_corrections(plan)
 
     async def _apply_mpc_corrections(self, plan: OptimizationPlan) -> None:
+        # The caller only invokes this after _plan_is_actionable(), which
+        # guarantees a non-None battery_power.
+        assert plan.battery_power is not None
         coordinator = self._device_coordinator
         charging = plan.battery_power < -DEFAULT_CHARGE_THRESHOLD
         discharging = plan.battery_power > DEFAULT_DISCHARGE_THRESHOLD
@@ -450,6 +455,8 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
             ATTR_BMS_MAX_CHARGE_CURRENT if charging else ATTR_BMS_MAX_DISCHARGE_CURRENT
         )
         voltage = data.get(ATTR_BATTERY_VOLTAGE)
+        if current is None or voltage is None:
+            return 0.0
         try:
             power = float(current) * float(voltage)
         except (TypeError, ValueError):

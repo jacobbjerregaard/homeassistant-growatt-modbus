@@ -6,14 +6,14 @@ from dataclasses import dataclass
 from homeassistant.components.number import NumberEntityDescription
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class GrowattNumberRequiredKeysMixin:
     """Mixin for required keys."""
 
     key: str
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class GrowattNumberEntityDescription(
     NumberEntityDescription, GrowattNumberRequiredKeysMixin
 ):

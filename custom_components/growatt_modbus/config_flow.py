@@ -18,7 +18,7 @@ from homeassistant.const import (
     CONF_MODEL,
 )
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -227,12 +227,12 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=data_schema,
             errors=errors,
             description_placeholders={
-                "modbus_version": modbus_version,
-                "device_type": detected_type
+                "modbus_version": str(modbus_version),
+                "device_type": str(detected_type),
             }
         )
 
-    async def async_step_user(self, user_input=None) -> FlowResult:
+    async def async_step_user(self, user_input=None) -> ConfigFlowResult:
         """Handle the start of the config flow."""
         if user_input is None:
             return self._async_show_selection_form()
@@ -244,7 +244,9 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 return self._async_show_network_form()
 
-    async def async_step_serial(self, user_input=None) -> FlowResult:
+        return self._async_show_selection_form()
+
+    async def async_step_serial(self, user_input=None) -> ConfigFlowResult:
         """Handle the serial config flow."""
 
         if self.data[CONF_LAYER] == CONF_SERIAL and user_input is None:
@@ -324,7 +326,9 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 return self._async_show_device_form()
 
-    async def async_step_network(self, user_input=None) -> FlowResult:
+        return self._async_show_serial_form()
+
+    async def async_step_network(self, user_input=None) -> ConfigFlowResult:
         """Handle the network config flow."""
         if user_input is not None and CONF_IP_ADDRESS in user_input:
             try:
@@ -420,7 +424,9 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 return self._async_show_device_form()
 
-    async def async_step_device(self, user_input=None) -> FlowResult:
+        return self._async_show_network_form()
+
+    async def async_step_device(self, user_input=None) -> ConfigFlowResult:
         """Handle the device config flow."""
 
         if user_input is None:
@@ -561,14 +567,14 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
-    async def async_step_reconfigure(self, user_input=None) -> FlowResult:
+    async def async_step_reconfigure(self, user_input=None) -> ConfigFlowResult:
         """Start reconfiguring an existing device's connection parameters."""
         self.data = dict(self._get_reconfigure_entry().data)
         if self.data.get(CONF_LAYER) == CONF_SERIAL:
             return await self.async_step_reconfigure_serial()
         return await self.async_step_reconfigure_network()
 
-    async def async_step_reconfigure_serial(self, user_input=None) -> FlowResult:
+    async def async_step_reconfigure_serial(self, user_input=None) -> ConfigFlowResult:
         """Change serial connection parameters of an existing device."""
         if user_input is None:
             d = self.data
@@ -599,7 +605,7 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
         return await self._async_apply_reconfigure(info, user_input)
 
-    async def async_step_reconfigure_network(self, user_input=None) -> FlowResult:
+    async def async_step_reconfigure_network(self, user_input=None) -> ConfigFlowResult:
         """Change network connection parameters of an existing device."""
         if user_input is None:
             d = self.data
@@ -638,19 +644,19 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
             **(user_input or {}),
         }
 
-    def _save(self, user_input: dict) -> FlowResult:
+    def _save(self, user_input: dict) -> ConfigFlowResult:
         """Persist one section, preserving the settings of the other section."""
         return self.async_create_entry(
             title="", data={**self.config_entry.options, **user_input}
         )
 
-    async def async_step_init(self, user_input=None) -> FlowResult:
+    async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         """Choose which group of options to edit."""
         return self.async_show_menu(
             step_id="init", menu_options=["general", "optimizer"]
         )
 
-    async def async_step_general(self, user_input=None) -> FlowResult:
+    async def async_step_general(self, user_input=None) -> ConfigFlowResult:
         """Polling and device options."""
         if user_input is not None:
             return self._save(user_input)
@@ -690,7 +696,7 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
         )
         return self.async_show_form(step_id="general", data_schema=data_schema)
 
-    async def async_step_optimizer(self, user_input=None) -> FlowResult:
+    async def async_step_optimizer(self, user_input=None) -> ConfigFlowResult:
         """EMHASS optimizer options (connection, control and source sensors)."""
         errors: dict[str, str] = {}
 

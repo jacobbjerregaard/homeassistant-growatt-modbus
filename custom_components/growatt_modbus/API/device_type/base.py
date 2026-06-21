@@ -208,7 +208,7 @@ class GrowattDeviceRegisters:
     register: int
     value_type: type
     length: int = 1
-    scale: int = 10
+    scale: float = 10
     function: Callable | None = None
     # When True the raw register value is interpreted as a two's-complement
     # signed integer (16-bit for length 1, 32-bit for length 2). Needed for
@@ -362,3 +362,5 @@ def inverter_status(value: dict[str, Any]) -> str | None:
         fault = value.get(ATTR_FAULT_CODE, None)
         if fault is not None and fault != 0:
             return f"{status_value.name} - {INVERTER_FAULTCODES[fault]}"
+
+    return None

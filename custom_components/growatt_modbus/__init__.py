@@ -26,7 +26,7 @@ from homeassistant.helpers.event import (
 )
 
 from .API.const import DeviceTypes
-from .API.client import GrowattSerial, GrowattNetwork
+from .API.client import GrowattModbusBase, GrowattSerial, GrowattNetwork
 from .API.device import GrowattDevice
 from .coordinator import (
     GrowattConfigEntry,
@@ -118,6 +118,7 @@ async def async_setup_entry(
 ) -> bool:
     """Load the saved entities."""
 
+    device_layer: GrowattModbusBase
     if entry.data[CONF_LAYER] == CONF_SERIAL:
         device_layer = GrowattSerial(
             entry.data[CONF_SERIAL_PORT],

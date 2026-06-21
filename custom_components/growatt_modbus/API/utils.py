@@ -361,7 +361,7 @@ class LRUCache(MutableMapping, Generic[K, V]):
     def __iter__(self) -> Iterator[K]:
         return iter(self.cache)
 
-    def get(self, key: K, default: D = None) -> Optional[Union[V, D]]:
+    def get(self, key: K, default: Optional[D] = None) -> Optional[Union[V, D]]:
         value = self.cache.get(key)
 
         if value is not None:

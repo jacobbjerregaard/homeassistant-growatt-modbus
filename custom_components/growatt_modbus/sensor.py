@@ -30,7 +30,7 @@ from .API.device_type.base import (
     ATTR_CHARGE_POWER
 )
 
-from . import GrowattConfigEntry
+from . import GrowattConfigEntry, GrowattLocalCoordinator
 from .optimizer import build_optimizer_sensors
 from .sensor_types.sensor_entity_description import GrowattSensorEntityDescription
 from .sensor_types.inverter import INVERTER_SENSOR_TYPES
@@ -105,7 +105,7 @@ async def async_setup_entry(
                 module_descriptions.append(sensor)
 
     if device_type in (DeviceTypes.INVERTER, DeviceTypes.INVERTER_315, DeviceTypes.INVERTER_120):
-        power_sensor = (ATTR_INPUT_POWER, ATTR_OUTPUT_POWER)
+        power_sensor: tuple[str, ...] = (ATTR_INPUT_POWER, ATTR_OUTPUT_POWER)
     elif device_type in (DeviceTypes.HYBRID_120,):
         power_sensor = (ATTR_INPUT_POWER, ATTR_OUTPUT_POWER, ATTR_SOC_PERCENTAGE, ATTR_DISCHARGE_POWER, ATTR_CHARGE_POWER)
     elif device_type in (DeviceTypes.STORAGE_120,):
@@ -121,7 +121,7 @@ async def async_setup_entry(
     # other sensor polls on the main coordinator.
     power_names = set(power_sensor) if power_coordinator is not None else set()
 
-    entities = []
+    entities: list[SensorEntity] = []
     for coordinator, descriptions in (
         (main_coordinator, [d for d in sensor_descriptions if d.key not in power_names]),
         (power_coordinator, [d for d in sensor_descriptions if d.key in power_names]),
@@ -149,7 +149,7 @@ async def async_setup_entry(
                     description=description,
                     entry=config_entry,
                     module_slot=slot,
-                    module_serial=module_serials.get(slot),
+                    module_serial=module_serials.get(slot) if slot is not None else None,
                 )
             )
 
@@ -160,10 +160,11 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class GrowattDeviceEntity(CoordinatorEntity, RestoreEntity, SensorEntity):
+class GrowattDeviceEntity(CoordinatorEntity[GrowattLocalCoordinator], RestoreEntity, SensorEntity):
     """An entity using CoordinatorEntity."""
 
     _attr_has_entity_name = True
+    entity_description: GrowattSensorEntityDescription
 
     def __init__(self, coordinator, description, entry, module_slot=None, module_serial=None):
         """Pass coordinator to CoordinatorEntity.

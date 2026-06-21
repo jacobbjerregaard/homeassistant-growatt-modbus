@@ -20,7 +20,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GrowattConfigEntry
+from . import GrowattConfigEntry, GrowattLocalCoordinator
 from .const import (
     CONF_FIRMWARE,
     CONF_OPTIMIZER_ENABLED,
@@ -116,7 +116,7 @@ class GrowattOptimizerSwitch(SwitchEntity):
         await self._async_set(False)
 
 
-class GrowattSlotEnable(CoordinatorEntity, SwitchEntity):
+class GrowattSlotEnable(CoordinatorEntity[GrowattLocalCoordinator], SwitchEntity):
     """Enable flag of a battery time-of-use slot."""
 
     _attr_has_entity_name = True
@@ -144,7 +144,7 @@ class GrowattSlotEnable(CoordinatorEntity, SwitchEntity):
         self.async_write_ha_state()
 
 
-class GrowattSwitch(CoordinatorEntity, RestoreEntity, SwitchEntity):
+class GrowattSwitch(CoordinatorEntity[GrowattLocalCoordinator], RestoreEntity, SwitchEntity):
     """A writable Growatt holding-register switch."""
 
     _attr_has_entity_name = True
