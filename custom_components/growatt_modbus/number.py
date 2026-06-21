@@ -19,7 +19,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GrowattConfigEntry
+from . import GrowattConfigEntry, GrowattLocalCoordinator
 from .API.utils import to_register_value
 from .const import (
     CONF_FIRMWARE,
@@ -63,7 +63,7 @@ async def async_setup_entry(
     )
 
 
-class GrowattNumber(CoordinatorEntity, NumberEntity):
+class GrowattNumber(CoordinatorEntity[GrowattLocalCoordinator], NumberEntity):
     """A writable Growatt holding-register number."""
 
     _attr_has_entity_name = True

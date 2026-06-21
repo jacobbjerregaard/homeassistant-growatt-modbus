@@ -19,7 +19,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GrowattConfigEntry
+from . import GrowattConfigEntry, GrowattLocalCoordinator
 from .const import (
     CONF_FIRMWARE,
     CONF_SERIAL_NUMBER,
@@ -72,7 +72,7 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class GrowattSlotPriority(CoordinatorEntity, SelectEntity):
+class GrowattSlotPriority(CoordinatorEntity[GrowattLocalCoordinator], SelectEntity):
     """Priority (load/battery/grid) of a battery time-of-use slot."""
 
     _attr_has_entity_name = True
@@ -100,7 +100,7 @@ class GrowattSlotPriority(CoordinatorEntity, SelectEntity):
         self.async_write_ha_state()
 
 
-class GrowattSelect(CoordinatorEntity, SelectEntity):
+class GrowattSelect(CoordinatorEntity[GrowattLocalCoordinator], SelectEntity):
     """A writable Growatt enumerated holding-register select."""
 
     _attr_has_entity_name = True

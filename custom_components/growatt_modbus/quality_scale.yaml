@@ -78,8 +78,7 @@ rules:
   async-dependency: done
   inject-websession: done
   strict-typing:
-    status: todo
+    status: done
     comment: >-
-      The package ships a py.typed marker and mypy runs in CI, enforced on the
-      already-typed modules listed in pyproject.toml. The remaining platform and
-      API modules are being annotated incrementally toward full coverage.
+      The package ships a py.typed marker and the whole integration is
+      mypy-clean, enforced in CI (see pyproject.toml [tool.mypy] and lint.yml).

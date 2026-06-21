@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
@@ -136,7 +136,7 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
 
     @callback
     def get_keys_by_name(
-        self, names: Sequence[str], update_keys: bool = False
+        self, names: Collection[str], update_keys: bool = False
     ) -> RegisterKeys:
         """
         Loopup modbus register values based on name.

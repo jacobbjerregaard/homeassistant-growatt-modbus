@@ -495,6 +495,7 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key="status",
         name="Status",
-        device_class="growatt_modbus__status"
+        # Legacy custom state-translation key (not a SensorDeviceClass member).
+        device_class="growatt_modbus__status",  # type: ignore[arg-type]
     ),
 )

@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GrowattConfigEntry
+from . import GrowattConfigEntry, GrowattLocalCoordinator
 from .tou import read_slot_fields, slot_device_info, slot_unique_id, write_slot_field
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class GrowattSlotTime(CoordinatorEntity, TimeEntity):
+class GrowattSlotTime(CoordinatorEntity[GrowattLocalCoordinator], TimeEntity):
     """Start or end time of a battery time-of-use slot."""
 
     _attr_has_entity_name = True

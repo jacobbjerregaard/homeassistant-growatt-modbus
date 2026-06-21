@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from homeassistant.components.select import SelectEntityDescription
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class GrowattSelectRequiredKeysMixin:
     """Mixin for required keys."""
 
@@ -15,7 +15,7 @@ class GrowattSelectRequiredKeysMixin:
     options_map: dict[str, int] = field(default_factory=dict)
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class GrowattSelectEntityDescription(
     SelectEntityDescription, GrowattSelectRequiredKeysMixin
 ):

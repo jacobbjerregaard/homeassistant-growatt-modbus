@@ -1,4 +1,6 @@
 """Device defaults for a Growatt Inverter."""
+from typing import Any
+
 from .base import (
     GrowattDeviceRegisters,
     custom_function,
@@ -205,7 +207,7 @@ def module_derating_mode(register) -> str:
 # Decode functions that expand one register into several named values; the
 # tuple lists the result-key suffixes each produces (kept in sync with the
 # dict returned by the function above).
-_MULTI_VALUE_DECODERS = {
+_MULTI_VALUE_DECODERS: dict[Any, tuple[str, ...]] = {
     bat_balance_state: ("state", "time_hours"),
     bat_subcode: ("charge_enabled", "discharge_enabled", "warning_subcode", "fault_subcode"),
     bat_internal_state: ("short_circuit", "sox_correction"),
@@ -421,7 +423,7 @@ SERIAL_NUMBER_REGISTER = GrowattDeviceRegisters(
     name=ATTR_SERIAL_NUMBER, register=3001, value_type=str, length=15
 )
 
-def inverter_status(register) -> str:
+def inverter_status(register) -> str | None:
     web_status = register & 0x00FF
     if web_status == 0:
         return "Standby"
@@ -431,6 +433,8 @@ def inverter_status(register) -> str:
         return "Fault"
     if web_status == 4:
         return "Flash"
+
+    return None
 
 def inverter_mode(register) -> str:
     if register == 0:

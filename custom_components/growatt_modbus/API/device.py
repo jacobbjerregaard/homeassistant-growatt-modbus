@@ -7,7 +7,7 @@ layout for a given device type to named values.
 
 import logging
 
-from collections.abc import Sequence
+from collections.abc import Collection
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
@@ -133,7 +133,7 @@ class GrowattDevice:
         self.device = GrowattDeviceType
         self.battery_modules = battery_modules
         self.tou_slots = tou_slots
-        self._input_cache = LRUCache(10)
+        self._input_cache: LRUCache = LRUCache(10)
 
         self.device_registers = get_register_information(
             GrowattDeviceType, battery_modules, tou_slots
@@ -288,7 +288,7 @@ class GrowattDevice:
         _LOGGER.debug("Read holding register response %s", results)
         return results
 
-    def get_keys_by_name(self, names: Sequence[str]) -> RegisterKeys:
+    def get_keys_by_name(self, names: Collection[str]) -> RegisterKeys:
         if ATTR_STATUS in names:
             names = (*names, ATTR_STATUS_CODE, ATTR_FAULT_CODE, ATTR_DERATING_MODE)
 

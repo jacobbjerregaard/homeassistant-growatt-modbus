@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from homeassistant.components.sensor import SensorEntityDescription
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class GrowattSensorRequiredKeysMixin:
     """Mixin for required keys."""
 
@@ -14,6 +14,6 @@ class GrowattSensorRequiredKeysMixin:
     midnight_reset: bool = False
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class GrowattSensorEntityDescription(GrowattSensorRequiredKeysMixin, SensorEntityDescription):
     """Describes Growatt sensor entity."""
