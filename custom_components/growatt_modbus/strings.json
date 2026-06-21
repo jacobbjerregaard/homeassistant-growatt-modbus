@@ -61,16 +61,26 @@
           "power_scan_interval": "Power update interval"
         },
         "data_description": {
-          "type": "Select the protocol version used by your device detected modbus version: {modbus_version}",
+          "type": "Select the protocol version used by your device detected modbus version: `{modbus_version}`",
           "power_scan_enabled": "Allows to have a higher update rate of the various power values of your device."
         }
       }
     }
   },
   "options": {
+    "error": {
+      "emhass_connection": "Could not reach EMHASS at the given URL"
+    },
     "step": {
       "init": {
         "title": "Growatt Modbus options",
+        "menu_options": {
+          "general": "General & polling",
+          "optimizer": "EMHASS optimizer"
+        }
+      },
+      "general": {
+        "title": "General & polling",
         "data": {
           "scan_interval": "General update interval",
           "power_scan_enabled": "Enable power update interval",
@@ -83,7 +93,44 @@
           "battery_modules": "Number of battery modules to expose per-module serial sensors for (0 = auto-detect from the inverter).",
           "time_of_use_slots": "Number of battery charge/discharge time slots (1-9) to expose as editable start/end time, priority and enable entities (0 = none)."
         }
+      },
+      "optimizer": {
+        "title": "EMHASS optimizer",
+        "data": {
+          "emhass_url": "EMHASS URL",
+          "emhass_token": "EMHASS token (optional)",
+          "optimizer_enabled": "Let the optimizer control the battery",
+          "optimizer_soc_sensor": "Battery SOC sensor",
+          "optimizer_interval": "Optimizer update interval (seconds)",
+          "battery_max_power": "Battery max power (W)",
+          "emhass_sensor_batt_power": "EMHASS battery power sensor",
+          "emhass_sensor_batt_soc": "EMHASS battery SOC sensor",
+          "emhass_sensor_grid": "EMHASS grid power sensor",
+          "emhass_sensor_status": "EMHASS status sensor"
+        },
+        "data_description": {
+          "emhass_url": "Base URL of your EMHASS instance, including host and port. Leave empty to disable the optimizer.",
+          "emhass_token": "Bearer token, only if your EMHASS instance requires authentication.",
+          "optimizer_enabled": "When on, the optimizer writes the EMHASS plan to the inverter's time-of-use slots and AC-charge control. Leave off to keep it read-only (diagnostics only).",
+          "optimizer_soc_sensor": "Battery state-of-charge sensor fed back to EMHASS as the live starting SOC for intraday corrections.",
+          "optimizer_interval": "How often the published EMHASS plan is re-read and intraday corrections are applied.",
+          "battery_max_power": "Battery maximum (dis)charge power, used to turn EMHASS watt targets into the inverter's rate percentage. 0 = leave rates untouched.",
+          "emhass_sensor_batt_power": "Override the EMHASS battery-power sensor (default sensor.p_batt_forecast).",
+          "emhass_sensor_batt_soc": "Override the EMHASS battery-SOC sensor (default sensor.soc_batt_forecast).",
+          "emhass_sensor_grid": "Override the EMHASS grid-power sensor (default sensor.p_grid_forecast).",
+          "emhass_sensor_status": "Override the EMHASS status sensor (default sensor.optim_status)."
+        }
       }
+    }
+  },
+  "services": {
+    "set_time_slot": {
+      "name": "Set battery time slot",
+      "description": "Configure one of the 9 battery charge/discharge time slots on a Growatt storage/hybrid inverter."
+    },
+    "run_optimization": {
+      "name": "Run EMHASS optimization",
+      "description": "Trigger an EMHASS day-ahead optimisation and publish the result, then refresh the optimizer diagnostic sensors."
     }
   }
 }

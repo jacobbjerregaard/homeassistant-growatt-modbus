@@ -87,6 +87,11 @@
           "power_scan_interval": "Power update interval",
           "battery_modules": "Aantal batterijmodules",
           "time_of_use_slots": "Aantal tijdslots"
+        },
+        "data_description": {
+          "battery_modules": "Aantal batterijmodules waarvoor per-module serienummersensoren worden aangemaakt (0 = automatisch detecteren via de omvormer).",
+          "power_scan_enabled": "Maakt een hogere verversingssnelheid van de diverse vermogenswaarden van je apparaat mogelijk.",
+          "time_of_use_slots": "Aantal laad-/ontlaadtijdvakken voor de batterij (1-9) die als bewerkbare start-/eindtijd, prioriteit en aan/uit-entiteiten worden getoond (0 = geen)."
         }
       },
       "optimizer": {
