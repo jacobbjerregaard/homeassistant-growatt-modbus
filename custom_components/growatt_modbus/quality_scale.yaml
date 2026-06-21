@@ -8,9 +8,9 @@ rules:
   common-modules:
     status: done
     comment: >-
-      The DataUpdateCoordinators are defined in __init__.py and the base entity
-      classes in each platform module rather than in dedicated coordinator.py /
-      entity.py files, but the common patterns are used throughout.
+      The DataUpdateCoordinator and runtime data live in coordinator.py. Each
+      platform defines its own entity base (there is no single shared base
+      entity class), so no entity.py module is used.
   config-flow: done
   config-flow-test-coverage: done
   dependency-transparency: done
