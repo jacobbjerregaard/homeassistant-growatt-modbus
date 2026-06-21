@@ -1,0 +1,45 @@
+# Tooling configuration for the Growatt Modbus integration.
+# Lint (ruff) and type-check (mypy) settings live here so both CI and local
+# runs share one source of truth.
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+# Conservative starting rule set: pyflakes (F) plus the import/statement/syntax
+# subset of pycodestyle (E4/E7/E9). Can be widened later (e.g. "I" import
+# sorting, "UP" pyupgrade, "B" bugbear) once the codebase is clean against them.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.mypy]
+python_version = "3.13"
+# homeassistant / pymodbus / voluptuous don't ship type stubs in this env.
+ignore_missing_imports = true
+# Imported modules are used for type information but their own errors are not
+# reported, so an unticked module doesn't break a checked one.
+follow_imports = "silent"
+warn_redundant_casts = true
+warn_unused_ignores = true
+# Strict-typing ratchet: every module listed here is already mypy-clean and is
+# enforced in CI. The remaining platform/API modules (config_flow, sensor,
+# switch, select, number, time, optimizer, API/utils, API/device, the
+# *_entity_description dataclasses, ...) still have type errors; move each into
+# this list as it gets annotated, working toward the Platinum strict-typing rule.
+files = [
+  "custom_components/growatt_modbus/API/client.py",
+  "custom_components/growatt_modbus/API/const.py",
+  "custom_components/growatt_modbus/API/detection.py",
+  "custom_components/growatt_modbus/API/exception.py",
+  "custom_components/growatt_modbus/API/tou_planner.py",
+  "custom_components/growatt_modbus/API/device_type/inverter_315.py",
+  "custom_components/growatt_modbus/button.py",
+  "custom_components/growatt_modbus/const.py",
+  "custom_components/growatt_modbus/coordinator.py",
+  "custom_components/growatt_modbus/diagnostics.py",
+  "custom_components/growatt_modbus/emhass_client.py",
+  "custom_components/growatt_modbus/services.py",
+  "custom_components/growatt_modbus/tou.py",
+  "custom_components/growatt_modbus/sensor_types/storage.py",
+  "custom_components/growatt_modbus/sensor_types/input_select_entity_description.py",
+]

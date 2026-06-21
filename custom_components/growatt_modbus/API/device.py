@@ -35,8 +35,6 @@ from .device_type.storage_120 import (
     build_battery_module_input_registers,
     build_time_slot_registers,
 )
-
-_STORAGE_TYPES = (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120)
 from .device_type.inverter_315 import (
     MAXIMUM_DATA_LENGTH_315,
     HOLDING_REGISTERS_315,
@@ -53,6 +51,8 @@ from .utils import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+_STORAGE_TYPES = (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120)
 
 
 # Maps a device type to its register layout: (holding registers, one or more
