@@ -258,10 +258,10 @@ def process_registers(
         if (register := registers.get(key)) is None:
             continue
 
-        if register.value_type == int:
+        if register.value_type is int:
             result[register.name] = to_signed(value, 16) if register.signed else value
 
-        elif register.value_type == float and register.length == 2:
+        elif register.value_type is float and register.length == 2:
             if (second_value := register_values.get(key + 1, None)) is None:
                 continue
 
@@ -271,11 +271,11 @@ def process_registers(
 
             result[register.name] = round(float(raw) / register.scale, 3)
 
-        elif register.value_type == float:
+        elif register.value_type is float:
             raw = to_signed(value, 16) if register.signed else value
             result[register.name] = round(float(raw) / register.scale, 3)
 
-        elif register.value_type == str:
+        elif register.value_type is str:
             string = ""
             for i in range(key, key + register.length):
                 if (item := register_values.get(i)) is not None:
@@ -284,10 +284,10 @@ def process_registers(
 
             result[register.name] = string
 
-        elif register.value_type == bool:
+        elif register.value_type is bool:
             result[register.name] = bool(value)
 
-        elif register.value_type == custom_function:
+        elif register.value_type is custom_function:
             if register.function is None:
                 continue
 

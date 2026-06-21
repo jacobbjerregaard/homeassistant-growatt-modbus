@@ -1,0 +1,24 @@
+version: 2
+updates:
+  # Keep the GitHub Actions used by the workflows current (this is what would
+  # have caught checkout@v4 / setup-python@v5 going stale). Grouped into one PR.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  # Python test/tooling dependencies declared in the requirements files.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+    groups:
+      python-dependencies:
+        patterns: ["*"]
