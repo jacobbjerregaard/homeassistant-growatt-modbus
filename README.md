@@ -1,19 +1,19 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
-# Home Assistant Growatt Modbus Intergration
+# Home Assistant Growatt Modbus Integration
  Growatt Modbus is a custom component for Home Assistant that connects directly to your Growatt inverter using the Modbus protocol and supports Serial, TCP and UDP communication layers to connect to your inverter
 
  This repository is at this moment not part of HACS therefore requiring manual adding this custom repository to HACS.
 
- This intergration makes use of the *config_flow* and can be configured using the UI no confgration required using the `configration.yaml`
+ This integration makes use of the *config_flow* and can be configured using the UI; no configuration is required in `configuration.yaml`.
 
- The requirement to be able to uses this intergration are:
+ The requirements to be able to use this integration are:
  * The communication layer and related parameters
  * Modbus address of the device (Default value: 1)
  * Used protocol version by your device
 
 ## Protocol version
-Currently there are 2 protocol versions supported with this intergration:
+Currently there are 2 protocol versions supported with this integration:
 * RTU Protocol version 3.15 used by older models that would support up to two strings
 * RTU Protocol 2 used by newer models and larger devices (storage / hybrid)
 
@@ -85,7 +85,7 @@ does not implement a register it may simply read `0` and ignore writes.
 > surfaces the meaningful storage/hybrid telemetry and command registers rather
 > than every register. Open an issue if you need a specific one.
 
-Currently the communication layer (API) is included in this repository but following the guidelines of HASS there should be seperate repositories
+Currently the communication layer (API) is included in this repository but following the guidelines of HASS there should be separate repositories
 
 ## Energy optimization (EMHASS)
 
