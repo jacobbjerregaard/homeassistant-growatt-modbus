@@ -2,4 +2,3 @@
 # pytest-homeassistant-custom-component pins a matching Home Assistant + pytest.
 -r requirements_test.txt
 pytest-homeassistant-custom-component
-mypy>=1.11
