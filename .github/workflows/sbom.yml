@@ -1,0 +1,36 @@
+name: SBOM
+
+# Generates a Software Bill of Materials (SPDX) with Anchore Syft.
+# - On every push/PR: produced and uploaded as a build artifact.
+# - On a published release: also attached to the GitHub release assets.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to attach the SBOM to release assets
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate SBOM (SPDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: growatt_modbus-sbom.spdx.json
+          artifact-name: growatt_modbus-sbom.spdx.json
+          # Attaches to the release only when triggered by a release event.
+          upload-release-assets: true
