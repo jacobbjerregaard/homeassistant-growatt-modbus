@@ -63,16 +63,40 @@ rules:
   entity-category: done
   entity-device-class: done
   reconfiguration-flow: done
-  docs-data-update: todo
-  docs-examples: todo
-  docs-troubleshooting: todo
-  dynamic-devices: todo
-  entity-disabled-by-default: todo
+  docs-data-update: done
+  docs-examples: done
+  docs-troubleshooting: done
+  dynamic-devices:
+    status: exempt
+    comment: >-
+      The device set (inverter plus any battery modules) is enumerated once at
+      setup from the Modbus device. There is no runtime mechanism by which new
+      physical devices appear; a hardware change is picked up on reload.
+  entity-disabled-by-default:
+    status: done
+    comment: >-
+      The firmware-version sensors (inverter Firmware/Control/BDC/BMS and the
+      per-module DSP/MCU firmware) are disabled by default; live telemetry and
+      headline metrics stay enabled.
   entity-translations: todo
-  exception-translations: todo
+  exception-translations:
+    status: done
+    comment: >-
+      User-facing exceptions raise with translation_domain/translation_key
+      (cannot_connect, connection_interrupted, no_response, optimization_failed),
+      defined under the exceptions section of strings.json.
   icon-translations: todo
-  repair-issues: todo
-  stale-devices: todo
+  repair-issues:
+    status: exempt
+    comment: >-
+      Failure modes are transient connection errors surfaced via
+      ConfigEntryNotReady/UpdateFailed with automatic retry; there is no
+      persistent, user-actionable misconfiguration that warrants a repair issue.
+  stale-devices:
+    status: exempt
+    comment: >-
+      Same as dynamic-devices: the device set is fixed per config entry. A
+      removed battery module is cleared by reloading or reconfiguring the entry.
 
   # --- Platinum -------------------------------------------------------------
   async-dependency: done

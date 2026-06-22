@@ -20,6 +20,7 @@ from homeassistant.helpers.update_coordinator import (
 
 from .API.device_type.base import GrowattDeviceRegisters
 from .API.utils import RegisterKeys
+from .const import DOMAIN
 
 if TYPE_CHECKING:
     from .API.device import GrowattDevice
@@ -91,10 +92,16 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
             self._failed_update_count += 1
             # Surface the outage to HA so the entities go unavailable instead
             # of silently keeping their last (now stale) values.
-            raise UpdateFailed("Modbus connection interrupted") from err
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="connection_interrupted",
+            ) from err
         except asyncio.TimeoutError as err:
             self._failed_update_count += 1
-            raise UpdateFailed("No response from the Growatt device") from err
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="no_response",
+            ) from err
 
         status = self.growatt_api.status(data)
         if status:

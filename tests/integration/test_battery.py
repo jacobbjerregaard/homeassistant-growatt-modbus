@@ -15,6 +15,21 @@ def _state(hass, entry, key: str) -> str:
     return hass.states.get(entity.entity_id).state
 
 
+async def _enable(hass, entry, *keys: str) -> None:
+    """Enable entities that are disabled by default, then reload the entry."""
+    registry = er.async_get(hass)
+    for key in keys:
+        uid = f"{DOMAIN}_{entry.unique_id}_{key}"
+        entity = next(
+            e
+            for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+            if e.unique_id == uid
+        )
+        registry.async_update_entity(entity.entity_id, disabled_by=None)
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+
 async def test_bms_detail_sensors(hass, setup_storage):
     entry, fake = setup_storage
     fake.registers[3222] = 96    # SOH %
@@ -144,6 +159,9 @@ async def test_firmware_sensors(hass, setup_storage):
     fake.registers[3100] = 0x4241  # "BA"
     fake.registers[3101] = 10
     fake.registers[3105] = 7       # BMS firmware version
+
+    # Firmware sensors are disabled by default; enable them, then reload.
+    await _enable(hass, entry, "control_firmware", "bdc_firmware", "bms_firmware")
 
     await entry.runtime_data.main_coordinator.async_refresh()
     await hass.async_block_till_done()

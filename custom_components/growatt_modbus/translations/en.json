@@ -160,5 +160,19 @@
       "name": "Run EMHASS optimization",
       "description": "Trigger an EMHASS day-ahead optimisation and publish the result, then refresh the optimizer diagnostic sensors."
     }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Could not connect to the Growatt device: {error}"
+    },
+    "connection_interrupted": {
+      "message": "The Modbus connection to the Growatt device was interrupted."
+    },
+    "no_response": {
+      "message": "No response from the Growatt device."
+    },
+    "optimization_failed": {
+      "message": "EMHASS optimization failed: {error}"
+    }
   }
 }

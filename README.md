@@ -174,6 +174,89 @@ the optimizer section; left blank they fall back to the EMHASS defaults
 (`sensor.p_batt_forecast`, `sensor.soc_batt_forecast`, `sensor.p_grid_forecast`,
 `sensor.optim_status`).
 
+## Data updates
+
+This is a **local polling** integration. Each configured inverter is polled
+directly over Modbus (serial, TCP or UDP) by a data update coordinator:
+
+* The **main coordinator** reads the full register set on a fixed interval
+  (default **60 s**, configurable under *General & polling* options).
+* When **fast power scanning** is enabled a **second coordinator** polls just the
+  power registers at a shorter interval (default **5 s**) so live power entities
+  update more frequently without re-reading everything.
+
+Transport access is serialised, so the two coordinators never talk to the device
+at the same time. If the link drops, the entities become *unavailable* and the
+coordinator keeps retrying (reconnecting periodically) until the inverter
+responds again. Daily-energy sensors reset at local midnight.
+
+## Automation examples
+
+Schedule a battery time-of-use slot (charge from grid 02:00–05:00):
+
+```yaml
+automation:
+  - alias: "Night charge window"
+    trigger:
+      - platform: time
+        at: "01:55:00"
+    action:
+      - service: growatt_modbus.set_time_slot
+        data:
+          device_id: "{{ device_id('Growatt …') }}"
+          slot: 1
+          start_time: "02:00:00"
+          end_time: "05:00:00"
+          priority: "Battery first"
+          enabled: true
+```
+
+Notify when the battery gets low:
+
+```yaml
+automation:
+  - alias: "Battery low warning"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.growatt_…_soc
+        below: 15
+    action:
+      - service: notify.mobile_app
+        data:
+          message: "Growatt battery at {{ states('sensor.growatt_…_soc') }}%"
+```
+
+Trigger an EMHASS optimisation on demand (when the optimizer is configured):
+
+```yaml
+- service: growatt_modbus.run_optimization
+```
+
+You can also set the charge/discharge stop-SOC and rate directly through the
+**number** entities, and pick a slot priority through the **select** entities.
+
+## Troubleshooting
+
+* **Device not detected / setup fails** — double-check the Modbus *address*
+  (default 1), and for serial the *baud rate*, *parity*, *stop bits* and *byte
+  size*. RS485 A/B polarity being swapped is the most common wiring fault.
+* **Entities show *unavailable*** — the inverter stopped responding. The
+  integration reconnects automatically; verify cabling/power and that no other
+  client (e.g. ShineWiFi dongle) is holding the Modbus line.
+* **Connection parameters changed** (new IP, different serial port) — use the
+  entry's **Reconfigure** option instead of deleting and re-adding it, so entity
+  history is preserved.
+* **Firmware sensors are missing** — the firmware-version sensors are
+  *disabled by default*; enable them from the entity settings if you want them.
+* **Enable debug logging** to capture register-level detail when reporting an
+  issue:
+
+  ```yaml
+  logger:
+    logs:
+      custom_components.growatt_modbus: debug
+  ```
+
 ## Testing
 
 Two test suites:

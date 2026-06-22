@@ -210,7 +210,11 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
             await self.client.async_dayahead_optim()
             await self.client.async_publish_data()
         except EmhassError as err:
-            raise HomeAssistantError(str(err)) from err
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="optimization_failed",
+                translation_placeholders={"error": str(err)},
+            ) from err
         await self.async_request_refresh()
         if self.enabled:
             await self.async_compile_tou()
