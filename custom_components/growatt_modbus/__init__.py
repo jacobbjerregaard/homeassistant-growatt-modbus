@@ -160,7 +160,9 @@ async def async_setup_entry(
         # The inverter is unreachable right now (power-cycle, RS485 glitch).
         # Tell HA to retry setup with its normal backoff instead of failing.
         raise ConfigEntryNotReady(
-            f"Could not connect to Growatt device: {err}"
+            translation_domain=DOMAIN,
+            translation_key="cannot_connect",
+            translation_placeholders={"error": str(err)},
         ) from err
 
     # Auto-detect the battery module count (holding register 185) unless the

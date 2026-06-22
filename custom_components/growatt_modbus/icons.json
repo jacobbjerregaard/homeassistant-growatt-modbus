@@ -1,0 +1,20 @@
+{
+  "entity": {
+    "sensor": {
+      "optimizer_status": {
+        "default": "mdi:flash"
+      },
+      "rated_cell_capacity": {
+        "default": "mdi:battery-high"
+      },
+      "rated_battery_capacity": {
+        "default": "mdi:battery-high"
+      }
+    },
+    "switch": {
+      "optimizer_control": {
+        "default": "mdi:auto-fix"
+      }
+    }
+  }
+}

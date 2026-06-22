@@ -1,5 +1,530 @@
 {
   "title": "Growatt Modbus",
+  "entity": {
+    "sensor": {
+      "battery_number_of_modules": {
+        "name": "Number of battery modules"
+      },
+      "output_energy_today": {
+        "name": "Energy produced today"
+      },
+      "output_energy_total": {
+        "name": "Total energy produced"
+      },
+      "input_energy_total": {
+        "name": "Total energy input"
+      },
+      "input_1_voltage": {
+        "name": "Input 1 voltage"
+      },
+      "input_1_amperage": {
+        "name": "Input 1 Amperage"
+      },
+      "input_1_power": {
+        "name": "Input 1 Wattage"
+      },
+      "input_1_energy_today": {
+        "name": "Input 1 energy today"
+      },
+      "input_1_energy_total": {
+        "name": "Input 1 total energy"
+      },
+      "input_2_voltage": {
+        "name": "Input 2 voltage"
+      },
+      "input_2_amperage": {
+        "name": "Input 2 Amperage"
+      },
+      "input_2_power": {
+        "name": "Input 2 Wattage"
+      },
+      "input_2_energy_today": {
+        "name": "Input 2 energy today"
+      },
+      "input_2_energy_total": {
+        "name": "Input 2 total energy"
+      },
+      "input_3_voltage": {
+        "name": "Input 3 voltage"
+      },
+      "input_3_amperage": {
+        "name": "Input 3 Amperage"
+      },
+      "input_3_power": {
+        "name": "Input 3 Wattage"
+      },
+      "input_3_energy_today": {
+        "name": "Input 3 energy today"
+      },
+      "input_3_energy_total": {
+        "name": "Input 3 total energy"
+      },
+      "input_4_voltage": {
+        "name": "Input 4 voltage"
+      },
+      "input_4_amperage": {
+        "name": "Input 4 Amperage"
+      },
+      "input_4_power": {
+        "name": "Input 4 Wattage"
+      },
+      "input_4_energy_today": {
+        "name": "Input 4 energy today"
+      },
+      "input_4_energy_total": {
+        "name": "Input 4 total energy"
+      },
+      "input_5_voltage": {
+        "name": "Input 5 voltage"
+      },
+      "input_5_amperage": {
+        "name": "Input 5 Amperage"
+      },
+      "input_5_power": {
+        "name": "Input 5 Wattage"
+      },
+      "input_5_energy_today": {
+        "name": "Input 5 energy today"
+      },
+      "input_5_energy_total": {
+        "name": "Input 5 total energy"
+      },
+      "input_6_voltage": {
+        "name": "Input 6 voltage"
+      },
+      "input_6_amperage": {
+        "name": "Input 6 Amperage"
+      },
+      "input_6_power": {
+        "name": "Input 6 Wattage"
+      },
+      "input_6_energy_today": {
+        "name": "Input 6 energy today"
+      },
+      "input_6_energy_total": {
+        "name": "Input 6 total energy"
+      },
+      "input_7_voltage": {
+        "name": "Input 7 voltage"
+      },
+      "input_7_amperage": {
+        "name": "Input 7 Amperage"
+      },
+      "input_7_power": {
+        "name": "Input 7 Wattage"
+      },
+      "input_7_energy_today": {
+        "name": "Input 7 energy today"
+      },
+      "input_7_energy_total": {
+        "name": "Input 7 total energy"
+      },
+      "input_8_voltage": {
+        "name": "Input 8 voltage"
+      },
+      "input_8_amperage": {
+        "name": "Input 8 Amperage"
+      },
+      "input_8_power": {
+        "name": "Input 8 Wattage"
+      },
+      "input_8_energy_today": {
+        "name": "Input 8 energy today"
+      },
+      "input_8_energy_total": {
+        "name": "Input 8 total energy"
+      },
+      "output_1_voltage": {
+        "name": "Output 1 voltage"
+      },
+      "output_1_amperage": {
+        "name": "Output 1 Amperage"
+      },
+      "output_1_power": {
+        "name": "Output 1 Wattage"
+      },
+      "output_2_voltage": {
+        "name": "Output 2 voltage"
+      },
+      "output_2_amperage": {
+        "name": "Output 2 Amperage"
+      },
+      "output_2_power": {
+        "name": "Output 2 Wattage"
+      },
+      "output_3_voltage": {
+        "name": "Output 3 voltage"
+      },
+      "output_3_amperage": {
+        "name": "Output 3 Amperage"
+      },
+      "output_3_power": {
+        "name": "Output 3 Wattage"
+      },
+      "operation_hours": {
+        "name": "Running hours"
+      },
+      "input_power": {
+        "name": "Internal wattage"
+      },
+      "frequency": {
+        "name": "AC frequency"
+      },
+      "output_power": {
+        "name": "Output power"
+      },
+      "output_reactive_power": {
+        "name": "Reactive wattage"
+      },
+      "ipm_temperature": {
+        "name": "Intelligent Power Management temperature"
+      },
+      "inverter_temperature": {
+        "name": "Temperature"
+      },
+      "real_output_power_percent": {
+        "name": "Real power output percentage"
+      },
+      "battery_ac_charge_energy_today": {
+        "name": "Battery AC Charge energy today"
+      },
+      "battery_ac_charge_energy_total": {
+        "name": "Battery AC Charge energy total"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "soc": {
+        "name": "SOC"
+      },
+      "discharge_power": {
+        "name": "Discharge Power"
+      },
+      "charge_power": {
+        "name": "Charge Power"
+      },
+      "energy_to_grid_total": {
+        "name": "Energy To Grid (Total)"
+      },
+      "energy_to_grid_today": {
+        "name": "Energy To Grid (Today)"
+      },
+      "energy_to_user_total": {
+        "name": "Energy To User (Total)"
+      },
+      "energy_to_user_today": {
+        "name": "Energy To User (Today)"
+      },
+      "ac_charge_enabled": {
+        "name": "AC Charge Enabled"
+      },
+      "discharge_energy_today": {
+        "name": "Battery Discharged (Today)"
+      },
+      "discharge_energy_total": {
+        "name": "Battery Discharged (Total)"
+      },
+      "charge_energy_today": {
+        "name": "Battery Charged (Today)"
+      },
+      "charge_energy_total": {
+        "name": "Battery Charged (Total)"
+      },
+      "meter_power_netto": {
+        "name": "Meter"
+      },
+      "inverter_status": {
+        "name": "Inverter Status"
+      },
+      "inverter_mode": {
+        "name": "Inverter Mode"
+      },
+      "bdc_data_flag": {
+        "name": "BDC Data Flag"
+      },
+      "bdc_derating_mode": {
+        "name": "BDC Derating Mode"
+      },
+      "bms_temperature_a": {
+        "name": "BMS temperature A"
+      },
+      "bms_temperature_b": {
+        "name": "BMS temperature B"
+      },
+      "battery_pack_number": {
+        "name": "Battery pack number"
+      },
+      "inverter_rated_power": {
+        "name": "Inverter Rated Power"
+      },
+      "rated_cell_capacity": {
+        "name": "Cell Rated Capacity"
+      },
+      "rated_battery_capacity": {
+        "name": "Battery Rated Capacity"
+      },
+      "battery_voltage": {
+        "name": "Battery Voltage"
+      },
+      "battery_current": {
+        "name": "Battery Current"
+      },
+      "self_consumption_power": {
+        "name": "Self Consumption Power"
+      },
+      "system_energy_today": {
+        "name": "System Output (Today)"
+      },
+      "system_energy_total": {
+        "name": "System Output (Total)"
+      },
+      "self_consumption_energy_today": {
+        "name": "Self Consumption (Today)"
+      },
+      "self_consumption_energy_total": {
+        "name": "Self Consumption (Total)"
+      },
+      "bms_max_soc": {
+        "name": "BMS Max SOC"
+      },
+      "bms_min_soc": {
+        "name": "BMS Min SOC"
+      },
+      "parallel_battery_num": {
+        "name": "Parallel Battery Count"
+      },
+      "bms_soh": {
+        "name": "Battery Health (SOH)"
+      },
+      "bms_status": {
+        "name": "BMS Status"
+      },
+      "bms_soc": {
+        "name": "BMS SOC"
+      },
+      "bms_cycle_count": {
+        "name": "BMS Cycle Count"
+      },
+      "bms_cell_voltage_max": {
+        "name": "BMS Cell Voltage Max"
+      },
+      "bms_cell_voltage_min": {
+        "name": "BMS Cell Voltage Min"
+      },
+      "bms_max_charge_current": {
+        "name": "BMS Max Charge Current"
+      },
+      "bms_max_discharge_current": {
+        "name": "BMS Max Discharge Current"
+      },
+      "storage_fault_code": {
+        "name": "Storage Fault Code"
+      },
+      "storage_warning_code": {
+        "name": "Storage Warning Code"
+      },
+      "bms_derate_reason": {
+        "name": "BMS Derate Reason"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "control_firmware": {
+        "name": "Control Firmware"
+      },
+      "bdc_firmware": {
+        "name": "BDC Firmware"
+      },
+      "bms_firmware": {
+        "name": "BMS Firmware"
+      },
+      "optimizer_status": {
+        "name": "Optimizer Status"
+      },
+      "optimizer_battery_power_target": {
+        "name": "Optimizer Battery Power Target"
+      },
+      "optimizer_battery_soc_target": {
+        "name": "Optimizer Battery SOC Target"
+      },
+      "optimizer_plan_updated": {
+        "name": "Optimizer Plan Updated"
+      },
+      "battery_module_system_state": {
+        "name": "State"
+      },
+      "battery_module_soc": {
+        "name": "SOC"
+      },
+      "battery_module_soh": {
+        "name": "Health (SOH)"
+      },
+      "battery_module_voltage": {
+        "name": "Voltage"
+      },
+      "battery_module_current": {
+        "name": "Current"
+      },
+      "battery_module_power": {
+        "name": "Power"
+      },
+      "battery_module_discharge_energy_total": {
+        "name": "Discharged (Total)"
+      },
+      "battery_module_charge_energy_total": {
+        "name": "Charged (Total)"
+      },
+      "battery_module_temperature_max": {
+        "name": "Temperature Max"
+      },
+      "battery_module_temperature_min": {
+        "name": "Temperature Min"
+      },
+      "battery_module_cell_voltage_max": {
+        "name": "Cell Voltage Max"
+      },
+      "battery_module_cell_voltage_min": {
+        "name": "Cell Voltage Min"
+      },
+      "battery_module_balance_state": {
+        "name": "Balance State"
+      },
+      "battery_module_balance_time_hours": {
+        "name": "Balance Time"
+      },
+      "battery_module_cell_capacity": {
+        "name": "Cell Capacity"
+      },
+      "battery_module_cell_capacity_min": {
+        "name": "Cell Capacity Min"
+      },
+      "battery_module_ah_integral": {
+        "name": "Ah Integral"
+      },
+      "battery_module_discharge_capacity_total": {
+        "name": "Discharged Capacity (Total)"
+      },
+      "battery_module_charge_capacity_total": {
+        "name": "Charged Capacity (Total)"
+      },
+      "battery_module_cycle_count": {
+        "name": "Cycle Count"
+      },
+      "battery_module_derating_mode": {
+        "name": "Derating Mode"
+      },
+      "battery_module_fault_code": {
+        "name": "Fault Code"
+      },
+      "battery_module_warning_code": {
+        "name": "Warning Code"
+      },
+      "battery_module_flags_fault_subcode": {
+        "name": "Fault Subcode"
+      },
+      "battery_module_flags_warning_subcode": {
+        "name": "Warning Subcode"
+      },
+      "battery_module_flags_charge_enabled": {
+        "name": "Charge Enabled"
+      },
+      "battery_module_flags_discharge_enabled": {
+        "name": "Discharge Enabled"
+      },
+      "battery_module_internal_short_circuit": {
+        "name": "Internal Short-Circuit State"
+      },
+      "battery_module_internal_sox_correction": {
+        "name": "SOX Correction State"
+      },
+      "battery_module_serial_number": {
+        "name": "Serial Number"
+      },
+      "battery_module_dsp_firmware": {
+        "name": "DSP Firmware"
+      },
+      "battery_module_mcu_firmware": {
+        "name": "MCU Firmware"
+      }
+    },
+    "number": {
+      "battery_discharge_rate_when_grid_first": {
+        "name": "Battery Discharge Rate when Grid First"
+      },
+      "battery_charge_rate_when_first": {
+        "name": "Battery Charge Rate when Battery First"
+      },
+      "battery_charge_stop_soc": {
+        "name": "Battery Stop Charge SOC when Battery First"
+      },
+      "grid_first_stop_soc": {
+        "name": "Stop Discharge SOC when Grid First"
+      },
+      "on_grid_discharge_stop_soc": {
+        "name": "On-Grid Stop Discharge SOC"
+      },
+      "battery_global_charge_stop_soc": {
+        "name": "Battery Charge Stop SOC"
+      },
+      "battery_global_discharge_stop_soc": {
+        "name": "Battery Discharge Stop SOC"
+      },
+      "export_limit_rate": {
+        "name": "Export Limit Power Rate"
+      }
+    },
+    "select": {
+      "export_limit_mode": {
+        "name": "Export Limit"
+      },
+      "battery_type": {
+        "name": "Battery Type"
+      },
+      "generator_force": {
+        "name": "Generator Force"
+      },
+      "ups_output_voltage": {
+        "name": "UPS Output Voltage"
+      },
+      "ups_output_frequency": {
+        "name": "UPS Output Frequency"
+      },
+      "tou_slot_priority": {
+        "name": "Slot {slot} priority"
+      }
+    },
+    "switch": {
+      "ac_charge_enabled": {
+        "name": "AC Charge"
+      },
+      "pre_pto_enabled": {
+        "name": "Pre-PTO"
+      },
+      "generator_charge_enabled": {
+        "name": "Generator Charge"
+      },
+      "ups_function_enabled": {
+        "name": "UPS Function"
+      },
+      "dry_contact_enabled": {
+        "name": "Dry Contact"
+      },
+      "tou_slot_enabled": {
+        "name": "Slot {slot} enabled"
+      },
+      "optimizer_control": {
+        "name": "Optimizer Control"
+      }
+    },
+    "time": {
+      "tou_slot_start_time": {
+        "name": "Slot {slot} start time"
+      },
+      "tou_slot_end_time": {
+        "name": "Slot {slot} end time"
+      }
+    }
+  },
   "config": {
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
@@ -159,6 +684,20 @@
     "run_optimization": {
       "name": "Run EMHASS optimization",
       "description": "Trigger an EMHASS day-ahead optimisation and publish the result, then refresh the optimizer diagnostic sensors."
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Could not connect to the Growatt device: {error}"
+    },
+    "connection_interrupted": {
+      "message": "The Modbus connection to the Growatt device was interrupted."
+    },
+    "no_response": {
+      "message": "No response from the Growatt device."
+    },
+    "optimization_failed": {
+      "message": "EMHASS optimization failed: {error}"
     }
   }
 }

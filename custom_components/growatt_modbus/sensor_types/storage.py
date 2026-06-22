@@ -354,14 +354,12 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="Cell Rated Capacity",
         native_unit_of_measurement="Ah",
         entity_category=EntityCategory.DIAGNOSTIC,
-        icon="mdi:battery-high",
     ),
     GrowattSensorEntityDescription(
         # APX-only; the spec documents no unit, so the raw value is surfaced.
         key=ATTR_RATED_BATTERY_CAPACITY,
         name="Battery Rated Capacity",
         entity_category=EntityCategory.DIAGNOSTIC,
-        icon="mdi:battery-high",
     ),
     # --- Telemetry added in Protocol II V1.39 ---
     GrowattSensorEntityDescription(
@@ -502,21 +500,25 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_FIRMWARE,
         name="Firmware",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_CONTROL_FIRMWARE,
         name="Control Firmware",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BDC_FIRMWARE,
         name="BDC Firmware",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BMS_FIRMWARE,
         name="BMS Firmware",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
 )
 
@@ -723,11 +725,13 @@ def build_battery_module_sensor_types(
                     key=f"battery_module_{n}_dsp_firmware",
                     name=f"Module {n} DSP Firmware",
                     entity_category=EntityCategory.DIAGNOSTIC,
+                    entity_registry_enabled_default=False,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_mcu_firmware",
                     name=f"Module {n} MCU Firmware",
                     entity_category=EntityCategory.DIAGNOSTIC,
+                    entity_registry_enabled_default=False,
                 ),
             )
         )

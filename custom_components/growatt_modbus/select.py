@@ -81,7 +81,8 @@ class GrowattSlotPriority(CoordinatorEntity[GrowattLocalCoordinator], SelectEnti
     def __init__(self, coordinator, entry, slot: int):
         super().__init__(coordinator, f"tou_slot_{slot}_word1")
         self._slot = slot
-        self._attr_name = f"Slot {slot} Priority"
+        self._attr_translation_key = "tou_slot_priority"
+        self._attr_translation_placeholders = {"slot": str(slot)}
         self._attr_unique_id = slot_unique_id(entry, slot, "priority")
         self._attr_options = list(TOU_PRIORITY_VALUES)
         self._attr_device_info = slot_device_info(entry)
@@ -111,6 +112,7 @@ class GrowattSelect(CoordinatorEntity[GrowattLocalCoordinator], SelectEntity):
         super().__init__(coordinator, description.key)
         self.entity_description: GrowattSelectEntityDescription = description
         self._config_entry = entry
+        self._attr_translation_key = description.key.lower().replace(" ", "_")
         self._attr_options = list(description.options_map)
         # Reverse map: raw register value -> option label.
         self._value_to_option = {v: k for k, v in description.options_map.items()}

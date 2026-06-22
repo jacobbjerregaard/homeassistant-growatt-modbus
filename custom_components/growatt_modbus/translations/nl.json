@@ -160,5 +160,19 @@
       "name": "EMHASS optimalisatie uitvoeren",
       "description": "Start een EMHASS day-ahead optimalisatie en publiceer het resultaat, en ververs vervolgens de optimizer diagnostische sensoren."
     }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Kan geen verbinding maken met het Growatt-apparaat: {error}"
+    },
+    "connection_interrupted": {
+      "message": "De Modbus-verbinding met het Growatt-apparaat is onderbroken."
+    },
+    "no_response": {
+      "message": "Geen reactie van het Growatt-apparaat."
+    },
+    "optimization_failed": {
+      "message": "EMHASS-optimalisatie mislukt: {error}"
+    }
   }
 }
