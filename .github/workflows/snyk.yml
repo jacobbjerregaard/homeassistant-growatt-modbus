@@ -3,6 +3,10 @@ name: Snyk Security
 # Dependency vulnerability scanning with Snyk. Findings are uploaded as SARIF
 # to GitHub code scanning (Security > Code scanning).
 #
+# Scans only the dependencies shipped to users (manifest.json requirements).
+# The Home Assistant test/CI dependency tree (requirements_test*.txt) is
+# dev-only and intentionally out of scope - see the .snyk policy file.
+#
 # Requires a repository secret named SNYK_TOKEN (from https://app.snyk.io
 # account settings). When the secret is absent the scan steps are skipped so
 # the workflow stays green on forks / before the token is configured.
@@ -45,12 +49,19 @@ jobs:
         continue-on-error: true # report findings, don't fail the build
         run: |
           npm install -g snyk
-          # Scan the test/runtime requirements explicitly as pip so the
-          # tooling-only pyproject.toml isn't mistaken for a Poetry project.
-          # `|| true` keeps known findings from failing the step.
+          # Scan only the runtime requirements declared in manifest.json (what
+          # users actually install). Scanning as pip avoids the tooling-only
+          # pyproject.toml being mistaken for a Poetry project; `|| true` keeps
+          # any findings from failing the step.
+          python3 - <<'PY' > runtime-requirements.txt
+          import json
+          mf = json.load(open("custom_components/growatt_modbus/manifest.json"))
+          print("\n".join(mf.get("requirements", [])))
+          PY
+          echo "Scanning shipped runtime requirements:"; cat runtime-requirements.txt
           snyk test \
             --package-manager=pip \
-            --file=requirements_test_ha.txt \
+            --file=runtime-requirements.txt \
             --sarif-file-output=snyk.sarif || true
 
       - name: Upload result to GitHub Code Scanning

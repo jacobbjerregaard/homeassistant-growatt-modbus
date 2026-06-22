@@ -1,0 +1,25 @@
+# Snyk (https://snyk.io) policy file.
+#
+# Why this exists
+# ---------------
+# The only dependency this integration ships to a user's Home Assistant is
+# `pymodbus` (declared in custom_components/growatt_modbus/manifest.json). It is
+# kept current and is scanned on its own (see .github/workflows/snyk.yml).
+#
+# `requirements_test.txt` / `requirements_test_ha.txt` exist solely to install
+# the Home Assistant test harness (pytest-homeassistant-custom-component ->
+# homeassistant) for CI. The transitive packages they pull in — pillow, PyJWT,
+# zeroconf, orjson, requests, pyOpenSSL, uv, pytest, ... — are dev/CI-only, are
+# never installed in a user's Home Assistant, and are pinned *exactly* by Home
+# Assistant's own package_constraints.txt (e.g. `Pillow==12.0.0`), so they
+# cannot be upgraded independently without breaking the test install. Their
+# known vulnerabilities therefore do not affect shipped code; upstream fixes
+# arrive automatically when Home Assistant bumps its constraints (the harness is
+# left unpinned so CI tracks the latest release).
+#
+# These test manifests are accepted as out of scope for security gating.
+version: v1.25.0
+exclude:
+  global:
+    - requirements_test.txt
+    - requirements_test_ha.txt
