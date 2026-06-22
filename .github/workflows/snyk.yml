@@ -42,14 +42,20 @@ jobs:
 
       - name: Run Snyk to check for vulnerabilities
         if: env.SNYK_TOKEN != ''
-        uses: snyk/actions/python@master
-        continue-on-error: true # don't fail the build on findings; report them instead
-        with:
-          # Scan the declared dependencies (pymodbus + test tooling).
-          args: --file=requirements_test_ha.txt --sarif-file-output=snyk.sarif
+        continue-on-error: true # report findings, don't fail the build
+        run: |
+          npm install -g snyk
+          # Scan the test/runtime requirements explicitly as pip so the
+          # tooling-only pyproject.toml isn't mistaken for a Poetry project.
+          # `|| true` keeps known findings from failing the step.
+          snyk test \
+            --package-manager=pip \
+            --file=requirements_test_ha.txt \
+            --sarif-file-output=snyk.sarif || true
 
       - name: Upload result to GitHub Code Scanning
-        if: env.SNYK_TOKEN != ''
+        # Only upload when a SARIF file was actually produced.
+        if: env.SNYK_TOKEN != '' && hashFiles('snyk.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk.sarif
