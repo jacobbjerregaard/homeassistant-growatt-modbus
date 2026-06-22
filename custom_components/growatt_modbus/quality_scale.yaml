@@ -47,7 +47,7 @@ rules:
       scripts/coverage.sh). The remaining gaps are mostly the EMHASS optimizer
       internals and rarely-hit transport error branches.
 
-  # --- Gold (partial; not yet claimed) --------------------------------------
+  # --- Gold (complete) ------------------------------------------------------
   devices: done
   diagnostics: done
   discovery:
@@ -78,14 +78,23 @@ rules:
       The firmware-version sensors (inverter Firmware/Control/BDC/BMS and the
       per-module DSP/MCU firmware) are disabled by default; live telemetry and
       headline metrics stay enabled.
-  entity-translations: todo
+  entity-translations:
+    status: done
+    comment: >-
+      Entities set a translation_key (slugified register name, or a generic key
+      with a {slot}/{module} placeholder for the indexed time-of-use and
+      per-module entities); names live under the entity section of strings.json.
   exception-translations:
     status: done
     comment: >-
       User-facing exceptions raise with translation_domain/translation_key
       (cannot_connect, connection_interrupted, no_response, optimization_failed),
       defined under the exceptions section of strings.json.
-  icon-translations: todo
+  icon-translations:
+    status: done
+    comment: >-
+      The few custom entity icons are defined in icons.json keyed by
+      translation_key rather than via the icon=/_attr_icon properties.
   repair-issues:
     status: exempt
     comment: >-

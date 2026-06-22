@@ -83,8 +83,7 @@ class GrowattOptimizerSwitch(SwitchEntity):
     """
 
     _attr_has_entity_name = True
-    _attr_name = "Optimizer Control"
-    _attr_icon = "mdi:auto-fix"
+    _attr_translation_key = "optimizer_control"
 
     def __init__(self, entry: GrowattConfigEntry) -> None:
         self._entry = entry
@@ -125,7 +124,8 @@ class GrowattSlotEnable(CoordinatorEntity[GrowattLocalCoordinator], SwitchEntity
     def __init__(self, coordinator, entry, slot: int):
         super().__init__(coordinator, f"tou_slot_{slot}_word1")
         self._slot = slot
-        self._attr_name = f"Slot {slot} Enabled"
+        self._attr_translation_key = "tou_slot_enabled"
+        self._attr_translation_placeholders = {"slot": str(slot)}
         self._attr_unique_id = slot_unique_id(entry, slot, "enabled")
         self._attr_device_info = slot_device_info(entry)
 
@@ -155,6 +155,7 @@ class GrowattSwitch(CoordinatorEntity[GrowattLocalCoordinator], RestoreEntity, S
         super().__init__(coordinator, description.key)
         self.entity_description: GrowattSwitchEntityDescription = description
         self._config_entry = entry
+        self._attr_translation_key = description.key.lower().replace(" ", "_")
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.data[CONF_SERIAL_NUMBER])},

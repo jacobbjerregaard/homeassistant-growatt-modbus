@@ -49,7 +49,8 @@ class GrowattSlotTime(CoordinatorEntity[GrowattLocalCoordinator], TimeEntity):
         self._entry = entry
         self._slot = slot
         self._edge = edge  # "start" or "end"
-        self._attr_name = f"Slot {slot} {edge.capitalize()} Time"
+        self._attr_translation_key = f"tou_slot_{edge}_time"
+        self._attr_translation_placeholders = {"slot": str(slot)}
         self._attr_unique_id = slot_unique_id(entry, slot, f"{edge}_time")
         self._attr_device_info = slot_device_info(entry)
 

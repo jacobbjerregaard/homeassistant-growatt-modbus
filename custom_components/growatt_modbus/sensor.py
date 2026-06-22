@@ -179,15 +179,21 @@ class GrowattDeviceEntity(CoordinatorEntity[GrowattLocalCoordinator], RestoreEnt
         self._config_entry = entry
         inverter_serial = entry.data[CONF_SERIAL_NUMBER]
 
+        # Per-module sensors share one generic translation key per field (the
+        # module device supplies the "which module" context); every other sensor
+        # is keyed by its own register name. Slugify so keys with spaces/casing
+        # (e.g. "inverter mode") stay valid translation keys.
+        if module_slot is not None:
+            raw_key = re.sub(r"battery_module_\d+_", "battery_module_", description.key)
+        else:
+            raw_key = description.key
+        self._attr_translation_key = raw_key.lower().replace(" ", "_")
+
         if module_serial:
             field = description.key.split(f"battery_module_{module_slot}_", 1)[-1]
             self._attr_unique_id = (
                 f"{DOMAIN}_{inverter_serial}_module_{module_serial}_{field}"
             )
-            # The per-module device supplies the module context, so the entity
-            # name drops the "Module N" prefix (e.g. "Module 1 SOC" -> "SOC").
-            name_match = re.match(r"Module \d+ (.+)", description.name or "")
-            self._attr_name = name_match.group(1) if name_match else description.name
             self._attr_device_info = DeviceInfo(
                 identifiers={(DOMAIN, f"{inverter_serial}_battery_module_{module_serial}")},
                 manufacturer="Growatt",

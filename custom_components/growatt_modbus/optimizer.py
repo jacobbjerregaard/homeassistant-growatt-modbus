@@ -489,7 +489,6 @@ OPTIMIZER_SENSOR_TYPES: tuple[OptimizerSensorEntityDescription, ...] = (
     OptimizerSensorEntityDescription(
         key="optimizer_status",
         name="Optimizer Status",
-        icon="mdi:flash",
         value_fn=lambda plan: plan.status,
     ),
     OptimizerSensorEntityDescription(
@@ -529,6 +528,7 @@ class OptimizerSensor(CoordinatorEntity[EmhassOptimizerCoordinator], SensorEntit
     def __init__(self, coordinator, description, entry):
         super().__init__(coordinator)
         self.entity_description = description
+        self._attr_translation_key = description.key
         serial = entry.data[CONF_SERIAL_NUMBER]
         self._attr_unique_id = f"{DOMAIN}_{serial}_{description.key}"
         self._attr_device_info = DeviceInfo(

@@ -354,14 +354,12 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="Cell Rated Capacity",
         native_unit_of_measurement="Ah",
         entity_category=EntityCategory.DIAGNOSTIC,
-        icon="mdi:battery-high",
     ),
     GrowattSensorEntityDescription(
         # APX-only; the spec documents no unit, so the raw value is surfaced.
         key=ATTR_RATED_BATTERY_CAPACITY,
         name="Battery Rated Capacity",
         entity_category=EntityCategory.DIAGNOSTIC,
-        icon="mdi:battery-high",
     ),
     # --- Telemetry added in Protocol II V1.39 ---
     GrowattSensorEntityDescription(

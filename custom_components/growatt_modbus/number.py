@@ -74,6 +74,7 @@ class GrowattNumber(CoordinatorEntity[GrowattLocalCoordinator], NumberEntity):
         super().__init__(coordinator, description.key)
         self.entity_description: GrowattNumberEntityDescription = description
         self._config_entry = entry
+        self._attr_translation_key = description.key.lower().replace(" ", "_")
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.data[CONF_SERIAL_NUMBER])},
