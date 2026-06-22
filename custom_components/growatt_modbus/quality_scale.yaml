@@ -1,5 +1,5 @@
 # Integration Quality Scale assessment for growatt_modbus.
-# Declared tier in manifest.json: silver (all bronze + silver rules met).
+# Declared tier in manifest.json: platinum (every rule is done or exempt).
 rules:
   # --- Bronze ---------------------------------------------------------------
   action-setup: done
