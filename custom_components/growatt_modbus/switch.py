@@ -9,20 +9,17 @@ from typing import Any, Optional
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import (
-    CONF_MODEL,
-    CONF_NAME,
     STATE_ON,
     EntityCategory,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import GrowattConfigEntry, GrowattLocalCoordinator
+from .entity import GrowattEntity, entity_translation_key, growatt_device_info
 from .const import (
-    CONF_FIRMWARE,
     CONF_OPTIMIZER_ENABLED,
     CONF_SERIAL_NUMBER,
     DOMAIN,
@@ -89,13 +86,7 @@ class GrowattOptimizerSwitch(SwitchEntity):
         self._entry = entry
         serial = entry.data[CONF_SERIAL_NUMBER]
         self._attr_unique_id = f"{DOMAIN}_{serial}_optimizer_control"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, serial)},
-            manufacturer="Growatt",
-            model=entry.data[CONF_MODEL],
-            sw_version=entry.data[CONF_FIRMWARE],
-            name=entry.data[CONF_NAME],
-        )
+        self._attr_device_info = growatt_device_info(entry)
 
     @property
     def is_on(self) -> bool:
@@ -144,26 +135,16 @@ class GrowattSlotEnable(CoordinatorEntity[GrowattLocalCoordinator], SwitchEntity
         self.async_write_ha_state()
 
 
-class GrowattSwitch(CoordinatorEntity[GrowattLocalCoordinator], RestoreEntity, SwitchEntity):
+class GrowattSwitch(GrowattEntity, RestoreEntity, SwitchEntity):
     """A writable Growatt holding-register switch."""
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator, description, entry):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, description.key)
+        """Pass coordinator and entry to the base entity."""
+        super().__init__(coordinator, entry, description.key)
         self.entity_description: GrowattSwitchEntityDescription = description
-        self._config_entry = entry
-        self._attr_translation_key = description.key.lower().replace(" ", "_")
-
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.data[CONF_SERIAL_NUMBER])},
-            manufacturer="Growatt",
-            model=entry.data[CONF_MODEL],
-            sw_version=entry.data[CONF_FIRMWARE],
-            name=entry.data[CONF_NAME],
-        )
+        self._attr_translation_key = entity_translation_key(description.key)
 
     @property
     def unique_id(self) -> Optional[str]:

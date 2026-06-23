@@ -34,6 +34,11 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.event import (
+    async_track_time_change,
+    async_track_time_interval,
+)
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import (
@@ -67,7 +72,22 @@ from .API.tou_planner import (
     priority_for_step,
 )
 from .API.utils import to_register_value
-from .const import CONF_FIRMWARE, CONF_SERIAL_NUMBER, DOMAIN
+from .const import (
+    CONF_BATTERY_MAX_POWER,
+    CONF_EMHASS_SENSOR_BATT_POWER,
+    CONF_EMHASS_SENSOR_BATT_SOC,
+    CONF_EMHASS_SENSOR_GRID,
+    CONF_EMHASS_SENSOR_STATUS,
+    CONF_EMHASS_TOKEN,
+    CONF_EMHASS_URL,
+    CONF_FIRMWARE,
+    CONF_OPTIMIZER_ENABLED,
+    CONF_OPTIMIZER_INTERVAL,
+    CONF_OPTIMIZER_SOC_SENSOR,
+    CONF_SERIAL_NUMBER,
+    DEFAULT_OPTIMIZER_INTERVAL,
+    DOMAIN,
+)
 from .emhass_client import EmhassClient, EmhassError
 
 _LOGGER = logging.getLogger(__name__)
@@ -531,6 +551,8 @@ class OptimizerSensor(CoordinatorEntity[EmhassOptimizerCoordinator], SensorEntit
         self._attr_translation_key = description.key
         serial = entry.data[CONF_SERIAL_NUMBER]
         self._attr_unique_id = f"{DOMAIN}_{serial}_{description.key}"
+        # Inlined (not the shared entity.growatt_device_info helper) so this
+        # module does not import entity/coordinator and stays cycle-free.
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, serial)},
             manufacturer="Growatt",
@@ -564,3 +586,87 @@ def build_optimizer_sensors(coordinator, entry) -> list[OptimizerSensor]:
         OptimizerSensor(coordinator, description, entry)
         for description in OPTIMIZER_SENSOR_TYPES
     ]
+
+
+async def async_setup_optimizer(
+    hass: HomeAssistant,
+    entry,
+    main_coordinator,
+) -> EmhassOptimizerCoordinator | None:
+    """Wire up the optional EMHASS optimizer for a config entry.
+
+    Returns the optimizer coordinator, or ``None`` when no EMHASS URL is
+    configured. When actuation is enabled it applies the current plan and
+    schedules the daily recompile + intraday MPC steps (registered for cleanup
+    on entry unload).
+    """
+    emhass_url = entry.options.get(CONF_EMHASS_URL, entry.data.get(CONF_EMHASS_URL))
+    if not emhass_url:
+        return None
+
+    token = (
+        entry.options.get(CONF_EMHASS_TOKEN, entry.data.get(CONF_EMHASS_TOKEN)) or None
+    )
+    interval = int(
+        entry.options.get(CONF_OPTIMIZER_INTERVAL, DEFAULT_OPTIMIZER_INTERVAL)
+    )
+    enabled = bool(
+        entry.options.get(
+            CONF_OPTIMIZER_ENABLED, entry.data.get(CONF_OPTIMIZER_ENABLED, False)
+        )
+    )
+    soc_sensor = entry.options.get(
+        CONF_OPTIMIZER_SOC_SENSOR, entry.data.get(CONF_OPTIMIZER_SOC_SENSOR)
+    )
+    battery_max_power = float(
+        entry.options.get(
+            CONF_BATTERY_MAX_POWER, entry.data.get(CONF_BATTERY_MAX_POWER, 0)
+        )
+        or 0
+    )
+    # Entity-id overrides fall back to the EMHASS defaults via EmhassEntities.
+    merged = {**entry.data, **entry.options}
+    entity_overrides = {
+        attr: merged[conf_key]
+        for attr, conf_key in (
+            ("batt_power", CONF_EMHASS_SENSOR_BATT_POWER),
+            ("batt_soc", CONF_EMHASS_SENSOR_BATT_SOC),
+            ("grid", CONF_EMHASS_SENSOR_GRID),
+            ("status", CONF_EMHASS_SENSOR_STATUS),
+        )
+        if merged.get(conf_key)
+    }
+    entities = EmhassEntities(**entity_overrides)
+    client = EmhassClient(async_get_clientsession(hass), emhass_url, token)
+    optimizer = EmhassOptimizerCoordinator(
+        hass,
+        client,
+        timedelta(seconds=interval),
+        device_coordinator=main_coordinator,
+        enabled=enabled,
+        soc_sensor=soc_sensor,
+        entities=entities,
+        battery_max_power=battery_max_power,
+    )
+    await optimizer.async_config_entry_first_refresh()
+
+    if enabled:
+        # Apply the current plan now, recompile once daily just after midnight
+        # from EMHASS's published day-ahead plan, and run intraday model-
+        # predictive corrections every optimizer interval.
+        await optimizer.async_compile_tou()
+
+        async def _daily_compile(_now) -> None:
+            await optimizer.async_compile_tou()
+
+        async def _mpc_step(_now) -> None:
+            await optimizer.async_mpc_step()
+
+        entry.async_on_unload(
+            async_track_time_change(hass, _daily_compile, hour=0, minute=10, second=0)
+        )
+        entry.async_on_unload(
+            async_track_time_interval(hass, _mpc_step, timedelta(seconds=interval))
+        )
+
+    return optimizer
