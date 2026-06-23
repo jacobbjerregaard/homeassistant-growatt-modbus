@@ -92,6 +92,9 @@ async def test_serial_config_flow_happy_path(hass):
     ), patch(
         "custom_components.growatt_modbus.config_flow.get_device_info",
         AsyncMock(return_value=_DEVICE_INFO),
+    ), patch(
+        "custom_components.growatt_modbus.async_setup_entry",
+        AsyncMock(return_value=True),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -194,6 +197,9 @@ async def test_network_config_flow_happy_path(hass):
     ), patch(
         "custom_components.growatt_modbus.config_flow.get_device_info",
         AsyncMock(return_value=_DEVICE_INFO),
+    ), patch(
+        "custom_components.growatt_modbus.async_setup_entry",
+        AsyncMock(return_value=True),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], _NETWORK_INPUT
