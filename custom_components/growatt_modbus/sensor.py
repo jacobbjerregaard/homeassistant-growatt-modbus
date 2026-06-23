@@ -9,8 +9,6 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.const import (
-    CONF_MODEL,
-    CONF_NAME,
     CONF_TYPE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
@@ -31,6 +29,7 @@ from .API.device_type.base import (
 )
 
 from . import GrowattConfigEntry, GrowattLocalCoordinator
+from .entity import entity_translation_key, growatt_device_info
 from .optimizer import build_optimizer_sensors
 from .sensor_types.sensor_entity_description import GrowattSensorEntityDescription
 from .sensor_types.inverter import INVERTER_SENSOR_TYPES
@@ -41,7 +40,6 @@ from .sensor_types.storage import (
 from .const import (
     CONF_AC_PHASES,
     CONF_DC_STRING,
-    CONF_FIRMWARE,
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
@@ -187,7 +185,7 @@ class GrowattDeviceEntity(CoordinatorEntity[GrowattLocalCoordinator], RestoreEnt
             raw_key = re.sub(r"battery_module_\d+_", "battery_module_", description.key)
         else:
             raw_key = description.key
-        self._attr_translation_key = raw_key.lower().replace(" ", "_")
+        self._attr_translation_key = entity_translation_key(raw_key)
 
         if module_serial:
             field = description.key.split(f"battery_module_{module_slot}_", 1)[-1]
@@ -203,13 +201,7 @@ class GrowattDeviceEntity(CoordinatorEntity[GrowattLocalCoordinator], RestoreEnt
             )
         else:
             self._attr_unique_id = f"{DOMAIN}_{inverter_serial}_{description.key}"
-            self._attr_device_info = DeviceInfo(
-                identifiers={(DOMAIN, inverter_serial)},
-                manufacturer="Growatt",
-                model=entry.data[CONF_MODEL],
-                sw_version=entry.data[CONF_FIRMWARE],
-                name=entry.data[CONF_NAME],
-            )
+            self._attr_device_info = growatt_device_info(entry)
 
     async def async_added_to_hass(self) -> None:
         """Call when entity is about to be added to Home Assistant."""

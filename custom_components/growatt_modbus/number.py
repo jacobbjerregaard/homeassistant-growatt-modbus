@@ -10,19 +10,15 @@ from typing import Optional
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import (
-    CONF_MODEL,
-    CONF_NAME,
     EntityCategory,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GrowattConfigEntry, GrowattLocalCoordinator
+from . import GrowattConfigEntry
+from .entity import GrowattEntity, entity_translation_key
 from .API.utils import to_register_value
 from .const import (
-    CONF_FIRMWARE,
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
@@ -63,26 +59,16 @@ async def async_setup_entry(
     )
 
 
-class GrowattNumber(CoordinatorEntity[GrowattLocalCoordinator], NumberEntity):
+class GrowattNumber(GrowattEntity, NumberEntity):
     """A writable Growatt holding-register number."""
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator, description, entry):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, description.key)
+        """Pass coordinator and entry to the base entity."""
+        super().__init__(coordinator, entry, description.key)
         self.entity_description: GrowattNumberEntityDescription = description
-        self._config_entry = entry
-        self._attr_translation_key = description.key.lower().replace(" ", "_")
-
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.data[CONF_SERIAL_NUMBER])},
-            manufacturer="Growatt",
-            model=entry.data[CONF_MODEL],
-            sw_version=entry.data[CONF_FIRMWARE],
-            name=entry.data[CONF_NAME],
-        )
+        self._attr_translation_key = entity_translation_key(description.key)
 
     @property
     def unique_id(self) -> Optional[str]:

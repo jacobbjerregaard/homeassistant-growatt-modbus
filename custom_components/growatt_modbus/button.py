@@ -9,20 +9,17 @@ import logging
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.const import (
-    CONF_MODEL,
-    CONF_NAME,
     EntityCategory,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import GrowattConfigEntry
 from .const import (
-    CONF_FIRMWARE,
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
+from .entity import growatt_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,13 +50,7 @@ class GrowattSyncTimeButton(ButtonEntity):
         self._attr_unique_id = (
             f"{DOMAIN}_{entry.data[CONF_SERIAL_NUMBER]}_sync_device_time"
         )
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.data[CONF_SERIAL_NUMBER])},
-            manufacturer="Growatt",
-            model=entry.data[CONF_MODEL],
-            sw_version=entry.data[CONF_FIRMWARE],
-            name=entry.data[CONF_NAME],
-        )
+        self._attr_device_info = growatt_device_info(entry)
 
     async def async_press(self) -> None:
         """Sync the device clock to the host time."""
