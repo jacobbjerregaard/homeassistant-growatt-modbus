@@ -24,6 +24,8 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    CONF_MODEL,
+    CONF_NAME,
     PERCENTAGE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
@@ -37,6 +39,7 @@ from homeassistant.helpers.event import (
     async_track_time_change,
     async_track_time_interval,
 )
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -77,6 +80,7 @@ from .const import (
     CONF_EMHASS_SENSOR_STATUS,
     CONF_EMHASS_TOKEN,
     CONF_EMHASS_URL,
+    CONF_FIRMWARE,
     CONF_OPTIMIZER_ENABLED,
     CONF_OPTIMIZER_INTERVAL,
     CONF_OPTIMIZER_SOC_SENSOR,
@@ -84,9 +88,7 @@ from .const import (
     DEFAULT_OPTIMIZER_INTERVAL,
     DOMAIN,
 )
-from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
 from .emhass_client import EmhassClient, EmhassError
-from .entity import growatt_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -549,7 +551,15 @@ class OptimizerSensor(CoordinatorEntity[EmhassOptimizerCoordinator], SensorEntit
         self._attr_translation_key = description.key
         serial = entry.data[CONF_SERIAL_NUMBER]
         self._attr_unique_id = f"{DOMAIN}_{serial}_{description.key}"
-        self._attr_device_info = growatt_device_info(entry)
+        # Inlined (not the shared entity.growatt_device_info helper) so this
+        # module does not import entity/coordinator and stays cycle-free.
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, serial)},
+            manufacturer="Growatt",
+            model=entry.data[CONF_MODEL],
+            sw_version=entry.data[CONF_FIRMWARE],
+            name=entry.data[CONF_NAME],
+        )
 
     @property
     def native_value(self) -> StateType | datetime:
@@ -580,8 +590,8 @@ def build_optimizer_sensors(coordinator, entry) -> list[OptimizerSensor]:
 
 async def async_setup_optimizer(
     hass: HomeAssistant,
-    entry: GrowattConfigEntry,
-    main_coordinator: GrowattLocalCoordinator,
+    entry,
+    main_coordinator,
 ) -> EmhassOptimizerCoordinator | None:
     """Wire up the optional EMHASS optimizer for a config entry.
 
