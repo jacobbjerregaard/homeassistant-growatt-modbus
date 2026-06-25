@@ -5,7 +5,7 @@ name: CodeQL
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
   schedule:
     # Weekly re-scan so newly published CodeQL queries catch old code too.
