@@ -90,3 +90,56 @@ async def test_battery_global_discharge_stop_soc_writes(hass, setup_storage):
         "number", "set_value", {"entity_id": eid, "value": 10}, blocking=True
     )
     assert (952, 10) in fake.writes
+
+
+# --- Peak shaving (holding 3306-3310) ------------------------------------
+
+
+async def test_peak_shaving_mode_switch_writes(hass, setup_storage):
+    entry, fake = setup_storage
+    eid = _entity_id(hass, entry, "switch", "_peak_shaving_mode")  # holding 3306
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": eid}, blocking=True
+    )
+    assert (3306, 1) in fake.writes
+    await hass.services.async_call(
+        "switch", "turn_off", {"entity_id": eid}, blocking=True
+    )
+    assert (3306, 0) in fake.writes
+
+
+async def test_peak_shaving_import_limit_writes_scaled(hass, setup_storage):
+    entry, fake = setup_storage
+    eid = _entity_id(hass, entry, "number", "_peak_shaving_import_limit")  # holding 3307, 0.1 kW
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": eid, "value": 5.0}, blocking=True
+    )
+    assert (3307, 50) in fake.writes  # 5.0 kW -> raw 50
+
+
+async def test_peak_shaving_export_limit_writes_signed(hass, setup_storage):
+    entry, fake = setup_storage
+    eid = _entity_id(hass, entry, "number", "_peak_shaving_export_limit")  # holding 3308, signed 0.1 kW
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": eid, "value": -3.0}, blocking=True
+    )
+    # -3.0 kW -> raw -30 (two's complement applied by the real client).
+    assert (3308, -30) in fake.writes
+
+
+async def test_reserved_soc_enable_switch_writes(hass, setup_storage):
+    entry, fake = setup_storage
+    eid = _entity_id(hass, entry, "switch", "_reserved_soc_for_peak_shaving_enable")  # holding 3309
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": eid}, blocking=True
+    )
+    assert (3309, 1) in fake.writes
+
+
+async def test_reserved_soc_for_peak_shaving_number_writes(hass, setup_storage):
+    entry, fake = setup_storage
+    eid = _entity_id(hass, entry, "number", "_reserved_soc_for_peak_shaving")  # holding 3310, int %
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": eid, "value": 30}, blocking=True
+    )
+    assert (3310, 30) in fake.writes
