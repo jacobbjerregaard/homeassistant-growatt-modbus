@@ -46,6 +46,11 @@ from .base import (
     ATTR_DRY_CONTACT_ENABLED,
     ATTR_EXPORT_LIMIT_MODE,
     ATTR_EXPORT_LIMIT_RATE,
+    ATTR_PEAK_SHAVING_MODE,
+    ATTR_PEAK_SHAVING_IMPORT_LIMIT,
+    ATTR_PEAK_SHAVING_EXPORT_LIMIT,
+    ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE,
+    ATTR_RESERVED_SOC_FOR_PEAK_SHAVING,
     ATTR_SERIAL_NUMBER,
     ATTR_METER_POWER_NETTO,
     ATTR_INVERTER_STATUS,
@@ -629,6 +634,29 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     ),
     GrowattDeviceRegisters(
         name=ATTR_EXPORT_LIMIT_RATE, register=123, value_type=float, scale=10, signed=True
+    ),
+    # --- Peak shaving (holding 3306-3310) ---
+    GrowattDeviceRegisters(
+        name=ATTR_PEAK_SHAVING_MODE, register=3306, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_PEAK_SHAVING_IMPORT_LIMIT,  # 0.1 kW grid-import cap
+        register=3307,
+        value_type=float,
+        scale=10,
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_PEAK_SHAVING_EXPORT_LIMIT,  # 0.1 kW export limit, may be negative
+        register=3308,
+        value_type=float,
+        scale=10,
+        signed=True,
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE, register=3309, value_type=int
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_RESERVED_SOC_FOR_PEAK_SHAVING, register=3310, value_type=int  # % 0-100
     ),
 )
 

@@ -44,6 +44,15 @@ ATTR_DRY_CONTACT_ENABLED = "dry_contact_enabled"  # holding 3016
 ATTR_EXPORT_LIMIT_MODE = "export_limit_mode"  # holding 122
 ATTR_EXPORT_LIMIT_RATE = "export_limit_rate"  # holding 123, 0.1% signed
 
+# Peak shaving (holding 3306-3310). When SOC is above the reserved SOC the
+# system runs in its originally-set mode; below it, the battery only supplies
+# the load while the import limit is exceeded (see README).
+ATTR_PEAK_SHAVING_MODE = "peak_shaving_mode"  # holding 3306, 0/1
+ATTR_PEAK_SHAVING_IMPORT_LIMIT = "peak_shaving_import_limit"  # holding 3307, 0.1kW
+ATTR_PEAK_SHAVING_EXPORT_LIMIT = "peak_shaving_export_limit"  # holding 3308, 0.1kW signed
+ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE = "reserved_soc_for_peak_shaving_enable"  # holding 3309, 0/1
+ATTR_RESERVED_SOC_FOR_PEAK_SHAVING = "reserved_soc_for_peak_shaving"  # holding 3310, % 0-100
+
 # Nameplate / rated values (read-only config registers).
 ATTR_INVERTER_RATED_POWER = "inverter_rated_power"  # holding 6-7 (Pmax), 0.1VA
 ATTR_RATED_CELL_CAPACITY = "rated_cell_capacity"  # holding 3119, 1Ah
