@@ -35,6 +35,11 @@ class RegisterKeys:
     def __len__(self):
         return len(self.holding) + len(self.input)
     
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, RegisterKeys):
+            return NotImplemented
+        return self.holding == other.holding and self.input == other.input
+    
     def __hash__(self) -> int:
         return hash((frozenset(self.holding), frozenset(self.input)))
     
