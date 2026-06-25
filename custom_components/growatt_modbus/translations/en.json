@@ -471,6 +471,15 @@
       },
       "export_limit_rate": {
         "name": "Export Limit Power Rate"
+      },
+      "peak_shaving_import_limit": {
+        "name": "Peak Shaving Import Limit"
+      },
+      "peak_shaving_export_limit": {
+        "name": "Peak Shaving Export Limit"
+      },
+      "reserved_soc_for_peak_shaving": {
+        "name": "Reserved SOC for Peak Shaving Level"
       }
     },
     "select": {
@@ -514,6 +523,12 @@
       },
       "optimizer_control": {
         "name": "Optimizer Control"
+      },
+      "peak_shaving_mode": {
+        "name": "Peak Shaving Mode"
+      },
+      "reserved_soc_for_peak_shaving_enable": {
+        "name": "Reserved SOC for Peak Shaving"
       }
     },
     "time": {

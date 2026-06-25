@@ -4,6 +4,10 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass,
 )
+from homeassistant.components.number import (
+    NumberDeviceClass,
+    NumberMode,
+)
 from homeassistant.const import (
     UnitOfApparentPower,
     UnitOfElectricCurrent,
@@ -41,6 +45,11 @@ from ..API.device_type.base import (
     ATTR_DRY_CONTACT_ENABLED,
     ATTR_EXPORT_LIMIT_MODE,
     ATTR_EXPORT_LIMIT_RATE,
+    ATTR_PEAK_SHAVING_MODE,
+    ATTR_PEAK_SHAVING_IMPORT_LIMIT,
+    ATTR_PEAK_SHAVING_EXPORT_LIMIT,
+    ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE,
+    ATTR_RESERVED_SOC_FOR_PEAK_SHAVING,
     ATTR_SOC_PERCENTAGE,
     ATTR_DISCHARGE_POWER,
     ATTR_CHARGE_POWER,
@@ -114,6 +123,14 @@ STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
         key=ATTR_DRY_CONTACT_ENABLED,
         name="Dry Contact",
     ),
+    GrowattSwitchEntityDescription(
+        key=ATTR_PEAK_SHAVING_MODE,
+        name="Peak Shaving Mode",
+    ),
+    GrowattSwitchEntityDescription(
+        key=ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE,
+        name="Reserved SOC for Peak Shaving",
+    ),
 )
 
 STORAGE_NUMBER_TYPES: tuple[GrowattNumberEntityDescription, ...] = (
@@ -179,6 +196,34 @@ STORAGE_NUMBER_TYPES: tuple[GrowattNumberEntityDescription, ...] = (
         native_min_value=-100,
         native_max_value=100,
         native_step=0.1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_PEAK_SHAVING_IMPORT_LIMIT,  # holding 3307, 0.1 kW grid-import cap
+        name="Peak Shaving Import Limit",
+        native_min_value=0,
+        native_max_value=100,
+        native_step=0.1,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        device_class=NumberDeviceClass.POWER,
+        mode=NumberMode.BOX,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_PEAK_SHAVING_EXPORT_LIMIT,  # holding 3308, 0.1 kW (may be negative)
+        name="Peak Shaving Export Limit",
+        native_min_value=-100,
+        native_max_value=100,
+        native_step=0.1,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        device_class=NumberDeviceClass.POWER,
+        mode=NumberMode.BOX,
+    ),
+    GrowattNumberEntityDescription(
+        key=ATTR_RESERVED_SOC_FOR_PEAK_SHAVING,  # holding 3310, % 0-100
+        name="Reserved SOC for Peak Shaving Level",
+        native_min_value=0,
+        native_max_value=100,
+        native_step=1,
         native_unit_of_measurement=PERCENTAGE,
     ),
 )
