@@ -97,6 +97,32 @@ does not implement a register it may simply read `0` and ignore writes.
 
 Currently the communication layer (API) is included in this repository but following the guidelines of HASS there should be separate repositories
 
+### Peak shaving (Protocol II V1.39)
+
+Peak shaving caps how much power the system draws from the grid, discharging the
+battery to cover demand above an *Import Limit* during expensive peak periods. It
+runs alongside the inverter's normal mode: when the battery SOC is **above** the
+*Reserved SOC* the system behaves as originally configured (self-consumption by
+default, or TOU if you switch to it on the previous page); when SOC is **below**
+the *Reserved SOC*, the battery only supplies the load while the *Import Limit* is
+exceeded. If no *Reserved SOC* is set, the system keeps its original mode and
+simply never draws more than the *Import Limit* from the grid.
+
+The following controls appear on the device page (storage / hybrid only):
+
+* `switch`: **Peak Shaving Mode** (holding 3306) — enable / disable.
+* `number`: **Peak Shaving Import Limit** (holding 3307, kW) — the maximum power
+  drawn from the grid.
+* `number`: **Peak Shaving Export Limit** (holding 3308, kW, may be negative) —
+  the maximum power fed into the grid. When the export limit is enabled and set
+  to a negative value, the import limit must be greater than its absolute value
+  (e.g. a 10 kW system with a −30 % export limit needs an import limit above
+  3 kW).
+* `switch`: **Reserved SOC for Peak Shaving** (holding 3309) — enable the
+  reserved-SOC threshold.
+* `number`: **Reserved SOC for Peak Shaving Level** (holding 3310, %) — the SOC
+  above which the system runs in its originally-set mode.
+
 ## Energy optimization (EMHASS)
 
 The integration can bridge to [EMHASS](https://github.com/davidusb-geek/emhass)
