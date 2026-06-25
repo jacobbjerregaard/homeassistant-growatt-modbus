@@ -1,6 +1,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 [![CodeQL](https://github.com/jacobbjerregaard/homeassistant-growatt-modbus/actions/workflows/codeql.yml/badge.svg)](https://github.com/jacobbjerregaard/homeassistant-growatt-modbus/actions/workflows/codeql.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Known Vulnerabilities](https://snyk.io/test/github/jacobbjerregaard/homeassistant-growatt-modbus/badge.svg)](https://snyk.io/test/github/jacobbjerregaard/homeassistant-growatt-modbus)
 
 # Home Assistant Growatt Modbus Integration
