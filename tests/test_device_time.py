@@ -32,8 +32,10 @@ async def test_read_device_time_uses_device_id_and_registers():
 
 async def test_write_device_time_passes_device_id_for_each_register():
     base = GrowattModbusBase()
+    ok = MagicMock()
+    ok.isError.return_value = False
     base.client = MagicMock()
-    base.client.write_register = AsyncMock()
+    base.client.write_register = AsyncMock(return_value=ok)
 
     await base.write_device_time(2024, 6, 14, 12, 30, 0, 7)
 

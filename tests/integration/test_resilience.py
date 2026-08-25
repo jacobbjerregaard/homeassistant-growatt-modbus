@@ -3,10 +3,12 @@ from unittest.mock import AsyncMock, patch
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from pymodbus.exceptions import ConnectionException
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.growatt_modbus import _async_migrate_module_unique_ids
+from custom_components.growatt_modbus.api.exception import ModbusException
 from custom_components.growatt_modbus.const import CONF_SERIAL_NUMBER, DOMAIN
 
 
@@ -35,6 +37,37 @@ async def test_entities_unavailable_on_connection_loss(hass, setup_storage):
 
     assert entry.runtime_data.main_coordinator.last_update_success is False
     assert hass.states.get(entity_id).state == "unavailable"
+
+
+async def test_entities_unavailable_when_device_rejects_read(hass, setup_storage):
+    """A Modbus exception response must not pass for a successful poll.
+
+    pymodbus does not raise for an exception response - it returns one whose
+    ``registers`` list is empty. Before the transport checked ``isError()``,
+    such a batch decoded to nothing: the coordinator saw a successful update
+    with the keys simply missing, and every affected sensor kept its last
+    value indefinitely while still reporting as available.
+    """
+    entry, _fake = setup_storage
+    entity_id = _any_sensor_entity_id(hass, entry)
+    assert hass.states.get(entity_id).state != "unavailable"
+
+    with patch.object(
+        entry.runtime_data.device,
+        "update",
+        new=AsyncMock(side_effect=ModbusException("illegal data address")),
+    ):
+        await entry.runtime_data.main_coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+    coordinator = entry.runtime_data.main_coordinator
+    assert coordinator.last_update_success is False
+    assert hass.states.get(entity_id).state == "unavailable"
+    # Handled explicitly, not swallowed by the coordinator's catch-all: an
+    # unhandled ModbusException still marks the update failed, but logs a
+    # traceback as an "Unexpected error" on every single poll.
+    assert isinstance(coordinator.last_exception, UpdateFailed)
+    assert "rejected a Modbus request" in str(coordinator.last_exception)
 
 
 async def test_setup_retries_when_device_unreachable(setup_unreachable):

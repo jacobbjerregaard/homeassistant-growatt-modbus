@@ -708,11 +708,17 @@
     "connection_interrupted": {
       "message": "The Modbus connection to the Growatt device was interrupted."
     },
+    "device_error": {
+      "message": "The Growatt device rejected a Modbus request: {error}"
+    },
     "no_response": {
       "message": "No response from the Growatt device."
     },
     "optimization_failed": {
       "message": "EMHASS optimization failed: {error}"
+    },
+    "write_failed": {
+      "message": "Writing to the Growatt device failed: {error}"
     }
   }
 }

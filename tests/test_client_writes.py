@@ -6,7 +6,7 @@ passed a list + positional unit. These tests pin the call we make and check it
 against the real pymodbus write_register signature.
 """
 import inspect
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -16,9 +16,17 @@ from growatt_api.client import GrowattModbusBase
 from pymodbus.client import AsyncModbusTcpClient
 
 
+def _ok_response() -> MagicMock:
+    """A successful pymodbus write response (isError() -> False)."""
+    resp = MagicMock()
+    resp.isError.return_value = False
+    return resp
+
+
 def _base() -> GrowattModbusBase:
     base = GrowattModbusBase()  # initialises the asyncio lock
     base.client = AsyncMock()
+    base.client.write_register = AsyncMock(return_value=_ok_response())
     return base
 
 

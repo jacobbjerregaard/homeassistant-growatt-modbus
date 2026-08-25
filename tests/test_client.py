@@ -159,3 +159,55 @@ def test_serial_windows_requires_com_port(monkeypatch):
     monkeypatch.setattr("growatt_api.client.sys.platform", "win32")
     with pytest.raises(ModbusPortException):
         GrowattSerial("/dev/ttyUSB0")
+
+
+def test_bulk_reads_raise_on_modbus_exception_response():
+    """A Modbus exception response must not decode to "no registers".
+
+    pymodbus returns an exception *response* rather than raising, and that
+    object carries an empty ``registers`` list. Unchecked, the batch decodes
+    to nothing, the poll looks successful, and every sensor in it keeps its
+    previous value indefinitely.
+    """
+
+    class _ErrClient(_FakeClient):
+        async def read_holding_registers(self, address, count, device_id):
+            return _ErrResp()
+
+        async def read_input_registers(self, address, count, device_id):
+            return _ErrResp()
+
+    base = _base(_ErrClient())
+    with pytest.raises(ModbusException):
+        asyncio.run(base.read_holding_registers(45, 6, 1))
+    with pytest.raises(ModbusException):
+        asyncio.run(base.read_input_registers(3000, 4, 1))
+
+
+def test_bulk_reads_raise_on_short_read():
+    """Fewer registers than requested would leave 32-bit pairs half-decoded."""
+
+    class _ShortClient(_FakeClient):
+        async def read_input_registers(self, address, count, device_id):
+            return _Resp([1] * (count - 1))
+
+    base = _base(_ShortClient())
+    with pytest.raises(ModbusException):
+        asyncio.run(base.read_input_registers(53, 4, 1))
+
+
+def test_writes_raise_when_device_rejects_them():
+    """A rejected write must not look like it applied."""
+
+    class _RejectClient(_FakeClient):
+        async def write_register(self, register, value, device_id):
+            self.writes.append((register, value, device_id))
+            return _ErrResp()
+
+    base = _base(_RejectClient())
+    with pytest.raises(ModbusException):
+        asyncio.run(base.write_register(951, 20, 1))
+    with pytest.raises(ModbusException):
+        asyncio.run(base.write_register_value(3038, 0x8000, 1))
+    with pytest.raises(ModbusException):
+        asyncio.run(base.write_device_time(2024, 6, 15, 10, 30, 0, 1))
