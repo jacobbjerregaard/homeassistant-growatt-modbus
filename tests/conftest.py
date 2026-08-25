@@ -2,10 +2,10 @@
 
 The integration package (``custom_components/growatt_modbus``) imports Home
 Assistant at import time, so it cannot be imported directly in a plain unit
-test environment.  The protocol/decoding logic in ``API`` is however pure
+test environment.  The protocol/decoding logic in ``api`` is however pure
 Python (stdlib only) and is the part most worth testing.
 
-To exercise it in isolation we register the ``API`` directory as a standalone
+To exercise it in isolation we register the ``api`` directory as a standalone
 namespace package named ``growatt_api``.  Tests can then do::
 
     from growatt_api.utils import keys_sequences
@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
-_API_DIR = _REPO_ROOT / "custom_components" / "growatt_modbus" / "API"
+_API_DIR = _REPO_ROOT / "custom_components" / "growatt_modbus" / "api"
 
 # Make ``custom_components`` importable for the Home Assistant integration tests.
 if str(_REPO_ROOT) not in sys.path:

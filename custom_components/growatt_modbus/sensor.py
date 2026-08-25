@@ -16,8 +16,8 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
 
-from .API.const import DeviceTypes
-from .API.device_type.base import (
+from .api.const import DeviceTypes
+from .api.device_type.base import (
     ATTR_CHARGE_POWER,
     ATTR_DISCHARGE_POWER,
     ATTR_INPUT_POWER,
@@ -32,13 +32,13 @@ from .const import (
 )
 from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
 from .entity import entity_translation_key, growatt_device_info
-from .optimizer import build_optimizer_sensors
-from .sensor_types.inverter import INVERTER_SENSOR_TYPES
-from .sensor_types.sensor_entity_description import GrowattSensorEntityDescription
-from .sensor_types.storage import (
+from .entity_descriptions.descriptions import GrowattSensorEntityDescription
+from .entity_descriptions.inverter import INVERTER_SENSOR_TYPES
+from .entity_descriptions.storage import (
     STORAGE_SENSOR_TYPES,
     build_battery_module_sensor_types,
 )
+from .optimizer import build_optimizer_sensors
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -16,7 +16,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 
-from ..API.device_type.base import (
+from ..api.device_type.base import (
     ATTR_AC_CHARGE_ENERGY_TODAY,
     ATTR_AC_CHARGE_ENERGY_TOTAL,
     ATTR_BATTERY_NUMBER_OF_MODULES,
@@ -81,7 +81,7 @@ from ..API.device_type.base import (
     ATTR_OUTPUT_REACTIVE_POWER,
     ATTR_TEMPERATURE,
 )
-from .sensor_entity_description import GrowattSensorEntityDescription
+from .descriptions import GrowattSensorEntityDescription
 
 INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(

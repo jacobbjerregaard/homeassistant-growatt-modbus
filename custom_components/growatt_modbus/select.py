@@ -21,8 +21,8 @@ from .const import (
 )
 from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
 from .entity import GrowattEntity, entity_translation_key, growatt_device_info
-from .sensor_types.select_entity_description import GrowattSelectEntityDescription
-from .sensor_types.storage import STORAGE_SELECT_TYPES
+from .entity_descriptions.descriptions import GrowattSelectEntityDescription
+from .entity_descriptions.storage import STORAGE_SELECT_TYPES
 from .tou import (
     TOU_PRIORITIES,
     TOU_PRIORITY_VALUES,

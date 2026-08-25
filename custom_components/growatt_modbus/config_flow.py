@@ -20,11 +20,11 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pymodbus.exceptions import ConnectionException
 
-from .API.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
-from .API.const import DeviceTypes
-from .API.detection import get_device_info
-from .API.device_type.base import GrowattDeviceInfo
-from .API.exception import ModbusPortException
+from .api.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
+from .api.const import DeviceTypes
+from .api.detection import get_device_info
+from .api.device_type.base import GrowattDeviceInfo
+from .api.exception import ModbusPortException
 from .const import (
     CONF_AC_PHASES,
     CONF_BATTERY_MAX_POWER,

@@ -14,8 +14,8 @@ from homeassistant.const import (
 from homeassistant.data_entry_flow import FlowResultType
 from pymodbus.exceptions import ConnectionException
 
-from custom_components.growatt_modbus.API.device_type.base import GrowattDeviceInfo
-from custom_components.growatt_modbus.API.exception import ModbusPortException
+from custom_components.growatt_modbus.api.device_type.base import GrowattDeviceInfo
+from custom_components.growatt_modbus.api.exception import ModbusPortException
 from custom_components.growatt_modbus.const import (
     CONF_AC_PHASES,
     CONF_BATTERY_MODULES,

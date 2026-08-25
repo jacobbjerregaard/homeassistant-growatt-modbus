@@ -24,8 +24,8 @@ from .const import (
 )
 from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
 from .entity import GrowattEntity, entity_translation_key, growatt_device_info
-from .sensor_types.storage import STORAGE_SWITCH_TYPES
-from .sensor_types.switch_entity_description import GrowattSwitchEntityDescription
+from .entity_descriptions.descriptions import GrowattSwitchEntityDescription
+from .entity_descriptions.storage import STORAGE_SWITCH_TYPES
 from .tou import read_slot_fields, slot_unique_id, write_slot_field
 
 _LOGGER = logging.getLogger(__name__)

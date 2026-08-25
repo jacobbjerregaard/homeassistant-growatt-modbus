@@ -16,12 +16,12 @@ from homeassistant.helpers.update_coordinator import (
 )
 from pymodbus.exceptions import ConnectionException
 
-from .API.device_type.base import GrowattDeviceRegisters
-from .API.utils import RegisterKeys
+from .api.device_type.base import GrowattDeviceRegisters
+from .api.utils import RegisterKeys
 from .const import DOMAIN
 
 if TYPE_CHECKING:
-    from .API.device import GrowattDevice
+    from .api.device import GrowattDevice
     from .optimizer import EmhassOptimizerCoordinator
 
 _LOGGER = logging.getLogger(__name__)

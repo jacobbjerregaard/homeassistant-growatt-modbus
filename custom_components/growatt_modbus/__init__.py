@@ -17,9 +17,9 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from pymodbus.exceptions import ConnectionException
 
-from .API.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
-from .API.const import DeviceTypes
-from .API.device import GrowattDevice
+from .api.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
+from .api.const import DeviceTypes
+from .api.device import GrowattDevice
 from .const import (
     CONF_BATTERY_MODULES,
     CONF_BAUDRATE,

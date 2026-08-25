@@ -14,15 +14,15 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .API.utils import to_register_value
+from .api.utils import to_register_value
 from .const import (
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
 from .coordinator import GrowattConfigEntry
 from .entity import GrowattEntity, entity_translation_key
-from .sensor_types.number_entity_description import GrowattNumberEntityDescription
-from .sensor_types.storage import STORAGE_NUMBER_TYPES
+from .entity_descriptions.descriptions import GrowattNumberEntityDescription
+from .entity_descriptions.storage import STORAGE_NUMBER_TYPES
 
 _LOGGER = logging.getLogger(__name__)
 

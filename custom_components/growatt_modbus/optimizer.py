@@ -47,7 +47,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.util import dt as dt_util
 
-from .API.device_type.base import (
+from .api.device_type.base import (
     ATTR_AC_CHARGE_ENABLED,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
@@ -59,8 +59,8 @@ from .API.device_type.base import (
     ATTR_BMS_MIN_SOC,
     ATTR_ON_GRID_DISCHARGE_STOP_SOC,
 )
-from .API.device_type.storage_120 import encode_time_slot, time_slot_register
-from .API.tou_planner import (
+from .api.device_type.storage_120 import encode_time_slot, time_slot_register
+from .api.tou_planner import (
     BATTERY_FIRST,
     DEFAULT_CHARGE_THRESHOLD,
     DEFAULT_DISCHARGE_THRESHOLD,
@@ -71,7 +71,7 @@ from .API.tou_planner import (
     power_to_rate,
     priority_for_step,
 )
-from .API.utils import to_register_value
+from .api.utils import to_register_value
 from .const import (
     CONF_BATTERY_MAX_POWER,
     CONF_EMHASS_SENSOR_BATT_POWER,

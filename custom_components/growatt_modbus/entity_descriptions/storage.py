@@ -1,4 +1,8 @@
-"""Growatt Sensor definitions for the Inverter type."""
+"""Entity descriptions for the storage / hybrid device types.
+
+Covers all four register-backed platforms (sensor, switch, number,
+select) plus the per-battery-module sensor builder.
+"""
 from __future__ import annotations
 
 from homeassistant.components.number import (
@@ -21,7 +25,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 
-from ..API.device_type.base import (
+from ..api.device_type.base import (
     ATTR_AC_CHARGE_ENABLED,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
@@ -93,17 +97,19 @@ from ..API.device_type.base import (
     ATTR_UPS_OUTPUT_FREQUENCY,
     ATTR_UPS_OUTPUT_VOLTAGE,
 )
-from ..API.device_type.storage_120 import (
+from ..api.device_type.storage_120 import (
     BALANCE_STATE_OPTIONS,
     BAT_SYS_STATE_OPTIONS,
     BDC_DERATING_OPTIONS,
     BMS_STATUS_OPTIONS,
     MODULE_DERATING_OPTIONS,
 )
-from .number_entity_description import GrowattNumberEntityDescription
-from .select_entity_description import GrowattSelectEntityDescription
-from .sensor_entity_description import GrowattSensorEntityDescription
-from .switch_entity_description import GrowattSwitchEntityDescription
+from .descriptions import (
+    GrowattNumberEntityDescription,
+    GrowattSelectEntityDescription,
+    GrowattSensorEntityDescription,
+    GrowattSwitchEntityDescription,
+)
 
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
     GrowattSwitchEntityDescription(

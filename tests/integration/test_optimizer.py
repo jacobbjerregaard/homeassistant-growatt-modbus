@@ -12,7 +12,7 @@ from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
-from custom_components.growatt_modbus.API.device_type.base import (
+from custom_components.growatt_modbus.api.device_type.base import (
     ATTR_AC_CHARGE_ENABLED,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
@@ -23,11 +23,11 @@ from custom_components.growatt_modbus.API.device_type.base import (
     ATTR_RATED_BATTERY_CAPACITY,
     ATTR_RATED_CELL_CAPACITY,
 )
-from custom_components.growatt_modbus.API.device_type.storage_120 import (
+from custom_components.growatt_modbus.api.device_type.storage_120 import (
     encode_time_slot,
     time_slot_register,
 )
-from custom_components.growatt_modbus.API.utils import to_register_value
+from custom_components.growatt_modbus.api.utils import to_register_value
 from custom_components.growatt_modbus.const import (
     CONF_BATTERY_MAX_POWER,
     CONF_EMHASS_SENSOR_BATT_POWER,
