@@ -7,10 +7,15 @@ target-version = "py314"
 line-length = 88
 
 [tool.ruff.lint]
-# Conservative starting rule set: pyflakes (F) plus the import/statement/syntax
-# subset of pycodestyle (E4/E7/E9). Can be widened later (e.g. "I" import
-# sorting, "UP" pyupgrade, "B" bugbear) once the codebase is clean against them.
-select = ["E4", "E7", "E9", "F"]
+# pyflakes (F), pycodestyle errors + warnings (E/W), import sorting (I),
+# pyupgrade (UP) and bugbear (B).
+select = ["E", "W", "F", "I", "UP", "B"]
+# E501 (line-too-long) is deliberately not enforced yet: ~175 existing lines
+# exceed the limit above, almost all of them in the hand-aligned register and
+# entity-description tables. Reflowing them belongs in its own `ruff format`
+# commit rather than being mixed into unrelated changes. `line-length` above
+# still applies to anything ruff does format.
+ignore = ["E501"]
 
 [tool.mypy]
 python_version = "3.14"

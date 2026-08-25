@@ -11,11 +11,11 @@ import pytest
 pytest.importorskip("pymodbus", reason="client.py imports pymodbus")
 
 from growatt_api.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
-from growatt_api.exception import ModbusException, ModbusPortException
 from growatt_api.device_type.inverter_120 import (
     HOLDING_REGISTERS_120,
     MAXIMUM_DATA_LENGTH_120,
 )
+from growatt_api.exception import ModbusException, ModbusPortException
 
 
 class _Resp:

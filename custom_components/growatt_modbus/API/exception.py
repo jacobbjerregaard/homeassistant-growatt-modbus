@@ -3,7 +3,7 @@ class ModbusException(Exception):
 
     def __init__(self, status):
         """Initialize."""
-        super(ModbusException, self).__init__(status)
+        super().__init__(status)
         self.status = status
 
 

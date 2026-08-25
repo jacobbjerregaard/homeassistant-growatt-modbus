@@ -8,7 +8,6 @@ all real.
 from datetime import timedelta
 
 import aiohttp
-
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util

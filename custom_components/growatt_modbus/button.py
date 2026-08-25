@@ -14,11 +14,11 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import GrowattConfigEntry
 from .const import (
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
+from .coordinator import GrowattConfigEntry
 from .entity import growatt_device_info
 
 _LOGGER = logging.getLogger(__name__)

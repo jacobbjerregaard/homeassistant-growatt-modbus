@@ -80,7 +80,6 @@ async def test_inverter_entities_created(hass, fake_modbus):
     """An inverter (non-storage) device sets up via the inverter sensor path."""
     from unittest.mock import patch
 
-    from pytest_homeassistant_custom_component.common import MockConfigEntry
     from homeassistant.const import (
         CONF_ADDRESS,
         CONF_MODEL,
@@ -88,6 +87,8 @@ async def test_inverter_entities_created(hass, fake_modbus):
         CONF_SCAN_INTERVAL,
         CONF_TYPE,
     )
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
     from custom_components.growatt_modbus.const import (
         CONF_AC_PHASES,
         CONF_BATTERY_MODULES,

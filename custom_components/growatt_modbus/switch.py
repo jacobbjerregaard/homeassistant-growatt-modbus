@@ -5,7 +5,7 @@ Exposes writable holding registers (e.g. AC charge enable) as switches.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import (
@@ -17,16 +17,16 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GrowattConfigEntry, GrowattLocalCoordinator
-from .entity import GrowattEntity, entity_translation_key, growatt_device_info
 from .const import (
     CONF_OPTIMIZER_ENABLED,
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
+from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
+from .entity import GrowattEntity, entity_translation_key, growatt_device_info
 from .sensor_types.storage import STORAGE_SWITCH_TYPES
 from .sensor_types.switch_entity_description import GrowattSwitchEntityDescription
-from .tou import read_slot_fields, slot_device_info, slot_unique_id, write_slot_field
+from .tou import read_slot_fields, slot_unique_id, write_slot_field
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ class GrowattSlotEnable(CoordinatorEntity[GrowattLocalCoordinator], SwitchEntity
         self._attr_translation_key = "tou_slot_enabled"
         self._attr_translation_placeholders = {"slot": str(slot)}
         self._attr_unique_id = slot_unique_id(entry, slot, "enabled")
-        self._attr_device_info = slot_device_info(entry)
+        self._attr_device_info = growatt_device_info(entry)
 
     @property
     def is_on(self) -> bool:
@@ -147,7 +147,7 @@ class GrowattSwitch(GrowattEntity, RestoreEntity, SwitchEntity):
         self._attr_translation_key = entity_translation_key(description.key)
 
     @property
-    def unique_id(self) -> Optional[str]:
+    def unique_id(self) -> str | None:
         return (
             f"{DOMAIN}_{self._config_entry.data[CONF_SERIAL_NUMBER]}_"
             f"{self.entity_description.key}"

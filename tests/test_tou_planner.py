@@ -10,7 +10,6 @@ from growatt_api.tou_planner import (
     priority_for_step,
 )
 
-
 # --- priority_for_step -----------------------------------------------------
 
 

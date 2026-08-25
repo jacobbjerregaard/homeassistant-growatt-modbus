@@ -2,8 +2,6 @@
 from dataclasses import replace
 from unittest.mock import AsyncMock, patch
 
-from pymodbus.exceptions import ConnectionException
-
 from homeassistant.const import (
     CONF_ADDRESS,
     CONF_IP_ADDRESS,
@@ -14,6 +12,7 @@ from homeassistant.const import (
     CONF_TYPE,
 )
 from homeassistant.data_entry_flow import FlowResultType
+from pymodbus.exceptions import ConnectionException
 
 from custom_components.growatt_modbus.API.device_type.base import GrowattDeviceInfo
 from custom_components.growatt_modbus.API.exception import ModbusPortException
@@ -380,14 +379,13 @@ async def test_serial_flow_no_device_info_shows_device_form(hass):
 
 
 async def test_network_flow_timeout(hass):
-    import asyncio
 
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_LAYER: CONF_TCP})
 
     class _SlowServer(_FakeServer):
         async def connect(self):
-            raise asyncio.TimeoutError
+            raise TimeoutError
 
     with patch(
         "custom_components.growatt_modbus.config_flow.GrowattNetwork",

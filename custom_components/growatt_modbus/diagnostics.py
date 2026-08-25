@@ -7,8 +7,8 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant
 
-from . import GrowattConfigEntry
 from .const import CONF_SERIAL_NUMBER
+from .coordinator import GrowattConfigEntry
 
 TO_REDACT = {CONF_SERIAL_NUMBER, CONF_IP_ADDRESS, "serial_number"}
 

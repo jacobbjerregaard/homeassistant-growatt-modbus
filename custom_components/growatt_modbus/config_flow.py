@@ -1,65 +1,62 @@
 """Config flow for growatt server integration."""
 import asyncio
 import logging
-from asyncio.exceptions import TimeoutError
 from typing import Any
+
 import voluptuous as vol
-
-from pymodbus.exceptions import ConnectionException
-
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import (
+    CONF_ADDRESS,
     CONF_IP_ADDRESS,
+    CONF_MODEL,
     CONF_NAME,
     CONF_PORT,
-    CONF_ADDRESS,
-    CONF_TYPE,
     CONF_SCAN_INTERVAL,
-    CONF_MODEL,
+    CONF_TYPE,
 )
 from homeassistant.core import callback
-from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from pymodbus.exceptions import ConnectionException
 
+from .API.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
 from .API.const import DeviceTypes
-from .API.exception import ModbusPortException
-from .API.client import GrowattModbusBase, GrowattSerial, GrowattNetwork
 from .API.detection import get_device_info
 from .API.device_type.base import GrowattDeviceInfo
-
+from .API.exception import ModbusPortException
 from .const import (
     CONF_AC_PHASES,
+    CONF_BATTERY_MAX_POWER,
     CONF_BATTERY_MODULES,
-    CONF_TOU_SLOTS,
-    CONF_DC_STRING,
-    CONF_LAYER,
-    CONF_SERIAL,
-    CONF_TCP,
-    CONF_UDP,
-    CONF_FRAME,
-    CONF_SERIAL_PORT,
     CONF_BAUDRATE,
     CONF_BYTESIZE,
-    CONF_PARITY,
-    CONF_STOPBITS,
-    CONF_POWER_SCAN_ENABLED,
-    CONF_POWER_SCAN_INTERVAL,
-    CONF_SERIAL_NUMBER,
-    CONF_FIRMWARE,
-    CONF_EMHASS_URL,
-    CONF_EMHASS_TOKEN,
-    CONF_OPTIMIZER_ENABLED,
-    CONF_OPTIMIZER_SOC_SENSOR,
-    CONF_OPTIMIZER_INTERVAL,
-    CONF_BATTERY_MAX_POWER,
+    CONF_DC_STRING,
     CONF_EMHASS_SENSOR_BATT_POWER,
     CONF_EMHASS_SENSOR_BATT_SOC,
     CONF_EMHASS_SENSOR_GRID,
     CONF_EMHASS_SENSOR_STATUS,
+    CONF_EMHASS_TOKEN,
+    CONF_EMHASS_URL,
+    CONF_FIRMWARE,
+    CONF_FRAME,
+    CONF_LAYER,
+    CONF_OPTIMIZER_ENABLED,
+    CONF_OPTIMIZER_INTERVAL,
+    CONF_OPTIMIZER_SOC_SENSOR,
+    CONF_PARITY,
+    CONF_POWER_SCAN_ENABLED,
+    CONF_POWER_SCAN_INTERVAL,
+    CONF_SERIAL,
+    CONF_SERIAL_NUMBER,
+    CONF_SERIAL_PORT,
+    CONF_STOPBITS,
+    CONF_TCP,
+    CONF_TOU_SLOTS,
+    CONF_UDP,
     DEFAULT_OPTIMIZER_INTERVAL,
-    ParityOptions,
     DOMAIN,
+    ParityOptions,
 )
 from .emhass_client import EmhassClient, EmhassError
 
@@ -101,7 +98,7 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
-    ) -> "GrowattOptionsFlowHandler":
+    ) -> GrowattOptionsFlowHandler:
         """Return the options flow for changing polling settings after setup."""
         return GrowattOptionsFlowHandler()
 
@@ -341,7 +338,7 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     retries=0,
                 )
                 await asyncio.wait_for(server.connect(), 3)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return self._async_show_network_form(
                     default_values=(
                         user_input[CONF_IP_ADDRESS],

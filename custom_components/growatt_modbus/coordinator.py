@@ -1,14 +1,11 @@
 """Data update coordinator and runtime data for the Growatt Modbus integration."""
 from __future__ import annotations
 
-import asyncio
 import logging
 from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
-
-from pymodbus.exceptions import ConnectionException
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
@@ -17,6 +14,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from pymodbus.exceptions import ConnectionException
 
 from .API.device_type.base import GrowattDeviceRegisters
 from .API.utils import RegisterKeys
@@ -96,7 +94,7 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
                 translation_domain=DOMAIN,
                 translation_key="connection_interrupted",
             ) from err
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             self._failed_update_count += 1
             raise UpdateFailed(
                 translation_domain=DOMAIN,

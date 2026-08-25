@@ -2,7 +2,7 @@
 # Combined test coverage for the integration.
 #
 # The two test suites run in different interpreters (pure-logic on any Python,
-# the Home Assistant suite on 3.13), so coverage is collected separately and
+# the Home Assistant suite on 3.14), so coverage is collected separately and
 # merged. Override the interpreters with VENV / VENV_HA if your paths differ.
 set -euo pipefail
 cd "$(dirname "$0")/.."

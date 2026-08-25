@@ -1,20 +1,19 @@
 """Constants for growattRS232 library."""
 
 # Defaults
-from enum import Enum
-
+from enum import StrEnum
 
 DEFAULT_PORT = "/dev/ttyUSB0"
 DEFAULT_ADDRESS = 0x1
 
 
 # Supported devices
-class DeviceTypes(str, Enum):
+class DeviceTypes(StrEnum):
     INVERTER = "inverter"
     INVERTER_120 = "inverter_120"
     HYBRID_120 = "hybrid_120"
     STORAGE_120 = "storage_120"
-    INVERTER_315 = "inverter_315" 
+    INVERTER_315 = "inverter_315"
 
 
 # Unit of measurement

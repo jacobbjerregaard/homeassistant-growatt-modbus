@@ -1,11 +1,8 @@
 """The Growatt server PV inverter sensor integration."""
 from __future__ import annotations
 
-import asyncio
 import logging
 from datetime import timedelta
-
-from pymodbus.exceptions import ConnectionException
 
 from homeassistant.const import (
     CONF_ADDRESS,
@@ -14,41 +11,41 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_TYPE,
 )
-
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
+from pymodbus.exceptions import ConnectionException
 
+from .API.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
 from .API.const import DeviceTypes
-from .API.client import GrowattModbusBase, GrowattSerial, GrowattNetwork
 from .API.device import GrowattDevice
+from .const import (
+    CONF_BATTERY_MODULES,
+    CONF_BAUDRATE,
+    CONF_BYTESIZE,
+    CONF_FRAME,
+    CONF_LAYER,
+    CONF_PARITY,
+    CONF_POWER_SCAN_ENABLED,
+    CONF_POWER_SCAN_INTERVAL,
+    CONF_SERIAL,
+    CONF_SERIAL_NUMBER,
+    CONF_SERIAL_PORT,
+    CONF_STOPBITS,
+    CONF_TCP,
+    CONF_TOU_SLOTS,
+    CONF_UDP,
+    DOMAIN,
+    PLATFORMS,
+)
 from .coordinator import (
     GrowattConfigEntry,
     GrowattLocalCoordinator,
     GrowattRuntimeData,
 )
-from .services import async_setup_services
 from .optimizer import async_setup_optimizer
-from .const import (
-    CONF_LAYER,
-    CONF_SERIAL,
-    CONF_TCP,
-    CONF_UDP,
-    CONF_FRAME,
-    CONF_SERIAL_PORT,
-    CONF_BAUDRATE,
-    CONF_BYTESIZE,
-    CONF_PARITY,
-    CONF_STOPBITS,
-    CONF_POWER_SCAN_ENABLED,
-    CONF_POWER_SCAN_INTERVAL,
-    CONF_BATTERY_MODULES,
-    CONF_TOU_SLOTS,
-    CONF_SERIAL_NUMBER,
-    DOMAIN,
-    PLATFORMS,
-)
+from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,7 +63,7 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
 
 
 async def _async_migrate_module_unique_ids(
-    hass: HomeAssistant, entry: "GrowattConfigEntry", serials: dict[int, str]
+    hass: HomeAssistant, entry: GrowattConfigEntry, serials: dict[int, str]
 ) -> None:
     """Rename slot-based per-module entity unique_ids to serial-based ones.
 
@@ -139,7 +136,7 @@ async def async_setup_entry(
 
     try:
         await device.connect()
-    except (ConnectionException, asyncio.TimeoutError, OSError) as err:
+    except (TimeoutError, ConnectionException, OSError) as err:
         # The inverter is unreachable right now (power-cycle, RS485 glitch).
         # Tell HA to retry setup with its normal backoff instead of failing.
         raise ConfigEntryNotReady(

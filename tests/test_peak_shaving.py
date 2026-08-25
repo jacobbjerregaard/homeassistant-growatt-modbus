@@ -4,7 +4,6 @@ Pure-logic: pins the register addresses/types/scaling and the decode/encode
 round trips. The control entities are covered in tests/integration/test_controls.
 """
 import pytest
-
 from growatt_api.utils import process_registers, to_register_value
 
 pytest.importorskip("pymodbus", reason="storage register defs import the transport layer indirectly")

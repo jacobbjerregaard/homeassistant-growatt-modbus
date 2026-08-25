@@ -5,7 +5,6 @@ get_register_information refactor (if/elif chain -> table lookup). Importing
 ``growatt_api.device`` pulls in the transport module, which needs pymodbus.
 """
 import pytest
-
 from growatt_api.const import DeviceTypes
 from growatt_api.device_type.inverter_120 import (
     HOLDING_REGISTERS_120,

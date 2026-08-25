@@ -20,11 +20,11 @@ from growatt_api.device_type.storage_120 import (
     bat_sys_state,
     bdc_derating_mode,
     bms_status,
-    module_derating_mode,
-    build_battery_module_registers,
     build_battery_module_input_registers,
+    build_battery_module_registers,
     decode_ascii,
     firmware_code_version,
+    module_derating_mode,
 )
 
 

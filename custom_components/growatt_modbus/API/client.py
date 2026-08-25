@@ -9,24 +9,23 @@ import asyncio
 import logging
 import os
 import sys
-
 from datetime import datetime
 
+from pymodbus import FramerType
 from pymodbus.client import ModbusBaseClient
 from pymodbus.client.serial import AsyncModbusSerialClient
 from pymodbus.client.tcp import AsyncModbusTcpClient
 from pymodbus.client.udp import AsyncModbusUdpClient
-from pymodbus import FramerType
 
 from .device_type.base import (
-    GrowattDeviceRegisters,
-    GrowattDeviceInfo,
     ATTR_DEVICE_TYPE_CODE,
     ATTR_FIRMWARE,
     ATTR_INVERTER_MODEL,
     ATTR_MODBUS_VERSION,
     ATTR_NUMBER_OF_TRACKERS_AND_PHASES,
     ATTR_SERIAL_NUMBER,
+    GrowattDeviceInfo,
+    GrowattDeviceRegisters,
 )
 from .exception import ModbusException, ModbusPortException
 from .utils import (

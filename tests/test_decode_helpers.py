@@ -1,12 +1,12 @@
 """Direct tests for the pure register-decode helper functions."""
 from growatt_api.device_type import base
+from growatt_api.device_type import storage_120 as storage
 from growatt_api.device_type.base import (
     ATTR_DERATING_MODE,
     ATTR_FAULT_CODE,
     ATTR_STATUS_CODE,
     INVERTER_DERATINGMODES,
 )
-from growatt_api.device_type import storage_120 as storage
 
 
 def test_base_device_type_and_trackers():

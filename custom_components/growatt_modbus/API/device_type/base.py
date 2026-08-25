@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 # Attribute names for values in the holding register
 ATTR_FIRMWARE = "firmware"
@@ -198,7 +199,7 @@ ATTR_CHARGE_ENERGY_TODAY = "charge_energy_today"  # kWh
 ATTR_CHARGE_ENERGY_TOTAL = "charge_energy_total"  # kWh
 ATTR_METER_POWER_NETTO = "meter_power_netto" # W
 ATTR_BATTERY_PACK_NUMBER = "battery_pack_number"
-ATTR_BMS_TEMPERATURE_A = "bms_temperature_a" # C 
+ATTR_BMS_TEMPERATURE_A = "bms_temperature_a" # C
 ATTR_BMS_TEMPERATURE_B = "bms_temperature_b" # C
 
 
@@ -268,7 +269,7 @@ def device_type(register) -> str:
         return DEVICE_TYPE_CODES.get(register, not_defined)
 
     return DEVICE_TYPE_CODES.get(register & 0xFF00, not_defined)
-    
+
 
 def trackers_and_phases(register) -> tuple[int, int]:
     # number of mppt trackers high byte, grid phases low byte
@@ -347,7 +348,7 @@ INVERTER_FAULTCODES = {
     32: "Module Hot",
 }
 for i in range(1, 24):
-    INVERTER_FAULTCODES[i] = "Generic Error Code: %s" % str(99 + i)
+    INVERTER_FAULTCODES[i] = f"Generic Error Code: {99 + i}"
 
 
 def inverter_status(value: dict[str, Any]) -> str | None:
