@@ -133,3 +133,45 @@ def test_firmware_register_reads_only_three_words():
     # not bleed into the firmware string.
     values = {9: 0x4142, 10: 0x4344, 11: 0x4546, 12: 0x5858}
     assert process_registers(registers, values) == {"firmware": "ABCDEF"}
+
+
+def test_negative_output_power_decodes_as_negative():
+    """Regression: register 0xFFFFFF1B is -22.9 W, not 429,496,706.7 W.
+
+    Captured from a real inverter at 05:28 on a summer morning, sitting just
+    below zero output while drawing standby power. output_power was declared
+    unsigned, so the 32-bit two's-complement value decoded as a huge positive
+    number - one sample in 329, exactly at the zero crossing.
+    """
+    from growatt_api.device_type.inverter_120 import INPUT_REGISTERS_120
+
+    registers = {r.register: r for r in INPUT_REGISTERS_120}
+    decoded = process_registers(registers, {35: 0xFFFF, 36: 0xFF1B})
+    assert decoded["output_power"] == -22.9
+
+
+def test_32bit_power_and_energy_registers_are_signed():
+    """Any 32-bit measurement that can cross zero must decode as signed.
+
+    An unsigned 32-bit register reading -0.1 shows as 429,496,729.5. For
+    energy sensors (state_class TOTAL_INCREASING) Home Assistant treats the
+    subsequent drop as a meter reset and adds the spike to the lifetime
+    total permanently.
+
+    Signed decoding is a no-op for real readings: 100 kW is 1e6 raw and
+    1 GWh is 1e7 raw, both far below the 2^31 sign bit.
+    """
+    from growatt_api.device_type.inverter_120 import INPUT_REGISTERS_120
+    from growatt_api.device_type.inverter_315 import INPUT_REGISTERS_315
+    from growatt_api.device_type.storage_120 import STORAGE_INPUT_REGISTERS_120
+
+    for label, regs in (
+        ("inverter_120", INPUT_REGISTERS_120),
+        ("inverter_315", INPUT_REGISTERS_315),
+        ("storage_120", STORAGE_INPUT_REGISTERS_120),
+    ):
+        for r in regs:
+            if r.value_type is float and r.length == 2 and (
+                "power" in r.name or "energy" in r.name
+            ):
+                assert r.signed, f"{label}: {r.name} (register {r.register}) is unsigned"
