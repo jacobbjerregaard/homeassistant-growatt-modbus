@@ -3,7 +3,7 @@
 This module is intentionally free of Home Assistant / pymodbus imports so it can
 be unit-tested in the stdlib-only environment (imported as ``growatt_api``).
 
-Priority codes match ``TIME_SLOT_PRIORITIES`` in ``device_type/storage_120``:
+Priority codes match ``TIME_SLOT_PRIORITIES`` in ``device_type/time_slots``:
 ``0 = Load First`` (self-consumption, the inverter's resting behaviour),
 ``1 = Battery First`` (charge the battery, from grid when AC charge is on) and
 ``2 = Grid First`` (export to grid).

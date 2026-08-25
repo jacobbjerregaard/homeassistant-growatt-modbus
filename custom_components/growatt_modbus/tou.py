@@ -7,7 +7,7 @@ changes.
 """
 from __future__ import annotations
 
-from .api.device_type.storage_120 import (
+from .api.device_type.time_slots import (
     apply_time_slot_field,
     decode_time_slot,
     time_slot_register,

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 
-from .api.device_type.storage_120 import (
+from .api.device_type.time_slots import (
     TIME_SLOT_PRIORITIES,
     encode_time_slot,
     time_slot_register,

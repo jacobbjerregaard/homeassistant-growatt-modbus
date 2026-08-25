@@ -23,7 +23,7 @@ from custom_components.growatt_modbus.api.device_type.base import (
     ATTR_RATED_BATTERY_CAPACITY,
     ATTR_RATED_CELL_CAPACITY,
 )
-from custom_components.growatt_modbus.api.device_type.storage_120 import (
+from custom_components.growatt_modbus.api.device_type.time_slots import (
     encode_time_slot,
     time_slot_register,
 )

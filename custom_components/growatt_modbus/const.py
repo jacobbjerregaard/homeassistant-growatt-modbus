@@ -28,7 +28,7 @@ CONF_INVERTER_POWER_CONTROL = "inverter_power_control"
 CONF_SERIAL_NUMBER = "serial_number"
 CONF_FIRMWARE = "firmware"
 
-# EMHASS energy optimizer (see emhass_client.py / optimizer.py). The optimizer
+# EMHASS energy optimizer (see emhass_client.py / the optimizer package). The optimizer
 # is optional: it is only wired up when an EMHASS URL is configured.
 CONF_EMHASS_URL = "emhass_url"
 CONF_EMHASS_TOKEN = "emhass_token"
@@ -41,7 +41,7 @@ CONF_OPTIMIZER_INTERVAL = "optimizer_interval"
 CONF_BATTERY_MAX_POWER = "battery_max_power"
 
 # Optional overrides for the EMHASS source sensors the optimizer reads. Empty =
-# use the EMHASS defaults (see DEFAULT_* in optimizer.py).
+# use the EMHASS defaults (see EMHASS_SENSOR_* in optimizer/plan.py).
 CONF_EMHASS_SENSOR_BATT_POWER = "emhass_sensor_batt_power"
 CONF_EMHASS_SENSOR_BATT_SOC = "emhass_sensor_batt_soc"
 CONF_EMHASS_SENSOR_GRID = "emhass_sensor_grid"

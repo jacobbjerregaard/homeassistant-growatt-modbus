@@ -37,6 +37,8 @@ from .device_type.storage_120 import (
     STORAGE_INPUT_REGISTERS_120,
     build_battery_module_input_registers,
     build_battery_module_registers,
+)
+from .device_type.time_slots import (
     build_time_slot_registers,
 )
 from .utils import (
