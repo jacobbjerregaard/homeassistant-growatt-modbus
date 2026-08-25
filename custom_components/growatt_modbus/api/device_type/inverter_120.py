@@ -311,8 +311,12 @@ INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     GrowattDeviceRegisters(name=ATTR_DERATING_MODE, register=104, value_type=int),
     GrowattDeviceRegisters(name=ATTR_FAULT_CODE, register=105, value_type=int),
     GrowattDeviceRegisters(name=ATTR_WARNING_CODE, register=110, value_type=int, length=2),
-    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TODAY, register=112, value_type=float, length=2, scale=0.1),
-    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TOTAL, register=114, value_type=float, length=2, scale=0.1),
+    # EacCharge_today / EacCharge_total are 0.1 kWh per LSB like every other
+    # energy register, so the divisor is 10. These two carried scale=0.1, which
+    # multiplied by 10 instead of dividing: a 100x overstatement, and enough
+    # headroom for one bad read to decode as tens of TWh.
+    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TODAY, register=112, value_type=float, length=2, scale=10),
+    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TOTAL, register=114, value_type=float, length=2, scale=10),
     GrowattDeviceRegisters(name=ATTR_OUTPUT_REACTIVE_POWER, register=234, value_type=float, length=2, signed=True),
     GrowattDeviceRegisters(name=ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL, register=236, value_type=float, length=2),
 )

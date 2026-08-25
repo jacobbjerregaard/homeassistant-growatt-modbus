@@ -74,3 +74,42 @@ def test_storage_exposes_battery_charge_discharge_stop_soc():
 def test_unsupported_device_type_raises():
     with pytest.raises(TypeError):
         get_register_information("not-a-device-type")
+
+
+def test_energy_registers_all_divide_by_ten():
+    """Every energy register is 0.1 kWh per LSB, so scale must be 10.
+
+    battery_ac_charge_energy_today/_total previously carried scale=0.1, which
+    the decoder applies as `raw / 0.1` - multiplying by 10 rather than
+    dividing. That overstated the value 100x and raised the ceiling for a
+    single reading from ~429 GWh to ~42.9 TWh.
+    """
+    for device_type in (
+        DeviceTypes.INVERTER,
+        DeviceTypes.INVERTER_120,
+        DeviceTypes.INVERTER_315,
+        DeviceTypes.HYBRID_120,
+        DeviceTypes.STORAGE_120,
+    ):
+        info = get_register_information(device_type)
+        for bank in (info.holding, info.input):
+            for register in bank.values():
+                if "energy" in register.name and register.value_type is float:
+                    assert register.scale == 10, (
+                        f"{device_type.value}: {register.name} (register "
+                        f"{register.register}) has scale={register.scale}, "
+                        "expected 10"
+                    )
+
+
+def test_no_register_scale_below_one():
+    """A scale below 1 multiplies instead of divides - almost always a typo."""
+    for device_type in DeviceTypes:
+        info = get_register_information(device_type)
+        for bank in (info.holding, info.input):
+            for register in bank.values():
+                if register.value_type is float:
+                    assert register.scale >= 1, (
+                        f"{device_type.value}: {register.name} has "
+                        f"scale={register.scale}"
+                    )
