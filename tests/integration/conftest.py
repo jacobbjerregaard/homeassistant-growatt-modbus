@@ -1,7 +1,7 @@
 """Fixtures for the Home Assistant integration tests.
 
 These run only when Home Assistant + pytest-homeassistant-custom-component are
-installed (Python 3.13). They exercise the real config-entry setup, coordinators
+installed (Python 3.14). They exercise the real config-entry setup, coordinators
 and entity platforms against a faked Modbus transport - only the wire is mocked,
 so the register map, decoding and write-encoding are all real.
 """
@@ -9,9 +9,6 @@ from collections import defaultdict
 from unittest.mock import patch
 
 import pytest
-from pymodbus.exceptions import ConnectionException
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from homeassistant.const import (
     CONF_ADDRESS,
     CONF_MODEL,
@@ -19,11 +16,12 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_TYPE,
 )
+from pymodbus.exceptions import ConnectionException
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.growatt_modbus.const import (
     CONF_AC_PHASES,
     CONF_BATTERY_MODULES,
-    CONF_TOU_SLOTS,
     CONF_BAUDRATE,
     CONF_BYTESIZE,
     CONF_DC_STRING,
@@ -36,6 +34,7 @@ from custom_components.growatt_modbus.const import (
     CONF_SERIAL_NUMBER,
     CONF_SERIAL_PORT,
     CONF_STOPBITS,
+    CONF_TOU_SLOTS,
     DOMAIN,
 )
 

@@ -7,28 +7,15 @@ changes.
 """
 from __future__ import annotations
 
-from homeassistant.const import CONF_MODEL, CONF_NAME
-from homeassistant.helpers.entity import DeviceInfo
-
-from .API.device_type.storage_120 import (
+from .api.device_type.time_slots import (
     apply_time_slot_field,
     decode_time_slot,
     time_slot_register,
 )
-from .const import CONF_FIRMWARE, CONF_SERIAL_NUMBER, DOMAIN
+from .const import CONF_SERIAL_NUMBER, DOMAIN
 
 TOU_PRIORITIES = {0: "Load First", 1: "Battery First", 2: "Grid First"}
 TOU_PRIORITY_VALUES = {label: value for value, label in TOU_PRIORITIES.items()}
-
-
-def slot_device_info(entry) -> DeviceInfo:
-    return DeviceInfo(
-        identifiers={(DOMAIN, entry.data[CONF_SERIAL_NUMBER])},
-        manufacturer="Growatt",
-        model=entry.data[CONF_MODEL],
-        sw_version=entry.data[CONF_FIRMWARE],
-        name=entry.data[CONF_NAME],
-    )
 
 
 def slot_unique_id(entry, slot: int, field: str) -> str:

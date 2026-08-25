@@ -6,7 +6,6 @@ generator force) as select entities.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import (
@@ -16,19 +15,18 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GrowattConfigEntry, GrowattLocalCoordinator
-from .entity import GrowattEntity, entity_translation_key
 from .const import (
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
-from .sensor_types.select_entity_description import GrowattSelectEntityDescription
-from .sensor_types.storage import STORAGE_SELECT_TYPES
+from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
+from .entity import GrowattEntity, entity_translation_key, growatt_device_info
+from .entity_descriptions.descriptions import GrowattSelectEntityDescription
+from .entity_descriptions.storage import STORAGE_SELECT_TYPES
 from .tou import (
     TOU_PRIORITIES,
     TOU_PRIORITY_VALUES,
     read_slot_fields,
-    slot_device_info,
     slot_unique_id,
     write_slot_field,
 )
@@ -82,7 +80,7 @@ class GrowattSlotPriority(CoordinatorEntity[GrowattLocalCoordinator], SelectEnti
         self._attr_translation_placeholders = {"slot": str(slot)}
         self._attr_unique_id = slot_unique_id(entry, slot, "priority")
         self._attr_options = list(TOU_PRIORITY_VALUES)
-        self._attr_device_info = slot_device_info(entry)
+        self._attr_device_info = growatt_device_info(entry)
 
     @property
     def current_option(self) -> str | None:
@@ -113,7 +111,7 @@ class GrowattSelect(GrowattEntity, SelectEntity):
         self._value_to_option = {v: k for k, v in description.options_map.items()}
 
     @property
-    def unique_id(self) -> Optional[str]:
+    def unique_id(self) -> str | None:
         return (
             f"{DOMAIN}_{self._config_entry.data[CONF_SERIAL_NUMBER]}_"
             f"{self.entity_description.key}"

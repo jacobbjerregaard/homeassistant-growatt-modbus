@@ -12,9 +12,8 @@ import pytest
 
 pytest.importorskip("pymodbus", reason="needs the real pymodbus client signature")
 
-from pymodbus.client import AsyncModbusTcpClient
-
 from growatt_api.client import GrowattModbusBase
+from pymodbus.client import AsyncModbusTcpClient
 
 
 def _base() -> GrowattModbusBase:

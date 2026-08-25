@@ -6,7 +6,6 @@ number entities.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import (
@@ -15,15 +14,15 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import GrowattConfigEntry
-from .entity import GrowattEntity, entity_translation_key
-from .API.utils import to_register_value
+from .api.utils import to_register_value
 from .const import (
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
-from .sensor_types.number_entity_description import GrowattNumberEntityDescription
-from .sensor_types.storage import STORAGE_NUMBER_TYPES
+from .coordinator import GrowattConfigEntry
+from .entity import GrowattEntity, entity_translation_key
+from .entity_descriptions.descriptions import GrowattNumberEntityDescription
+from .entity_descriptions.storage import STORAGE_NUMBER_TYPES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,7 +70,7 @@ class GrowattNumber(GrowattEntity, NumberEntity):
         self._attr_translation_key = entity_translation_key(description.key)
 
     @property
-    def unique_id(self) -> Optional[str]:
+    def unique_id(self) -> str | None:
         return (
             f"{DOMAIN}_{self._config_entry.data[CONF_SERIAL_NUMBER]}_"
             f"{self.entity_description.key}"

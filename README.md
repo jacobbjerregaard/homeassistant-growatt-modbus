@@ -288,8 +288,8 @@ You can also set the charge/discharge stop-SOC and rate directly through the
 
 Two test suites:
 
-* **Pure-logic** (register batching, decoding, write-encoding) — runs on any
-  recent Python, no Home Assistant required:
+* **Pure-logic** (register batching, decoding, write-encoding) — needs Python
+  3.12+ (the protocol layer uses PEP 695 generics), no Home Assistant required:
 
   ```bash
   pip install -r requirements_test.txt
@@ -297,7 +297,7 @@ Two test suites:
   ```
 
 * **Home Assistant integration** (config-entry setup, entities, write paths) —
-  needs Python 3.13:
+  needs Python 3.14:
 
   ```bash
   pip install -r requirements_test_ha.txt

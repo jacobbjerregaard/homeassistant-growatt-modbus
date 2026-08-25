@@ -5,7 +5,6 @@ JSON body and error handling are real.
 """
 import aiohttp
 import pytest
-
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from custom_components.growatt_modbus.emhass_client import (

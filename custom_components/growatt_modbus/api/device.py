@@ -6,48 +6,49 @@ layout for a given device type to named values.
 """
 
 import logging
-
 from collections.abc import Collection
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from .client import GrowattModbusBase
 from .const import DeviceTypes
 from .device_type.base import (
-    GrowattDeviceRegisters,
-    GrowattDeviceInfo,
-    ATTR_STATUS,
     ATTR_DERATING_MODE,
     ATTR_FAULT_CODE,
+    ATTR_STATUS,
     ATTR_STATUS_CODE,
+    GrowattDeviceInfo,
+    GrowattDeviceRegisters,
     inverter_status,
 )
 from .device_type.inverter_120 import (
-    MAXIMUM_DATA_LENGTH_120,
     HOLDING_REGISTERS_120,
     INPUT_REGISTERS_120,
-)
-from .device_type.storage_120 import (
-    STORAGE_HOLDING_REGISTERS_120,
-    STORAGE_INPUT_REGISTERS_120,
-    BATTERY_MODULE_COUNT_REGISTER,
-    build_battery_module_registers,
-    build_battery_module_input_registers,
-    build_time_slot_registers,
+    MAXIMUM_DATA_LENGTH_120,
 )
 from .device_type.inverter_315 import (
-    MAXIMUM_DATA_LENGTH_315,
     HOLDING_REGISTERS_315,
     INPUT_REGISTERS_315,
+    MAXIMUM_DATA_LENGTH_315,
+)
+from .device_type.storage_120 import (
+    BATTERY_MODULE_COUNT_REGISTER,
+    STORAGE_HOLDING_REGISTERS_120,
+    STORAGE_INPUT_REGISTERS_120,
+    build_battery_module_input_registers,
+    build_battery_module_registers,
+)
+from .device_type.time_slots import (
+    build_time_slot_registers,
 )
 from .utils import (
-    RegisterKeys,
     DeviceRegisters,
+    LRUCache,
+    RegisterKeys,
     get_keys_from_register,
-    register_sequences,
     keys_sequences,
     process_registers,
-    LRUCache,
+    register_sequences,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,8 +93,8 @@ def get_register_information(
     """
     try:
         holding_registers, input_register_sets, max_length = _REGISTER_SETS[device_type]
-    except KeyError:
-        raise TypeError("Unsupported Growatt device type")
+    except KeyError as err:
+        raise TypeError("Unsupported Growatt device type") from err
 
     holding_register = {obj.register: obj for obj in holding_registers}
 
@@ -312,10 +313,10 @@ class GrowattDevice:
             }
         )
 
-    def get_input_register_by_name(self, name: str) -> Optional[GrowattDeviceRegisters]:
+    def get_input_register_by_name(self, name: str) -> GrowattDeviceRegisters | None:
         return self._input_by_name.get(name)
 
-    def get_holding_register_by_name(self, name: str) -> Optional[GrowattDeviceRegisters]:
+    def get_holding_register_by_name(self, name: str) -> GrowattDeviceRegisters | None:
         return self._holding_by_name.get(name)
 
     def get_register_names(self) -> set[str]:

@@ -2,85 +2,86 @@
 from typing import Any
 
 from .base import (
-    GrowattDeviceRegisters,
-    custom_function,
-    FIRMWARE_REGISTER,
-    DEVICE_TYPE_CODE_REGISTER,
-    NUMBER_OF_TRACKERS_AND_PHASES_REGISTER,
-    ATTR_BATTERY_NUMBER_OF_MODULES,
-    ATTR_INVERTER_MODEL,
-    ATTR_INVERTER_RATED_POWER,
-    ATTR_RATED_CELL_CAPACITY,
-    ATTR_RATED_BATTERY_CAPACITY,
-    ATTR_MODBUS_VERSION,
-    ATTR_CONTROL_FIRMWARE,
-    ATTR_BDC_FIRMWARE,
-    ATTR_BMS_FIRMWARE,
-    ATTR_SOC_PERCENTAGE,
-    ATTR_DISCHARGE_POWER,
-    ATTR_CHARGE_POWER,
-    ATTR_ENERGY_TO_USER_TODAY,
-    ATTR_ENERGY_TO_USER_TOTAL,
-    ATTR_ENERGY_TO_GRID_TODAY,
-    ATTR_ENERGY_TO_GRID_TOTAL,
-    ATTR_DISCHARGE_ENERGY_TODAY,
-    ATTR_DISCHARGE_ENERGY_TOTAL,
-    ATTR_CHARGE_ENERGY_TODAY,
-    ATTR_CHARGE_ENERGY_TOTAL,
-    ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
+    ATTR_AC_CHARGE_ENABLED,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
+    ATTR_BATTERY_CURRENT,
+    ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
     ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC,
     ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC,
+    ATTR_BATTERY_NUMBER_OF_MODULES,
     ATTR_BATTERY_PACK_NUMBER,
-    ATTR_AC_CHARGE_ENABLED,
-    ATTR_GRID_FIRST_STOP_SOC,
-    ATTR_ON_GRID_DISCHARGE_STOP_SOC,
     ATTR_BATTERY_TYPE,
-    ATTR_PRE_PTO_ENABLED,
-    ATTR_GENERATOR_CHARGE_ENABLED,
-    ATTR_GENERATOR_FORCE,
-    ATTR_UPS_FUNCTION_ENABLED,
-    ATTR_UPS_OUTPUT_VOLTAGE,
-    ATTR_UPS_OUTPUT_FREQUENCY,
-    ATTR_DRY_CONTACT_ENABLED,
-    ATTR_EXPORT_LIMIT_MODE,
-    ATTR_EXPORT_LIMIT_RATE,
-    ATTR_PEAK_SHAVING_MODE,
-    ATTR_PEAK_SHAVING_IMPORT_LIMIT,
-    ATTR_PEAK_SHAVING_EXPORT_LIMIT,
-    ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE,
-    ATTR_RESERVED_SOC_FOR_PEAK_SHAVING,
-    ATTR_SERIAL_NUMBER,
-    ATTR_METER_POWER_NETTO,
-    ATTR_INVERTER_STATUS,
-    ATTR_INVERTER_MODE,
+    ATTR_BATTERY_VOLTAGE,
     ATTR_BDC_DATA_FLAG,
     ATTR_BDC_DERATING_MODE,
-    ATTR_BMS_TEMPERATURE_A,
-    ATTR_BMS_TEMPERATURE_B,
-    ATTR_BATTERY_VOLTAGE,
-    ATTR_BATTERY_CURRENT,
-    ATTR_SELF_CONSUMPTION_POWER,
-    ATTR_SYSTEM_ENERGY_TODAY,
-    ATTR_SYSTEM_ENERGY_TOTAL,
-    ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
-    ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
-    ATTR_BMS_MAX_SOC,
-    ATTR_BMS_MIN_SOC,
-    ATTR_PARALLEL_BATTERY_NUM,
-    ATTR_STORAGE_FAULT_CODE,
-    ATTR_STORAGE_WARNING_CODE,
-    ATTR_BMS_DERATE_REASON,
-    ATTR_BMS_STATUS,
-    ATTR_BMS_SOC,
-    ATTR_BMS_MAX_CHARGE_CURRENT,
-    ATTR_BMS_MAX_DISCHARGE_CURRENT,
-    ATTR_BMS_CYCLE_COUNT,
-    ATTR_BMS_SOH,
+    ATTR_BDC_FIRMWARE,
     ATTR_BMS_CELL_VOLTAGE_MAX,
     ATTR_BMS_CELL_VOLTAGE_MIN,
+    ATTR_BMS_CYCLE_COUNT,
+    ATTR_BMS_DERATE_REASON,
+    ATTR_BMS_FIRMWARE,
+    ATTR_BMS_MAX_CHARGE_CURRENT,
+    ATTR_BMS_MAX_DISCHARGE_CURRENT,
+    ATTR_BMS_MAX_SOC,
+    ATTR_BMS_MIN_SOC,
+    ATTR_BMS_SOC,
+    ATTR_BMS_SOH,
+    ATTR_BMS_STATUS,
+    ATTR_BMS_TEMPERATURE_A,
+    ATTR_BMS_TEMPERATURE_B,
+    ATTR_CHARGE_ENERGY_TODAY,
+    ATTR_CHARGE_ENERGY_TOTAL,
+    ATTR_CHARGE_POWER,
+    ATTR_CONTROL_FIRMWARE,
+    ATTR_DISCHARGE_ENERGY_TODAY,
+    ATTR_DISCHARGE_ENERGY_TOTAL,
+    ATTR_DISCHARGE_POWER,
+    ATTR_DRY_CONTACT_ENABLED,
+    ATTR_ENERGY_TO_GRID_TODAY,
+    ATTR_ENERGY_TO_GRID_TOTAL,
+    ATTR_ENERGY_TO_USER_TODAY,
+    ATTR_ENERGY_TO_USER_TOTAL,
+    ATTR_EXPORT_LIMIT_MODE,
+    ATTR_EXPORT_LIMIT_RATE,
+    ATTR_GENERATOR_CHARGE_ENABLED,
+    ATTR_GENERATOR_FORCE,
+    ATTR_GRID_FIRST_STOP_SOC,
+    ATTR_INVERTER_MODE,
+    ATTR_INVERTER_MODEL,
+    ATTR_INVERTER_RATED_POWER,
+    ATTR_INVERTER_STATUS,
+    ATTR_METER_POWER_NETTO,
+    ATTR_MODBUS_VERSION,
+    ATTR_ON_GRID_DISCHARGE_STOP_SOC,
+    ATTR_PARALLEL_BATTERY_NUM,
+    ATTR_PEAK_SHAVING_EXPORT_LIMIT,
+    ATTR_PEAK_SHAVING_IMPORT_LIMIT,
+    ATTR_PEAK_SHAVING_MODE,
+    ATTR_PRE_PTO_ENABLED,
+    ATTR_RATED_BATTERY_CAPACITY,
+    ATTR_RATED_CELL_CAPACITY,
+    ATTR_RESERVED_SOC_FOR_PEAK_SHAVING,
+    ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE,
+    ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
+    ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
+    ATTR_SELF_CONSUMPTION_POWER,
+    ATTR_SERIAL_NUMBER,
+    ATTR_SOC_PERCENTAGE,
+    ATTR_STORAGE_FAULT_CODE,
+    ATTR_STORAGE_WARNING_CODE,
+    ATTR_SYSTEM_ENERGY_TODAY,
+    ATTR_SYSTEM_ENERGY_TOTAL,
+    ATTR_UPS_FUNCTION_ENABLED,
+    ATTR_UPS_OUTPUT_FREQUENCY,
+    ATTR_UPS_OUTPUT_VOLTAGE,
+    DEVICE_TYPE_CODE_REGISTER,
+    FIRMWARE_REGISTER,
+    NUMBER_OF_TRACKERS_AND_PHASES_REGISTER,
+    GrowattDeviceRegisters,
+    custom_function,
 )
+
 MAXIMUM_DATA_LENGTH = 100
 
 
@@ -302,81 +303,6 @@ def firmware_code_version(registers) -> str:
     return f"{code}-{version}" if code else str(version)
 
 
-# Battery charge/discharge time slots 1-9. Each slot is a register pair:
-#   reg1: Bit0-7 start minute | Bit8-12 start hour | Bit13-14 priority | Bit15 enable
-#   reg2: Bit0-7 end minute   | Bit8-12 end hour
-# Slots 1-4 are at 3038/3040/3042/3044; slots 5-9 at 3050/3052/.../3058.
-TIME_SLOT_PRIORITIES = {"load": 0, "battery": 1, "grid": 2}
-
-
-def time_slot_register(slot: int) -> int:
-    """Return the first holding register of time slot `slot` (1-9)."""
-    if 1 <= slot <= 4:
-        return 3038 + (slot - 1) * 2
-    if 5 <= slot <= 9:
-        return 3050 + (slot - 5) * 2
-    raise ValueError(f"time slot must be 1-9, got {slot}")
-
-
-def encode_time_slot(
-    start_hour: int,
-    start_minute: int,
-    end_hour: int,
-    end_minute: int,
-    priority: int,
-    enabled: bool,
-) -> tuple[int, int]:
-    """Encode a time slot into its two register values (reg1, reg2)."""
-    reg1 = (
-        (start_minute & 0xFF)
-        | ((start_hour & 0x1F) << 8)
-        | ((priority & 0x3) << 13)
-        | ((1 if enabled else 0) << 15)
-    )
-    reg2 = (end_minute & 0xFF) | ((end_hour & 0x1F) << 8)
-    return reg1, reg2
-
-
-def decode_time_slot(reg1: int, reg2: int) -> dict:
-    """Decode a slot register pair into its fields."""
-    return {
-        "start_hour": (reg1 >> 8) & 0x1F,
-        "start_minute": reg1 & 0xFF,
-        "end_hour": (reg2 >> 8) & 0x1F,
-        "end_minute": reg2 & 0xFF,
-        "priority": (reg1 >> 13) & 0x3,
-        "enabled": bool((reg1 >> 15) & 0x1),
-    }
-
-
-def apply_time_slot_field(reg1: int, reg2: int, **changes) -> tuple[int, int]:
-    """Return new (reg1, reg2) with `changes` applied to the decoded fields."""
-    fields = decode_time_slot(reg1, reg2)
-    fields.update(changes)
-    return encode_time_slot(
-        fields["start_hour"],
-        fields["start_minute"],
-        fields["end_hour"],
-        fields["end_minute"],
-        fields["priority"],
-        fields["enabled"],
-    )
-
-
-def build_time_slot_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
-    """Raw register pair (word1/word2) for each of `count` time-of-use slots."""
-    registers: list[GrowattDeviceRegisters] = []
-    for slot in range(1, count + 1):
-        base = time_slot_register(slot)
-        registers.extend(
-            (
-                GrowattDeviceRegisters(name=f"tou_slot_{slot}_word1", register=base, value_type=int),
-                GrowattDeviceRegisters(name=f"tou_slot_{slot}_word2", register=base + 1, value_type=int),
-            )
-        )
-    return tuple(registers)
-
-
 def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
     """Generate per-module serial-number registers for `count` battery modules.
 
@@ -414,7 +340,7 @@ def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, 
     return tuple(registers)
 def model(registers) -> str:
     mo = (registers[0] << 16) + registers[1]
-    return "A{:X} B{:X} D{:X} T{:X} P{:X} U{:X} M{:X} S{:X}".format(
+    return "A{:X} B{:X} D{:X} T{:X} P{:X} U{:X} M{:X} S{:X}".format(  # noqa: UP032
         (mo & 0xF0000000) >> 28,
         (mo & 0x0F000000) >> 24,
         (mo & 0x00F00000) >> 20,
@@ -422,7 +348,7 @@ def model(registers) -> str:
         (mo & 0x0000F000) >> 12,
         (mo & 0x00000F00) >> 8,
         (mo & 0x000000F0) >> 4,
-        (mo & 0x0000000F)
+        (mo & 0x0000000F),
     )
 SERIAL_NUMBER_REGISTER = GrowattDeviceRegisters(
     name=ATTR_SERIAL_NUMBER, register=3001, value_type=str, length=15
@@ -456,7 +382,7 @@ def bdc_data_flag(register) -> str:
         return "No need"
     if register == 1:
         return "Need"
-    
+
     return f"Unknown value: {register}"
 
 # Battery derating mode (input register 3165), per V1.39 "Table 2".
@@ -506,7 +432,7 @@ def bdc_derating_mode(register) -> str:
 
 def netto_meter_energy(registers) -> float:
     production = (registers[0] * 65536.0 + registers[1])* 0.1
-    consumption = (registers[2] * 65536.0 + registers[3]) * 0.1 
+    consumption = (registers[2] * 65536.0 + registers[3]) * 0.1
 
     return production - consumption
 

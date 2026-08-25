@@ -10,8 +10,9 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GrowattConfigEntry, GrowattLocalCoordinator
-from .tou import read_slot_fields, slot_device_info, slot_unique_id, write_slot_field
+from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
+from .entity import growatt_device_info
+from .tou import read_slot_fields, slot_unique_id, write_slot_field
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class GrowattSlotTime(CoordinatorEntity[GrowattLocalCoordinator], TimeEntity):
         self._attr_translation_key = f"tou_slot_{edge}_time"
         self._attr_translation_placeholders = {"slot": str(slot)}
         self._attr_unique_id = slot_unique_id(entry, slot, f"{edge}_time")
-        self._attr_device_info = slot_device_info(entry)
+        self._attr_device_info = growatt_device_info(entry)
 
     @property
     def native_value(self) -> dt_time | None:

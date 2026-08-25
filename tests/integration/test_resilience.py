@@ -1,11 +1,10 @@
 """Tests for connection resilience and the per-module unique_id migration."""
 from unittest.mock import AsyncMock, patch
 
-from pymodbus.exceptions import ConnectionException
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers import entity_registry as er
+from pymodbus.exceptions import ConnectionException
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.growatt_modbus import _async_migrate_module_unique_ids
 from custom_components.growatt_modbus.const import CONF_SERIAL_NUMBER, DOMAIN

@@ -8,9 +8,9 @@ rules:
   common-modules:
     status: done
     comment: >-
-      The DataUpdateCoordinator and runtime data live in coordinator.py. Each
-      platform defines its own entity base (there is no single shared base
-      entity class), so no entity.py module is used.
+      The DataUpdateCoordinator and runtime data live in coordinator.py; the
+      shared entity base (GrowattEntity) and the device-registry helper live in
+      entity.py.
   config-flow: done
   config-flow-test-coverage: done
   dependency-transparency: done

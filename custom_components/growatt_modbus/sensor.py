@@ -1,41 +1,28 @@
-from datetime import timedelta
-
 import logging
 import re
+from datetime import timedelta
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.const import (
     CONF_TYPE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
-
-
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
 
-from .API.const import DeviceTypes
-from .API.device_type.base import (
+from .api.const import DeviceTypes
+from .api.device_type.base import (
+    ATTR_CHARGE_POWER,
+    ATTR_DISCHARGE_POWER,
     ATTR_INPUT_POWER,
     ATTR_OUTPUT_POWER,
     ATTR_SOC_PERCENTAGE,
-    ATTR_DISCHARGE_POWER,
-    ATTR_CHARGE_POWER
-)
-
-from . import GrowattConfigEntry, GrowattLocalCoordinator
-from .entity import entity_translation_key, growatt_device_info
-from .optimizer import build_optimizer_sensors
-from .sensor_types.sensor_entity_description import GrowattSensorEntityDescription
-from .sensor_types.inverter import INVERTER_SENSOR_TYPES
-from .sensor_types.storage import (
-    STORAGE_SENSOR_TYPES,
-    build_battery_module_sensor_types,
 )
 from .const import (
     CONF_AC_PHASES,
@@ -43,6 +30,15 @@ from .const import (
     CONF_SERIAL_NUMBER,
     DOMAIN,
 )
+from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
+from .entity import entity_translation_key, growatt_device_info
+from .entity_descriptions.descriptions import GrowattSensorEntityDescription
+from .entity_descriptions.inverter import INVERTER_SENSOR_TYPES
+from .entity_descriptions.storage import (
+    STORAGE_SENSOR_TYPES,
+    build_battery_module_sensor_types,
+)
+from .optimizer import build_optimizer_sensors
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -216,7 +212,7 @@ class GrowattDeviceEntity(CoordinatorEntity[GrowattLocalCoordinator], RestoreEnt
 
         if (state := await self.async_get_last_state()) is None:
             return
-        
+
         if self._numeric_state_expected and state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 

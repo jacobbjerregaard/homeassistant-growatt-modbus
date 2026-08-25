@@ -1,21 +1,18 @@
 """
 Utility functions.
 """
-import logging
-from dataclasses import dataclass, field
-from typing import Any, List, Iterable, Iterator, TypeVar, Generic, Union, Optional
-from collections import OrderedDict
-from collections.abc import MutableMapping
+from __future__ import annotations
 
+import logging
+from collections import OrderedDict
+from collections.abc import Iterable, Iterator, MutableMapping
+from dataclasses import dataclass, field
+from typing import Any
 
 from .device_type.base import (
     GrowattDeviceRegisters,
     custom_function,
 )
-
-K = TypeVar('K')
-V = TypeVar('V')
-D = TypeVar('D')
 
 __all__ = ('LRUCache', 'get_keys_from_register', 'get_all_keys_from_register', 'keys_sequences', 'split_sequence', 'process_registers', 'to_signed', 'to_register_value')
 
@@ -31,19 +28,19 @@ class DeviceRegisters:
 class RegisterKeys:
     holding: set[int] = field(default_factory=set)
     input: set[int] = field(default_factory=set)
-    
+
     def __len__(self):
         return len(self.holding) + len(self.input)
-    
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, RegisterKeys):
             return NotImplemented
         return self.holding == other.holding and self.input == other.input
-    
+
     def __hash__(self) -> int:
         return hash((frozenset(self.holding), frozenset(self.input)))
-    
-    def update(self, register_keys: "RegisterKeys") -> None:
+
+    def update(self, register_keys: RegisterKeys) -> None:
         self.holding.update(register_keys.holding)
         self.input.update(register_keys.input)
 
@@ -51,11 +48,11 @@ class RegisterKeys:
 class RegisterSequences:
     holding: set[tuple[int, int]] = field(default_factory=set)
     input: set[tuple[int, int]] = field(default_factory=set)
-    
+
     def __len__(self):
         return len(self.holding) + len(self.input)
-    
-    
+
+
 def register_sequences(
     register_keys: RegisterKeys,
     device_registers: DeviceRegisters
@@ -69,7 +66,7 @@ def register_sequences(
         input_sequence = keys_sequences(get_all_keys_from_register(device_registers.input, register_keys.input), device_registers.max_length)
     else:
         input_sequence = set()
-    
+
     return RegisterSequences(holding_sequence, input_sequence)
 
 def get_keys_from_register(register: dict[int, GrowattDeviceRegisters]) -> set[int]:
@@ -135,7 +132,7 @@ def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
     diff_key_seperation_index = set()
     seperation_treshold = maximum_length / 4
 
-    key_differences = [j - i for i, j in zip(keys[:-1], keys[1:])]
+    key_differences = [j - i for i, j in zip(keys[:-1], keys[1:], strict=True)]
     sorted_key_differences = sorted(key_differences, reverse=True)
 
     for key_diff in sorted_key_differences:
@@ -315,7 +312,7 @@ def process_registers(
     return result
 
 
-class LRUCache(MutableMapping, Generic[K, V]):
+class LRUCache[K, V](MutableMapping):
     """
     A least-recently used (LRU) cache with a fixed cache size.
 
@@ -331,10 +328,10 @@ class LRUCache(MutableMapping, Generic[K, V]):
 
     def __init__(self, capacity=None):
         self.capacity = capacity
-        self.cache = OrderedDict()  # type: OrderedDict[K, V]
+        self.cache: OrderedDict[K, V] = OrderedDict()
 
     @property
-    def lru(self) -> List[K]:
+    def lru(self) -> list[K]:
         return list(self.cache.keys())
 
     @property
@@ -366,7 +363,7 @@ class LRUCache(MutableMapping, Generic[K, V]):
     def __iter__(self) -> Iterator[K]:
         return iter(self.cache)
 
-    def get(self, key: K, default: Optional[D] = None) -> Optional[Union[V, D]]:
+    def get[D](self, key: K, default: D | None = None) -> V | D | None:
         value = self.cache.get(key)
 
         if value is not None:

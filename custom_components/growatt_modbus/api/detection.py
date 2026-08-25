@@ -10,8 +10,8 @@ import logging
 from .client import GrowattModbusBase
 from .const import DeviceTypes
 from .device_type.base import GrowattDeviceInfo
-from .device_type.inverter_120 import MAXIMUM_DATA_LENGTH_120, HOLDING_REGISTERS_120
-from .device_type.inverter_315 import MAXIMUM_DATA_LENGTH_315, HOLDING_REGISTERS_315
+from .device_type.inverter_120 import HOLDING_REGISTERS_120, MAXIMUM_DATA_LENGTH_120
+from .device_type.inverter_315 import HOLDING_REGISTERS_315, MAXIMUM_DATA_LENGTH_315
 
 _LOGGER = logging.getLogger(__name__)
 

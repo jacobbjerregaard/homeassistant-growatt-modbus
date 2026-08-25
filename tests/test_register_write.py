@@ -1,7 +1,6 @@
 """Tests for write-side register encoding (to_register_value) and a
 read/write round trip over the real storage register definitions."""
 import pytest
-
 from growatt_api.device_type.base import GrowattDeviceRegisters
 from growatt_api.utils import process_registers, to_register_value
 
@@ -51,8 +50,8 @@ pytest.importorskip("pymodbus", reason="storage register defs import the transpo
 
 
 def test_new_v139_command_registers_present():
-    from growatt_api.device import get_register_information
     from growatt_api.const import DeviceTypes
+    from growatt_api.device import get_register_information
 
     holding = get_register_information(DeviceTypes.STORAGE_120).holding
     by_name = {r.name: r.register for r in holding.values()}
@@ -65,8 +64,8 @@ def test_new_v139_command_registers_present():
 
 
 def test_new_v139_telemetry_registers_present():
-    from growatt_api.device import get_register_information
     from growatt_api.const import DeviceTypes
+    from growatt_api.device import get_register_information
 
     inp = get_register_information(DeviceTypes.STORAGE_120).input
     by_name = {r.name: r.register for r in inp.values()}

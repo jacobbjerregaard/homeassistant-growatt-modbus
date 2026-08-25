@@ -13,7 +13,6 @@ reads the published ``sensor.p_batt_forecast`` etc.), not this client's.
 """
 from __future__ import annotations
 
-import asyncio
 import logging
 
 import aiohttp
@@ -80,7 +79,7 @@ class EmhassClient:
                     )
                 _LOGGER.debug("EMHASS action '%s' ok: %s", action, text.strip())
                 return text
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise EmhassError(f"EMHASS action '{action}' timed out") from err
         except aiohttp.ClientError as err:
             raise EmhassError(f"EMHASS action '{action}' failed: {err}") from err
@@ -109,7 +108,7 @@ class EmhassClient:
             ) as resp:
                 _LOGGER.debug("EMHASS reachable at %s (HTTP %s)", self._base_url, resp.status)
                 return True
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise EmhassError("EMHASS connection timed out") from err
         except aiohttp.ClientError as err:
             raise EmhassError(f"Cannot reach EMHASS at {self._base_url}: {err}") from err
