@@ -17,6 +17,7 @@ from homeassistant.helpers.update_coordinator import (
 from pymodbus.exceptions import ConnectionException
 
 from .api.device_type.base import GrowattDeviceRegisters
+from .api.exception import ModbusException
 from .api.utils import RegisterKeys
 from .const import DOMAIN
 
@@ -99,6 +100,16 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(
                 translation_domain=DOMAIN,
                 translation_key="no_response",
+            ) from err
+        except ModbusException as err:
+            # The device answered, but rejected the read (illegal address,
+            # busy, ...). Surface it rather than letting the affected sensors
+            # silently keep their last value.
+            self._failed_update_count += 1
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="device_error",
+                translation_placeholders={"error": str(err)},
             ) from err
 
         status = self.growatt_api.status(data)

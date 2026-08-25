@@ -37,6 +37,16 @@ from .utils import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def _raise_on_error(result, register: int) -> None:
+    """Raise when pymodbus reports a write was rejected by the device.
+
+    pymodbus returns an exception *response* rather than raising, so an
+    unchecked write looks like it succeeded.
+    """
+    if result is not None and result.isError():
+        raise ModbusException(f"Modbus error writing register {register}: {result}")
+
+
 class GrowattModbusBase:
     client: ModbusBaseClient
 
@@ -123,20 +133,23 @@ class GrowattModbusBase:
         if a device shows a wrong year after a sync, this offset is the knob.
         """
         async with self._lock:
-            await self.client.write_register(45, year - 2000, device_id=unit)
-            await self.client.write_register(46, month, device_id=unit)
-            await self.client.write_register(47, day, device_id=unit)
-            await self.client.write_register(48, hour, device_id=unit)
-            await self.client.write_register(49, minute, device_id=unit)
-            await self.client.write_register(50, second, device_id=unit)
+            for offset, value in enumerate(
+                (year - 2000, month, day, hour, minute, second)
+            ):
+                result = await self.client.write_register(
+                    45 + offset, value, device_id=unit
+                )
+                _raise_on_error(result, 45 + offset)
 
     async def write_register(self, register, payload, unit):
         """Write a single holding register. Signed values are sent as two's
         complement (e.g. -10 -> 0xFFF6)."""
         async with self._lock:
-            return await self.client.write_register(
+            result = await self.client.write_register(
                 register, int(payload) & 0xFFFF, device_id=unit
             )
+        _raise_on_error(result, register)
+        return result
 
     async def write_register_value(self, register, value, unit):
         """Write a raw unsigned 16-bit value (0-65535) to a holding register.
@@ -145,20 +158,43 @@ class GrowattModbusBase:
         15) which exceed the signed-int16 range.
         """
         async with self._lock:
-            return await self.client.write_register(
+            result = await self.client.write_register(
                 register, int(value) & 0xFFFF, device_id=unit
             )
+        _raise_on_error(result, register)
+        return result
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
         async with self._lock:
             data = await self.client.read_holding_registers(address=start_index, count=length, device_id=unit)
-        registers = {c: v for c, v in enumerate(data.registers, start_index)}
-        return registers
+        return self._registers_from(data, start_index, length, "holding")
 
     async def read_input_registers(self, start_index, length, unit) -> dict[int, int]:
         async with self._lock:
             data = await self.client.read_input_registers(address=start_index, count=length, device_id=unit)
+        return self._registers_from(data, start_index, length, "input")
+
+    @staticmethod
+    def _registers_from(data, start_index: int, length: int, kind: str) -> dict[int, int]:
+        """Map a pymodbus read response onto {address: value}.
+
+        A Modbus exception response (illegal address, device busy, ...) is not
+        raised by pymodbus and carries an *empty* ``registers`` list, so
+        without this check the batch would silently decode to nothing: the
+        poll would look successful while every sensor in it kept its previous
+        value forever. Raise instead, so the coordinator can mark the entities
+        unavailable.
+        """
+        if data.isError():
+            raise ModbusException(
+                f"Modbus error reading {length} {kind} register(s) at {start_index}: {data}"
+            )
         registers = {c: v for c, v in enumerate(data.registers, start_index)}
+        if len(registers) != length:
+            raise ModbusException(
+                f"Short Modbus read of {kind} registers at {start_index}: "
+                f"asked for {length}, got {len(registers)}"
+            )
         return registers
 
 

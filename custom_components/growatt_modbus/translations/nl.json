@@ -168,11 +168,17 @@
     "connection_interrupted": {
       "message": "De Modbus-verbinding met het Growatt-apparaat is onderbroken."
     },
+    "device_error": {
+      "message": "Het Growatt-apparaat heeft een Modbus-verzoek geweigerd: {error}"
+    },
     "no_response": {
       "message": "Geen reactie van het Growatt-apparaat."
     },
     "optimization_failed": {
       "message": "EMHASS-optimalisatie mislukt: {error}"
+    },
+    "write_failed": {
+      "message": "Schrijven naar het Growatt-apparaat is mislukt: {error}"
     }
   }
 }

@@ -6,6 +6,7 @@ from collections.abc import Iterator
 
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 
@@ -14,6 +15,7 @@ from .api.device_type.time_slots import (
     encode_time_slot,
     time_slot_register,
 )
+from .api.exception import ModbusException
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -66,8 +68,15 @@ def async_setup_services(hass: HomeAssistant) -> None:
             return
 
         for device in devices:
-            await device.write_register_value(base, reg1)
-            await device.write_register_value(base + 1, reg2)
+            try:
+                await device.write_register_value(base, reg1)
+                await device.write_register_value(base + 1, reg2)
+            except ModbusException as err:
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key="write_failed",
+                    translation_placeholders={"error": str(err)},
+                ) from err
 
     hass.services.async_register(
         DOMAIN, SERVICE_SET_TIME_SLOT, handle_set_time_slot, schema=SET_TIME_SLOT_SCHEMA
