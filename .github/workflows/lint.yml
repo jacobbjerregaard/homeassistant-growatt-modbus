@@ -26,6 +26,10 @@ jobs:
         run: pip install -r requirements_lint.txt
       - name: Run ruff
         run: ruff check --output-format=github .
+      - name: Check formatting
+        # E501 is enforced, so the formatter has to be enforced with it -
+        # otherwise line length drifts back out on the next hand-edit.
+        run: ruff format --check .
 
   mypy:
     name: Type check (mypy)

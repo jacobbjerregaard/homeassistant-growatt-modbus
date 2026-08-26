@@ -4,6 +4,7 @@ These pin the pymodbus param fixes: read_device_time must use device_id (not the
 removed `slave`) and registers (not register), and write_device_time must pass
 device_id for every write.
 """
+
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 

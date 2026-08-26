@@ -1,4 +1,5 @@
 """Tests for connection resilience and the per-module unique_id migration."""
+
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.config_entries import ConfigEntryState
@@ -96,5 +97,11 @@ async def test_migrates_slot_unique_ids_to_serial(hass):
 
     await _async_migrate_module_unique_ids(hass, entry, {1: "MODONE", 2: "MODTWO"})
 
-    assert registry.async_get(old.entity_id).unique_id == f"{DOMAIN}_INV1_module_MODONE_soc"
-    assert registry.async_get(other.entity_id).unique_id == f"{DOMAIN}_INV1_battery_voltage"
+    assert (
+        registry.async_get(old.entity_id).unique_id
+        == f"{DOMAIN}_INV1_module_MODONE_soc"
+    )
+    assert (
+        registry.async_get(other.entity_id).unique_id
+        == f"{DOMAIN}_INV1_battery_voltage"
+    )

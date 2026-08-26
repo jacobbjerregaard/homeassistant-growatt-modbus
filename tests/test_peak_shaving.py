@@ -3,10 +3,13 @@
 Pure-logic: pins the register addresses/types/scaling and the decode/encode
 round trips. The control entities are covered in tests/integration/test_controls.
 """
+
 import pytest
 from growatt_api.utils import process_registers, to_register_value
 
-pytest.importorskip("pymodbus", reason="storage register defs import the transport layer indirectly")
+pytest.importorskip(
+    "pymodbus", reason="storage register defs import the transport layer indirectly"
+)
 
 from growatt_api.const import DeviceTypes  # noqa: E402
 from growatt_api.device import get_register_information  # noqa: E402
@@ -52,7 +55,9 @@ def test_import_limit_decode_encode_round_trip():
     reg = _storage_holding_by_name()["peak_shaving_import_limit"]
     # 5.0 kW on a 0.1 kW (scale 10) register -> raw 50.
     assert to_register_value(reg, 5.0) == 50
-    assert process_registers({3307: reg}, {3307: 50}) == {"peak_shaving_import_limit": 5.0}
+    assert process_registers({3307: reg}, {3307: 50}) == {
+        "peak_shaving_import_limit": 5.0
+    }
 
 
 def test_export_limit_handles_negative_values():
@@ -60,10 +65,14 @@ def test_export_limit_handles_negative_values():
     # -3.0 kW -> raw -30; the Modbus client encodes the two's complement on write.
     assert to_register_value(reg, -3.0) == -30
     # raw 0xFFE2 == -30 as signed 16-bit, / 10 -> -3.0 kW.
-    assert process_registers({3308: reg}, {3308: 0xFFE2}) == {"peak_shaving_export_limit": -3.0}
+    assert process_registers({3308: reg}, {3308: 0xFFE2}) == {
+        "peak_shaving_export_limit": -3.0
+    }
 
 
 def test_reserved_soc_round_trip():
     reg = _storage_holding_by_name()["reserved_soc_for_peak_shaving"]
     assert to_register_value(reg, 30) == 30
-    assert process_registers({3310: reg}, {3310: 30}) == {"reserved_soc_for_peak_shaving": 30}
+    assert process_registers({3310: reg}, {3310: 30}) == {
+        "reserved_soc_for_peak_shaving": 30
+    }

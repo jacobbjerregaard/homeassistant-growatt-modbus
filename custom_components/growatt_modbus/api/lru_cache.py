@@ -5,6 +5,7 @@ why it no longer lives in utils.py. Used to memoise the register-sequence
 plan for a set of keys (see device.py), where the same key set recurs on
 every poll.
 """
+
 from __future__ import annotations
 
 from collections import OrderedDict

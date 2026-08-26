@@ -69,10 +69,11 @@ class GrowattModbusBase:
         self.client.close()
 
     async def get_device_info(
-            self,
-            register: dict[int, GrowattDeviceRegisters] | tuple[GrowattDeviceRegisters, ...],
-            max_length: int,
-            unit: int
+        self,
+        register: dict[int, GrowattDeviceRegisters]
+        | tuple[GrowattDeviceRegisters, ...],
+        max_length: int,
+        unit: int,
     ) -> GrowattDeviceInfo:
         """
         Read Growatt device information.
@@ -87,7 +88,9 @@ class GrowattModbusBase:
 
         for item in key_sequences:
             register_values.update(
-                await self.read_holding_registers(start_index=item[0], length=item[1], unit=unit)
+                await self.read_holding_registers(
+                    start_index=item[0], length=item[1], unit=unit
+                )
             )
 
         results = process_registers(register, register_values)
@@ -95,11 +98,11 @@ class GrowattModbusBase:
         device_info = GrowattDeviceInfo(
             serial_number=results[ATTR_SERIAL_NUMBER].replace("\x00", ""),
             model=results[ATTR_INVERTER_MODEL],
-             firmware=results[ATTR_FIRMWARE].replace("\x00", ""),
+            firmware=results[ATTR_FIRMWARE].replace("\x00", ""),
             mppt_trackers=results[ATTR_NUMBER_OF_TRACKERS_AND_PHASES][0],
             grid_phases=results[ATTR_NUMBER_OF_TRACKERS_AND_PHASES][1],
             modbus_version=results[ATTR_MODBUS_VERSION],
-            device_type=results[ATTR_DEVICE_TYPE_CODE]
+            device_type=results[ATTR_DEVICE_TYPE_CODE],
         )
 
         return device_info
@@ -107,7 +110,9 @@ class GrowattModbusBase:
     async def read_device_time(self, unit: int):
         """Read the device clock from holding registers 45-50 (SysYear..SysSec)."""
         async with self._lock:
-            rhr = await self.client.read_holding_registers(address=45, count=6, device_id=unit)
+            rhr = await self.client.read_holding_registers(
+                address=45, count=6, device_id=unit
+            )
         if rhr.isError():
             _LOGGER.debug("Modbus read failed for rhr")
             raise ModbusException("Modbus read failed for rhr.")
@@ -124,7 +129,14 @@ class GrowattModbusBase:
         )
 
     async def write_device_time(
-        self, year: int, month: int, day: int, hour: int, minute: int, second: int, unit: int
+        self,
+        year: int,
+        month: int,
+        day: int,
+        hour: int,
+        minute: int,
+        second: int,
+        unit: int,
     ):
         """Write current date/time to the device (holding registers 45-50).
 
@@ -166,16 +178,22 @@ class GrowattModbusBase:
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
         async with self._lock:
-            data = await self.client.read_holding_registers(address=start_index, count=length, device_id=unit)
+            data = await self.client.read_holding_registers(
+                address=start_index, count=length, device_id=unit
+            )
         return self._registers_from(data, start_index, length, "holding")
 
     async def read_input_registers(self, start_index, length, unit) -> dict[int, int]:
         async with self._lock:
-            data = await self.client.read_input_registers(address=start_index, count=length, device_id=unit)
+            data = await self.client.read_input_registers(
+                address=start_index, count=length, device_id=unit
+            )
         return self._registers_from(data, start_index, length, "input")
 
     @staticmethod
-    def _registers_from(data, start_index: int, length: int, kind: str) -> dict[int, int]:
+    def _registers_from(
+        data, start_index: int, length: int, kind: str
+    ) -> dict[int, int]:
         """Map a pymodbus read response onto {address: value}.
 
         A Modbus exception response (illegal address, device busy, ...) is not
@@ -187,7 +205,8 @@ class GrowattModbusBase:
         """
         if data.isError():
             raise ModbusException(
-                f"Modbus error reading {length} {kind} register(s) at {start_index}: {data}"
+                f"Modbus error reading {length} {kind} register(s) "
+                f"at {start_index}: {data}"
             )
         registers = {c: v for c, v in enumerate(data.registers, start_index)}
         if len(registers) != length:
@@ -204,7 +223,7 @@ class GrowattNetwork(GrowattModbusBase):
         network_type: str,
         host: str,
         port: int = 502,
-        frame: str = '',
+        frame: str = "",
         timeout: int = 5,
         retries: int = 5,
     ) -> None:
@@ -212,7 +231,7 @@ class GrowattNetwork(GrowattModbusBase):
         super().__init__()
 
         if network_type.lower() == "tcp":
-            if frame.lower() == 'rtu':
+            if frame.lower() == "rtu":
                 self.client = AsyncModbusTcpClient(
                     host,
                     port=port,
@@ -230,7 +249,7 @@ class GrowattNetwork(GrowattModbusBase):
                 )
 
         elif network_type.lower() == "udp":
-            if frame.lower() == 'rtu':
+            if frame.lower() == "rtu":
                 self.client = AsyncModbusUdpClient(
                     host,
                     port=port,
@@ -266,11 +285,13 @@ class GrowattSerial(GrowattModbusBase):
         if sys.platform.startswith("win"):
             if not port.startswith("COM"):
                 _LOGGER.debug(
-                    "Port %s is not available on windows platfrom should always start with 'COM'",
+                    "Port %s is not available on windows platform, it should "
+                    "always start with 'COM'",
                     port,
                 )
                 raise ModbusPortException(
-                    f"Port {port} is not available on windows platfrom should always start with 'COM'"
+                    f"Port {port} is not available on windows platform, it "
+                    "should always start with 'COM'"
                 )
         else:
             if not os.path.exists(port):

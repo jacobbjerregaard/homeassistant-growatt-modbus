@@ -8,6 +8,7 @@ Priority codes match ``TIME_SLOT_PRIORITIES`` in ``device_type/time_slots``:
 ``1 = Battery First`` (charge the battery, from grid when AC charge is on) and
 ``2 = Grid First`` (export to grid).
 """
+
 from __future__ import annotations
 
 LOAD_FIRST = 0

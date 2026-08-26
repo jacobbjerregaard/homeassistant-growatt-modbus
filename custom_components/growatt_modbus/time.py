@@ -1,4 +1,5 @@
 """Time platform: start/end times for the battery time-of-use slots."""
+
 from __future__ import annotations
 
 import logging
@@ -32,7 +33,9 @@ async def async_setup_entry(
 
     entities: list[GrowattSlotTime] = []
     for slot in range(1, slots + 1):
-        coordinator.get_keys_by_name({f"tou_slot_{slot}_word1", f"tou_slot_{slot}_word2"}, True)
+        coordinator.get_keys_by_name(
+            {f"tou_slot_{slot}_word1", f"tou_slot_{slot}_word2"}, True
+        )
         entities.append(GrowattSlotTime(coordinator, config_entry, slot, "start"))
         entities.append(GrowattSlotTime(coordinator, config_entry, slot, "end"))
 

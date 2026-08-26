@@ -11,6 +11,7 @@ Everything is re-exported here so existing imports keep working. Prefer
 importing from the specific module in new code - importing the register
 dataclass should not have to pull in 150 name constants.
 """
+
 from .attrs import *  # noqa: F403
 from .models import (  # noqa: F401
     DEVICE_TYPE_CODE_REGISTER,

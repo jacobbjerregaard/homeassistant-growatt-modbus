@@ -5,6 +5,7 @@ registers. The entities below read the current register pair from the
 coordinator data and rewrite it (read-modify-write) when a single field
 changes.
 """
+
 from __future__ import annotations
 
 from .api.device_type.time_slots import (

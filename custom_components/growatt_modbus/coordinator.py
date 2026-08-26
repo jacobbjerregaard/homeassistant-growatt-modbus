@@ -1,4 +1,5 @@
 """Data update coordinator and runtime data for the Growatt Modbus integration."""
+
 from __future__ import annotations
 
 import logging
@@ -166,10 +167,13 @@ class GrowattLocalCoordinator(DataUpdateCoordinator):
 
     def get_input_register_by_name(self, name) -> GrowattDeviceRegisters | None:
         return self.growatt_api.get_input_register_by_name(name)
+
     def get_holding_register_by_name(self, name) -> GrowattDeviceRegisters | None:
         return self.growatt_api.get_holding_register_by_name(name)
+
     async def write_register(self, register, payload):
         await self.growatt_api.write_register(register, payload)
+
     async def write_register_value(self, register, value):
         await self.growatt_api.write_register_value(register, value)
 

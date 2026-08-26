@@ -1,10 +1,13 @@
 """Tests for ``process_registers`` value decoding in ``API/utils.py``."""
+
 from growatt_api.device_type.base import GrowattDeviceRegisters, custom_function
 from growatt_api.utils import process_registers, to_signed
 
 
 def _reg(name, register, value_type, **kw) -> GrowattDeviceRegisters:
-    return GrowattDeviceRegisters(name=name, register=register, value_type=value_type, **kw)
+    return GrowattDeviceRegisters(
+        name=name, register=register, value_type=value_type, **kw
+    )
 
 
 def test_int_value_passthrough():
@@ -171,7 +174,11 @@ def test_32bit_power_and_energy_registers_are_signed():
         ("storage_120", STORAGE_INPUT_REGISTERS_120),
     ):
         for r in regs:
-            if r.value_type is float and r.length == 2 and (
-                "power" in r.name or "energy" in r.name
+            if (
+                r.value_type is float
+                and r.length == 2
+                and ("power" in r.name or "energy" in r.name)
             ):
-                assert r.signed, f"{label}: {r.name} (register {r.register}) is unsigned"
+                assert r.signed, (
+                    f"{label}: {r.name} (register {r.register}) is unsigned"
+                )

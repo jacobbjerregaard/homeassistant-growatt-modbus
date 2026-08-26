@@ -1,4 +1,5 @@
 """Shared entity base and device helpers for the Growatt Modbus integration."""
+
 from __future__ import annotations
 
 from typing import Any

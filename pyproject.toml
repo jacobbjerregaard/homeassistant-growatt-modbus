@@ -10,12 +10,8 @@ line-length = 88
 # pyflakes (F), pycodestyle errors + warnings (E/W), import sorting (I),
 # pyupgrade (UP) and bugbear (B).
 select = ["E", "W", "F", "I", "UP", "B"]
-# E501 (line-too-long) is deliberately not enforced yet: ~175 existing lines
-# exceed the limit above, almost all of them in the hand-aligned register and
-# entity-description tables. Reflowing them belongs in its own `ruff format`
-# commit rather than being mixed into unrelated changes. `line-length` above
-# still applies to anything ruff does format.
-ignore = ["E501"]
+# The codebase is `ruff format`-clean, so E501 is enforced rather than
+# ignored. Run `ruff format .` before committing.
 
 [tool.mypy]
 python_version = "3.14"

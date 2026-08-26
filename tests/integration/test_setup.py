@@ -1,4 +1,5 @@
 """Integration test: config-entry setup creates the expected entities."""
+
 from homeassistant.const import EntityCategory
 from homeassistant.helpers import entity_registry as er
 
@@ -21,10 +22,10 @@ async def test_storage_entities_created(hass, setup_storage):
     assert {"sensor", "number", "select", "switch"} <= domains
 
     # A representative entity from each platform.
-    assert uid("soc") in by_uid                  # sensor
+    assert uid("soc") in by_uid  # sensor
     assert uid("grid_first_stop_soc") in by_uid  # number
-    assert uid("battery_type") in by_uid         # select
-    assert uid("ac_charge_enabled") in by_uid    # switch
+    assert uid("battery_type") in by_uid  # select
+    assert uid("ac_charge_enabled") in by_uid  # switch
 
 
 async def test_entity_categories_and_naming(hass, setup_storage):
@@ -42,7 +43,9 @@ async def test_entity_categories_and_naming(hass, setup_storage):
     assert by_uid[uid("grid_first_stop_soc")].entity_category == EntityCategory.CONFIG
     assert by_uid[uid("battery_type")].entity_category == EntityCategory.CONFIG
     # Internal readings are diagnostic.
-    assert by_uid[uid("parallel_battery_num")].entity_category == EntityCategory.DIAGNOSTIC
+    assert (
+        by_uid[uid("parallel_battery_num")].entity_category == EntityCategory.DIAGNOSTIC
+    )
     # Primary telemetry has no category.
     assert by_uid[uid("soc")].entity_category is None
 
@@ -128,7 +131,9 @@ async def test_inverter_entities_created(hass, fake_modbus):
         CONF_SERIAL_NUMBER: "INVSERIAL1",
         CONF_FIRMWARE: "F1",
     }
-    entry = MockConfigEntry(domain=DOMAIN, data=data, unique_id="INVSERIAL1", title="Inv")
+    entry = MockConfigEntry(
+        domain=DOMAIN, data=data, unique_id="INVSERIAL1", title="Inv"
+    )
     entry.add_to_hass(hass)
     with patch(
         "custom_components.growatt_modbus.GrowattSerial", return_value=fake_modbus

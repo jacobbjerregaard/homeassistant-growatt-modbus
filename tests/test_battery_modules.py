@@ -1,4 +1,5 @@
 """Tests for per-battery-module serial registers and count detection."""
+
 import pytest
 
 pytest.importorskip("pymodbus", reason="device.py imports the transport layer")
@@ -33,7 +34,10 @@ class _FakeModbus:
         self.registers = registers
 
     async def read_holding_registers(self, start_index, length, unit):
-        return {a: self.registers.get(a, 0) for a in range(start_index, start_index + length)}
+        return {
+            a: self.registers.get(a, 0)
+            for a in range(start_index, start_index + length)
+        }
 
 
 def test_module_register_addresses():
@@ -51,7 +55,8 @@ def test_module_telemetry_addresses():
     assert regs["battery_module_1_temperature_max"] == 5090
     assert regs["battery_module_2_soc"] == 5121  # +40 stride
     current = next(
-        r for r in build_battery_module_input_registers(1)
+        r
+        for r in build_battery_module_input_registers(1)
         if r.name == "battery_module_1_current"
     )
     assert current.signed is True  # charge/discharge
@@ -227,9 +232,7 @@ def test_decode_ascii_preserves_meaningful_whitespace():
 
 def test_battery_current_is_signed():
     info = get_register_information(DeviceTypes.STORAGE_120)
-    current = next(
-        r for r in info.input.values() if r.name == ATTR_BATTERY_CURRENT
-    )
+    current = next(r for r in info.input.values() if r.name == ATTR_BATTERY_CURRENT)
     assert current.register == 3170
     assert current.signed is True
 
@@ -266,4 +269,7 @@ def test_set_battery_modules_rebuilds_register_map():
 
     device.set_battery_modules(2)
     assert device.battery_modules == 2
-    assert device.get_holding_register_by_name("battery_module_2_serial_number") is not None
+    assert (
+        device.get_holding_register_by_name("battery_module_2_serial_number")
+        is not None
+    )

@@ -43,6 +43,7 @@ Lint and types:
 
 ```bash
 pip install -r requirements_lint.txt
+ruff format .        # required: line length is enforced
 ruff check .
 mypy
 ```
@@ -86,5 +87,6 @@ Useful fingerprints when triaging a report:
 
 ## Style
 
-`ruff` and `mypy` run in CI and must be clean. Match the surrounding code;
-the register tables are hand-aligned on purpose.
+`ruff format`, `ruff check` and `mypy` all run in CI and must be clean.
+Run `ruff format .` before committing - line length is enforced, so an
+unformatted hand-edit will fail the build.

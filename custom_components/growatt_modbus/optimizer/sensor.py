@@ -1,4 +1,5 @@
 """Diagnostic sensors reflecting the current optimisation plan."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -106,10 +107,7 @@ class OptimizerSensor(CoordinatorEntity[EmhassOptimizerCoordinator], SensorEntit
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
-        if (
-            self.entity_description.forecast_fn is None
-            or self.coordinator.data is None
-        ):
+        if self.entity_description.forecast_fn is None or self.coordinator.data is None:
             return None
         forecast = self.entity_description.forecast_fn(self.coordinator.data)
         if forecast is None:

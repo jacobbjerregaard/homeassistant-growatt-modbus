@@ -4,6 +4,7 @@ These functions decide how a set of requested register addresses is grouped
 into a minimal number of contiguous Modbus reads.  They are the most intricate
 piece of pure logic in the integration and previously had no coverage.
 """
+
 from growatt_api.device_type.base import GrowattDeviceRegisters
 from growatt_api.utils import (
     DeviceRegisters,
@@ -17,7 +18,9 @@ from growatt_api.utils import (
 
 
 def _u16(name: str, register: int, length: int = 1) -> GrowattDeviceRegisters:
-    return GrowattDeviceRegisters(name=name, register=register, value_type=int, length=length)
+    return GrowattDeviceRegisters(
+        name=name, register=register, value_type=int, length=length
+    )
 
 
 def _covers(spans, keys) -> bool:

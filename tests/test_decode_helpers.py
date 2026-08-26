@@ -1,4 +1,5 @@
 """Direct tests for the pure register-decode helper functions."""
+
 from growatt_api.device_type import base
 from growatt_api.device_type import storage_120 as storage
 from growatt_api.device_type.base import (

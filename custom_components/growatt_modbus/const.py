@@ -1,4 +1,5 @@
 """Define constants for the Growatt Server component."""
+
 from enum import StrEnum
 
 from homeassistant.const import Platform

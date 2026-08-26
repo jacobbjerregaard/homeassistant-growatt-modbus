@@ -1,4 +1,5 @@
 """Integration test: the sync-time button writes the device clock."""
+
 from homeassistant.helpers import entity_registry as er
 
 

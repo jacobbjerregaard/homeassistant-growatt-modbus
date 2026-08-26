@@ -3,6 +3,7 @@
 Exposes writable holding registers (SOC limits, charge/discharge rates) as
 number entities.
 """
+
 from __future__ import annotations
 
 import logging
@@ -47,7 +48,9 @@ async def async_setup_entry(
         if description.key in supported_key_names
     ]
 
-    coordinator.get_keys_by_name({description.key for description in descriptions}, True)
+    coordinator.get_keys_by_name(
+        {description.key for description in descriptions}, True
+    )
 
     async_add_entities(
         (

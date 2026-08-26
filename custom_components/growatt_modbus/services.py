@@ -1,4 +1,5 @@
 """Services for the Growatt Modbus integration."""
+
 from __future__ import annotations
 
 import logging
@@ -43,7 +44,11 @@ def _devices_for_call(hass: HomeAssistant, device_ids: list[str]) -> Iterator:
             continue
         for entry_id in device_entry.config_entries:
             entry = hass.config_entries.async_get_entry(entry_id)
-            if entry and entry.domain == DOMAIN and getattr(entry, "runtime_data", None):
+            if (
+                entry
+                and entry.domain == DOMAIN
+                and getattr(entry, "runtime_data", None)
+            ):
                 yield entry.runtime_data.device
                 break
 
@@ -58,7 +63,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
         end = call.data["end_time"]
         priority = TIME_SLOT_PRIORITIES[call.data["priority"]]
         reg1, reg2 = encode_time_slot(
-            start.hour, start.minute, end.hour, end.minute, priority, call.data["enabled"]
+            start.hour,
+            start.minute,
+            end.hour,
+            end.minute,
+            priority,
+            call.data["enabled"],
         )
         base = time_slot_register(call.data["slot"])
 
@@ -94,9 +104,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             ran = True
 
         if not ran:
-            _LOGGER.warning(
-                "run_optimization: no Growatt entry has EMHASS configured"
-            )
+            _LOGGER.warning("run_optimization: no Growatt entry has EMHASS configured")
 
     hass.services.async_register(
         DOMAIN, SERVICE_RUN_OPTIMIZATION, handle_run_optimization

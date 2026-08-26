@@ -1,4 +1,5 @@
 """Tests for battery time-slot register encoding."""
+
 import pytest
 from growatt_api.device_type.time_slots import (
     TIME_SLOT_PRIORITIES,

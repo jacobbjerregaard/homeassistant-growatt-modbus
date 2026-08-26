@@ -68,7 +68,12 @@ async def async_setup_entry(
 
     device_type = DeviceTypes(config_entry.data[CONF_TYPE])
 
-    if device_type in (DeviceTypes.INVERTER, DeviceTypes.INVERTER_315, DeviceTypes.INVERTER_120, DeviceTypes.HYBRID_120):
+    if device_type in (
+        DeviceTypes.INVERTER,
+        DeviceTypes.INVERTER_315,
+        DeviceTypes.INVERTER_120,
+        DeviceTypes.HYBRID_120,
+    ):
         for sensor in INVERTER_SENSOR_TYPES:
             if sensor.key not in supported_key_names:
                 continue
@@ -98,10 +103,20 @@ async def async_setup_entry(
             if sensor.key in supported_key_names:
                 module_descriptions.append(sensor)
 
-    if device_type in (DeviceTypes.INVERTER, DeviceTypes.INVERTER_315, DeviceTypes.INVERTER_120):
+    if device_type in (
+        DeviceTypes.INVERTER,
+        DeviceTypes.INVERTER_315,
+        DeviceTypes.INVERTER_120,
+    ):
         power_sensor: tuple[str, ...] = (ATTR_INPUT_POWER, ATTR_OUTPUT_POWER)
     elif device_type in (DeviceTypes.HYBRID_120,):
-        power_sensor = (ATTR_INPUT_POWER, ATTR_OUTPUT_POWER, ATTR_SOC_PERCENTAGE, ATTR_DISCHARGE_POWER, ATTR_CHARGE_POWER)
+        power_sensor = (
+            ATTR_INPUT_POWER,
+            ATTR_OUTPUT_POWER,
+            ATTR_SOC_PERCENTAGE,
+            ATTR_DISCHARGE_POWER,
+            ATTR_CHARGE_POWER,
+        )
     elif device_type in (DeviceTypes.STORAGE_120,):
         power_sensor = (ATTR_SOC_PERCENTAGE, ATTR_DISCHARGE_POWER, ATTR_CHARGE_POWER)
     else:
@@ -117,7 +132,10 @@ async def async_setup_entry(
 
     entities: list[SensorEntity] = []
     for coordinator, descriptions in (
-        (main_coordinator, [d for d in sensor_descriptions if d.key not in power_names]),
+        (
+            main_coordinator,
+            [d for d in sensor_descriptions if d.key not in power_names],
+        ),
         (power_coordinator, [d for d in sensor_descriptions if d.key in power_names]),
     ):
         if coordinator is None or not descriptions:
@@ -125,7 +143,9 @@ async def async_setup_entry(
 
         coordinator.get_keys_by_name({d.key for d in descriptions}, True)
         entities.extend(
-            GrowattDeviceEntity(coordinator, description=description, entry=config_entry)
+            GrowattDeviceEntity(
+                coordinator, description=description, entry=config_entry
+            )
             for description in descriptions
         )
 
@@ -143,7 +163,9 @@ async def async_setup_entry(
                     description=description,
                     entry=config_entry,
                     module_slot=slot,
-                    module_serial=module_serials.get(slot) if slot is not None else None,
+                    module_serial=module_serials.get(slot)
+                    if slot is not None
+                    else None,
                 )
             )
 
@@ -154,13 +176,17 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class GrowattDeviceEntity(CoordinatorEntity[GrowattLocalCoordinator], RestoreEntity, SensorEntity):
+class GrowattDeviceEntity(
+    CoordinatorEntity[GrowattLocalCoordinator], RestoreEntity, SensorEntity
+):
     """An entity using CoordinatorEntity."""
 
     _attr_has_entity_name = True
     entity_description: GrowattSensorEntityDescription
 
-    def __init__(self, coordinator, description, entry, module_slot=None, module_serial=None):
+    def __init__(
+        self, coordinator, description, entry, module_slot=None, module_serial=None
+    ):
         """Pass coordinator to CoordinatorEntity.
 
         When ``module_serial`` is given the entity belongs to a battery module:
@@ -189,7 +215,9 @@ class GrowattDeviceEntity(CoordinatorEntity[GrowattLocalCoordinator], RestoreEnt
                 f"{DOMAIN}_{inverter_serial}_module_{module_serial}_{field}"
             )
             self._attr_device_info = DeviceInfo(
-                identifiers={(DOMAIN, f"{inverter_serial}_battery_module_{module_serial}")},
+                identifiers={
+                    (DOMAIN, f"{inverter_serial}_battery_module_{module_serial}")
+                },
                 manufacturer="Growatt",
                 model="Battery Module",
                 name=f"Module {module_serial}",
@@ -213,7 +241,10 @@ class GrowattDeviceEntity(CoordinatorEntity[GrowattLocalCoordinator], RestoreEnt
         if (state := await self.async_get_last_state()) is None:
             return
 
-        if self._numeric_state_expected and state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+        if self._numeric_state_expected and state.state in (
+            STATE_UNAVAILABLE,
+            STATE_UNKNOWN,
+        ):
             return
 
         self._attr_native_value = state.state

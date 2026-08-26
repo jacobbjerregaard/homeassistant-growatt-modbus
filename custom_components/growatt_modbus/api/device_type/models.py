@@ -4,6 +4,7 @@ Everything here is model-agnostic: the shape of a register definition, the
 decoded device info, and the handful of registers every Growatt device
 exposes for identification.
 """
+
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -17,8 +18,10 @@ from .attrs import (
 
 class custom_function(type):
     """
-    Object to be used as value_type in a `GrowattDeviceRegisters` that require custom function to translate the register value.
+    Object to be used as value_type in a `GrowattDeviceRegisters` whose raw
+    value needs a custom function to translate it.
     """
+
     pass
 
 
@@ -100,11 +103,11 @@ DEVICE_TYPE_CODE_REGISTER = GrowattDeviceRegisters(
     name=ATTR_DEVICE_TYPE_CODE,
     register=43,
     value_type=custom_function,
-    function=device_type
+    function=device_type,
 )
 NUMBER_OF_TRACKERS_AND_PHASES_REGISTER = GrowattDeviceRegisters(
     name=ATTR_NUMBER_OF_TRACKERS_AND_PHASES,
     register=44,
     value_type=custom_function,
-    function=trackers_and_phases
+    function=trackers_and_phases,
 )

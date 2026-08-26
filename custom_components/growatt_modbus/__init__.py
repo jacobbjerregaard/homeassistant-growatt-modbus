@@ -1,4 +1,5 @@
 """The Growatt server PV inverter sensor integration."""
+
 from __future__ import annotations
 
 import logging
@@ -79,7 +80,7 @@ async def _async_migrate_module_unique_ids(
         uid = entity_entry.unique_id
         if not uid.startswith(old_prefix):
             return None
-        slot_str, sep, field = uid[len(old_prefix):].partition("_")
+        slot_str, sep, field = uid[len(old_prefix) :].partition("_")
         if not sep or not slot_str.isdigit():
             return None
         serial = serials.get(int(slot_str))
@@ -93,9 +94,7 @@ async def _async_migrate_module_unique_ids(
     await er.async_migrate_entries(hass, entry.entry_id, _migrate)
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: GrowattConfigEntry
-) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: GrowattConfigEntry) -> bool:
     """Load the saved entities."""
 
     device_layer: GrowattModbusBase
@@ -123,9 +122,7 @@ async def async_setup_entry(
 
     device_type = DeviceTypes(entry.data[CONF_TYPE])
     battery_modules = int(
-        entry.options.get(
-            CONF_BATTERY_MODULES, entry.data.get(CONF_BATTERY_MODULES, 0)
-        )
+        entry.options.get(CONF_BATTERY_MODULES, entry.data.get(CONF_BATTERY_MODULES, 0))
     )
     tou_slots = int(
         entry.options.get(CONF_TOU_SLOTS, entry.data.get(CONF_TOU_SLOTS, 0))

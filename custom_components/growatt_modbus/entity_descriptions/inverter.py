@@ -1,4 +1,5 @@
 """Growatt Sensor definitions for the Inverter type."""
+
 from __future__ import annotations
 
 from homeassistant.components.sensor import (
@@ -87,8 +88,7 @@ from .descriptions import GrowattSensorEntityDescription
 
 INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
-        key=ATTR_BATTERY_NUMBER_OF_MODULES,
-        name="Number of battery modules"
+        key=ATTR_BATTERY_NUMBER_OF_MODULES, name="Number of battery modules"
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_ENERGY_TODAY,
@@ -477,7 +477,7 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_OUTPUT_PERCENTAGE,
         name="Real power output percentage",
         native_unit_of_measurement=PERCENTAGE,
-        device_class=SensorDeviceClass.POWER_FACTOR
+        device_class=SensorDeviceClass.POWER_FACTOR,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_AC_CHARGE_ENERGY_TODAY,
@@ -485,7 +485,7 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        midnight_reset=True
+        midnight_reset=True,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_AC_CHARGE_ENERGY_TOTAL,

@@ -2,6 +2,7 @@
 
 Exposes writable holding registers (e.g. AC charge enable) as switches.
 """
+
 from __future__ import annotations
 
 import logging
@@ -52,7 +53,9 @@ async def async_setup_entry(
     ]
 
     # Make sure the backing registers are part of the polled key set.
-    coordinator.get_keys_by_name({description.key for description in descriptions}, True)
+    coordinator.get_keys_by_name(
+        {description.key for description in descriptions}, True
+    )
 
     entities: list = [
         GrowattSwitch(coordinator, description=description, entry=config_entry)

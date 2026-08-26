@@ -1,4 +1,5 @@
 """Device defaults for a Growatt Inverter."""
+
 from typing import Any
 
 from .base import (
@@ -203,7 +204,11 @@ _MODULE_DERATING_MODES = {
 }
 
 
-MODULE_DERATING_OPTIONS = [*dict.fromkeys(_MODULE_DERATING_MODES.values()), "Reserved", "Unknown"]
+MODULE_DERATING_OPTIONS = [
+    *dict.fromkeys(_MODULE_DERATING_MODES.values()),
+    "Reserved",
+    "Unknown",
+]
 
 
 def module_derating_mode(register) -> str:
@@ -217,7 +222,12 @@ def module_derating_mode(register) -> str:
 # dict returned by the function above).
 _MULTI_VALUE_DECODERS: dict[Any, tuple[str, ...]] = {
     bat_balance_state: ("state", "time_hours"),
-    bat_subcode: ("charge_enabled", "discharge_enabled", "warning_subcode", "fault_subcode"),
+    bat_subcode: (
+        "charge_enabled",
+        "discharge_enabled",
+        "warning_subcode",
+        "fault_subcode",
+    ),
     bat_internal_state: ("short_circuit", "sox_correction"),
 }
 
@@ -225,38 +235,80 @@ _MULTI_VALUE_DECODERS: dict[Any, tuple[str, ...]] = {
 # (offset from block start, name suffix, value_type, scale, length, signed, function)
 _MODULE_TELEMETRY_FIELDS = (
     (0, "system_state", custom_function, 1, 1, False, bat_sys_state),  # 5080
-    (1, "soc", custom_function, 1, 1, False, bat_soc),         # 5081 BatSOC, %
-    (2, "soh", custom_function, 1, 1, False, bat_soh),         # 5082 BatSOH, %
-    (3, "voltage", float, 10, 1, False, None),                # 5083 BatVolt, 0.1V
-    (4, "current", float, 10, 1, True, None),                 # 5084 BatCurrent, 0.1A
-    (5, "power", int, 1, 1, True, None),                      # 5085 BatPower, 1W
-    (6, "discharge_energy_total", float, 10, 2, False, None), # 5086-5087, 0.1kWh
-    (8, "cell_voltage_max", float, 1000, 1, False, None),     # 5088, 0.001V
-    (9, "cell_voltage_min", float, 1000, 1, False, None),     # 5089, 0.001V
-    (10, "temperature_max", float, 10, 1, True, None),        # 5090 BatMaxTemp, 0.1C
-    (11, "temperature_min", float, 10, 1, True, None),        # 5091 BatMinTemp, 0.1C
+    (1, "soc", custom_function, 1, 1, False, bat_soc),  # 5081 BatSOC, %
+    (2, "soh", custom_function, 1, 1, False, bat_soh),  # 5082 BatSOH, %
+    (3, "voltage", float, 10, 1, False, None),  # 5083 BatVolt, 0.1V
+    (4, "current", float, 10, 1, True, None),  # 5084 BatCurrent, 0.1A
+    (5, "power", int, 1, 1, True, None),  # 5085 BatPower, 1W
+    (6, "discharge_energy_total", float, 10, 2, False, None),  # 5086-5087, 0.1kWh
+    (8, "cell_voltage_max", float, 1000, 1, False, None),  # 5088, 0.001V
+    (9, "cell_voltage_min", float, 1000, 1, False, None),  # 5089, 0.001V
+    (10, "temperature_max", float, 10, 1, True, None),  # 5090 BatMaxTemp, 0.1C
+    (11, "temperature_min", float, 10, 1, True, None),  # 5091 BatMinTemp, 0.1C
     (14, "balance", custom_function, 1, 1, False, bat_balance_state),  # 5094 state + h
-    (15, "cell_capacity", float, 10, 1, False, None),         # 5095 BatCellCapacity, 0.1Ah
-    (17, "fault_code", int, 1, 1, False, None),               # 5097 BatFaultCode
-    (18, "warning_code", int, 1, 1, False, None),             # 5098 BatWarningCode
-    (19, "flags", custom_function, 1, 1, False, bat_subcode), # 5099 BatSubCode bitfield
-    (20, "charge_energy_total", float, 10, 2, False, None),   # 5100-5101, 0.1kWh
+    (15, "cell_capacity", float, 10, 1, False, None),  # 5095 BatCellCapacity, 0.1Ah
+    (17, "fault_code", int, 1, 1, False, None),  # 5097 BatFaultCode
+    (18, "warning_code", int, 1, 1, False, None),  # 5098 BatWarningCode
+    (
+        19,
+        "flags",
+        custom_function,
+        1,
+        1,
+        False,
+        bat_subcode,
+    ),  # 5099 BatSubCode bitfield
+    (20, "charge_energy_total", float, 10, 2, False, None),  # 5100-5101, 0.1kWh
     (22, "discharge_capacity_total", float, 100, 2, False, None),  # 5102-5103, 0.01Ah
-    (24, "charge_capacity_total", float, 100, 2, False, None),     # 5104-5105, 0.01Ah
-    (26, "cell_capacity_min", float, 10, 1, False, None),     # 5106 BatMinCellCapacity, 0.1Ah
-    (27, "ah_integral", float, 10, 1, False, None),           # 5107 BatAHIntegralValue, 0.1Ah
-    (28, "cycle_count", float, 10, 1, False, None),           # 5108 BatCyclesNumber, 0.1Cyc
-    (29, "internal", custom_function, 1, 1, False, bat_internal_state),  # 5109 BatInternalState
-    (30, "derating_mode", custom_function, 1, 1, False, module_derating_mode),  # 5110 BDCDeratingMode
+    (24, "charge_capacity_total", float, 100, 2, False, None),  # 5104-5105, 0.01Ah
+    (
+        26,
+        "cell_capacity_min",
+        float,
+        10,
+        1,
+        False,
+        None,
+    ),  # 5106 BatMinCellCapacity, 0.1Ah
+    (27, "ah_integral", float, 10, 1, False, None),  # 5107 BatAHIntegralValue, 0.1Ah
+    (28, "cycle_count", float, 10, 1, False, None),  # 5108 BatCyclesNumber, 0.1Cyc
+    (
+        29,
+        "internal",
+        custom_function,
+        1,
+        1,
+        False,
+        bat_internal_state,
+    ),  # 5109 BatInternalState
+    (
+        30,
+        "derating_mode",
+        custom_function,
+        1,
+        1,
+        False,
+        module_derating_mode,
+    ),  # 5110 BDCDeratingMode
 )
 
 
-def build_battery_module_input_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
+def build_battery_module_input_registers(
+    count: int,
+) -> tuple[GrowattDeviceRegisters, ...]:
     """Generate per-module live telemetry input registers for `count` modules."""
     registers: list[GrowattDeviceRegisters] = []
     for module in range(1, count + 1):
         base = _MODULE_TELEMETRY_BASE + (module - 1) * _MODULE_TELEMETRY_STRIDE
-        for offset, suffix, value_type, scale, length, signed, function in _MODULE_TELEMETRY_FIELDS:
+        for (
+            offset,
+            suffix,
+            value_type,
+            scale,
+            length,
+            signed,
+            function,
+        ) in _MODULE_TELEMETRY_FIELDS:
             name = f"battery_module_{module}_{suffix}"
             value_names = tuple(
                 f"{name}_{sub}" for sub in _MULTI_VALUE_DECODERS.get(function, ())
@@ -340,6 +392,8 @@ def build_battery_module_registers(count: int) -> tuple[GrowattDeviceRegisters, 
             )
         )
     return tuple(registers)
+
+
 def model(registers) -> str:
     mo = (registers[0] << 16) + registers[1]
     return "A{:X} B{:X} D{:X} T{:X} P{:X} U{:X} M{:X} S{:X}".format(  # noqa: UP032
@@ -352,9 +406,12 @@ def model(registers) -> str:
         (mo & 0x000000F0) >> 4,
         (mo & 0x0000000F),
     )
+
+
 SERIAL_NUMBER_REGISTER = GrowattDeviceRegisters(
     name=ATTR_SERIAL_NUMBER, register=3001, value_type=str, length=15
 )
+
 
 def inverter_status(register) -> str | None:
     web_status = register & 0x00FF
@@ -369,6 +426,7 @@ def inverter_status(register) -> str | None:
 
     return None
 
+
 def inverter_mode(register) -> str:
     if register == 0:
         return "Load"
@@ -379,6 +437,7 @@ def inverter_mode(register) -> str:
 
     return f"Unknown value: {register}"
 
+
 def bdc_data_flag(register) -> str:
     if register == 0:
         return "No need"
@@ -386,6 +445,7 @@ def bdc_data_flag(register) -> str:
         return "Need"
 
     return f"Unknown value: {register}"
+
 
 # Battery derating mode (input register 3165), per V1.39 "Table 2".
 _BDC_DERATING_MODES = {
@@ -431,9 +491,8 @@ def bdc_derating_mode(register) -> str:
     return _BDC_DERATING_MODES.get(register, "Unknown")
 
 
-
 def netto_meter_energy(registers) -> float:
-    production = (registers[0] * 65536.0 + registers[1])* 0.1
+    production = (registers[0] * 65536.0 + registers[1]) * 0.1
     consumption = (registers[2] * 65536.0 + registers[3]) * 0.1
 
     return production - consumption
@@ -444,35 +503,34 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     SERIAL_NUMBER_REGISTER,
     # --- Additional firmware readouts ---
     GrowattDeviceRegisters(
-        name=ATTR_CONTROL_FIRMWARE, register=12, value_type=custom_function,
-        length=3, function=decode_ascii
+        name=ATTR_CONTROL_FIRMWARE,
+        register=12,
+        value_type=custom_function,
+        length=3,
+        function=decode_ascii,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BDC_FIRMWARE, register=3099, value_type=custom_function,
-        length=3, function=firmware_code_version  # 3099-3100 code + 3101 version
+        name=ATTR_BDC_FIRMWARE,
+        register=3099,
+        value_type=custom_function,
+        length=3,
+        function=firmware_code_version,  # 3099-3100 code + 3101 version
     ),
-    GrowattDeviceRegisters(
-        name=ATTR_BMS_FIRMWARE, register=3105, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_BMS_FIRMWARE, register=3105, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_INVERTER_MODEL,
         register=28,
         value_type=custom_function,
         length=2,
-        function=model
+        function=model,
     ),
     DEVICE_TYPE_CODE_REGISTER,
     NUMBER_OF_TRACKERS_AND_PHASES_REGISTER,
     GrowattDeviceRegisters(
-        name=ATTR_MODBUS_VERSION,
-        register=88,
-        value_type=float,
-        scale=100
+        name=ATTR_MODBUS_VERSION, register=88, value_type=float, scale=100
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BATTERY_NUMBER_OF_MODULES,
-        register=185,
-        value_type=int
+        name=ATTR_BATTERY_NUMBER_OF_MODULES, register=185, value_type=int
     ),
     # Nameplate / rated values (read-only).
     GrowattDeviceRegisters(
@@ -496,37 +554,33 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_BATTERY_DISCHARGE_RATE_WHEN_GRID_FIRST,
         register=3036,
         value_type=int,
-        length=1
+        length=1,
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
         register=3047,
         value_type=int,
-        length=1
+        length=1,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BATTERY_CHARGE_STOP_SOC,
-        register=3048,
-        value_type=int,
-        length=1
+        name=ATTR_BATTERY_CHARGE_STOP_SOC, register=3048, value_type=int, length=1
     ),
     GrowattDeviceRegisters(
-        name=ATTR_AC_CHARGE_ENABLED,
-        register=3049,
-        value_type=int,
-        length=1
+        name=ATTR_AC_CHARGE_ENABLED, register=3049, value_type=int, length=1
     ),
     # --- Writable command registers added in Protocol II V1.39 ---
     GrowattDeviceRegisters(
         name=ATTR_DRY_CONTACT_ENABLED, register=3016, value_type=int
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC,  # holding 951 uwBatChargeStopSoc, 0-100%
+        # holding 951 uwBatChargeStopSoc, 0-100%
+        name=ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC,
         register=951,
         value_type=int,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC,  # holding 952 uwBatDisChargeStopSoc, 0-100%
+        # holding 952 uwBatDisChargeStopSoc, 0-100%
+        name=ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC,
         register=952,
         value_type=int,
     ),
@@ -536,37 +590,29 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     GrowattDeviceRegisters(
         name=ATTR_ON_GRID_DISCHARGE_STOP_SOC, register=3067, value_type=int
     ),
-    GrowattDeviceRegisters(
-        name=ATTR_BATTERY_TYPE, register=3070, value_type=int
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_PRE_PTO_ENABLED, register=3072, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_BATTERY_TYPE, register=3070, value_type=int),
+    GrowattDeviceRegisters(name=ATTR_PRE_PTO_ENABLED, register=3072, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_GENERATOR_CHARGE_ENABLED, register=3073, value_type=int
     ),
-    GrowattDeviceRegisters(
-        name=ATTR_GENERATOR_FORCE, register=3074, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_GENERATOR_FORCE, register=3074, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_UPS_FUNCTION_ENABLED, register=3079, value_type=int
     ),
-    GrowattDeviceRegisters(
-        name=ATTR_UPS_OUTPUT_VOLTAGE, register=3080, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_UPS_OUTPUT_VOLTAGE, register=3080, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_UPS_OUTPUT_FREQUENCY, register=3081, value_type=int
     ),
+    GrowattDeviceRegisters(name=ATTR_EXPORT_LIMIT_MODE, register=122, value_type=int),
     GrowattDeviceRegisters(
-        name=ATTR_EXPORT_LIMIT_MODE, register=122, value_type=int
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_EXPORT_LIMIT_RATE, register=123, value_type=float, scale=10, signed=True
+        name=ATTR_EXPORT_LIMIT_RATE,
+        register=123,
+        value_type=float,
+        scale=10,
+        signed=True,
     ),
     # --- Peak shaving (holding 3306-3310) ---
-    GrowattDeviceRegisters(
-        name=ATTR_PEAK_SHAVING_MODE, register=3306, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_PEAK_SHAVING_MODE, register=3306, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_PEAK_SHAVING_IMPORT_LIMIT,  # 0.1 kW grid-import cap
         register=3307,
@@ -584,7 +630,9 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE, register=3309, value_type=int
     ),
     GrowattDeviceRegisters(
-        name=ATTR_RESERVED_SOC_FOR_PEAK_SHAVING, register=3310, value_type=int  # % 0-100
+        name=ATTR_RESERVED_SOC_FOR_PEAK_SHAVING,
+        register=3310,
+        value_type=int,  # % 0-100
     ),
 )
 
@@ -594,75 +642,123 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     # MAX series the same addresses are Warn Maincode, real Power Percent,
     # inv start delay time and bINVAllFaultCode - which is why these belong
     # here rather than in the plain-inverter map.
-    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TODAY, register=112, value_type=float, length=2, scale=10, signed=True),
-    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TOTAL, register=114, value_type=float, length=2, scale=10, signed=True),
+    GrowattDeviceRegisters(
+        name=ATTR_AC_CHARGE_ENERGY_TODAY,
+        register=112,
+        value_type=float,
+        length=2,
+        scale=10,
+        signed=True,
+    ),
+    GrowattDeviceRegisters(
+        name=ATTR_AC_CHARGE_ENERGY_TOTAL,
+        register=114,
+        value_type=float,
+        length=2,
+        scale=10,
+        signed=True,
+    ),
     GrowattDeviceRegisters(
         name=ATTR_INVERTER_STATUS,
         register=3000,
         value_type=custom_function,
         length=1,
-        function=inverter_status
+        function=inverter_status,
     ),
     GrowattDeviceRegisters(
         name=ATTR_METER_POWER_NETTO,
         register=3041,
         value_type=custom_function,
         length=4,
-        function=netto_meter_energy
+        function=netto_meter_energy,
     ),
     GrowattDeviceRegisters(
         name=ATTR_INVERTER_MODE,
         register=3144,
         value_type=custom_function,
         length=1,
-        function=inverter_mode
+        function=inverter_mode,
     ),
     GrowattDeviceRegisters(
         name=ATTR_BDC_DATA_FLAG,
         register=3164,
         value_type=custom_function,
         length=1,
-        function=bdc_data_flag
+        function=bdc_data_flag,
     ),
     GrowattDeviceRegisters(
         name=ATTR_BDC_DERATING_MODE,
         register=3165,
         value_type=custom_function,
         length=1,
-        function=bdc_derating_mode
+        function=bdc_derating_mode,
     ),
+    GrowattDeviceRegisters(name=ATTR_SOC_PERCENTAGE, register=3171, value_type=int),
     GrowattDeviceRegisters(
-        name=ATTR_SOC_PERCENTAGE, register=3171, value_type=int
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_DISCHARGE_POWER, register=3178, value_type=float, length=2, signed=True
+        name=ATTR_DISCHARGE_POWER,
+        register=3178,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
         name=ATTR_CHARGE_POWER, register=3180, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_ENERGY_TO_USER_TODAY, register=3067, value_type=float, length=2, signed=True
+        name=ATTR_ENERGY_TO_USER_TODAY,
+        register=3067,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_ENERGY_TO_USER_TOTAL, register=3069, value_type=float, length=2, signed=True
+        name=ATTR_ENERGY_TO_USER_TOTAL,
+        register=3069,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_ENERGY_TO_GRID_TODAY, register=3071, value_type=float, length=2, signed=True
+        name=ATTR_ENERGY_TO_GRID_TODAY,
+        register=3071,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_ENERGY_TO_GRID_TOTAL, register=3073, value_type=float, length=2, signed=True
+        name=ATTR_ENERGY_TO_GRID_TOTAL,
+        register=3073,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_DISCHARGE_ENERGY_TODAY, register=3125, value_type=float, length=2, signed=True
+        name=ATTR_DISCHARGE_ENERGY_TODAY,
+        register=3125,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_DISCHARGE_ENERGY_TOTAL, register=3127, value_type=float, length=2, signed=True
+        name=ATTR_DISCHARGE_ENERGY_TOTAL,
+        register=3127,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_CHARGE_ENERGY_TODAY, register=3129, value_type=float, length=2, signed=True
+        name=ATTR_CHARGE_ENERGY_TODAY,
+        register=3129,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_CHARGE_ENERGY_TOTAL, register=3131, value_type=float, length=2, signed=True
+        name=ATTR_CHARGE_ENERGY_TOTAL,
+        register=3131,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
         name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float, signed=True
@@ -675,19 +771,39 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     ),
     # --- Telemetry registers added in Protocol II V1.39 ---
     GrowattDeviceRegisters(
-        name=ATTR_SELF_CONSUMPTION_POWER, register=3121, value_type=float, length=2, signed=True
+        name=ATTR_SELF_CONSUMPTION_POWER,
+        register=3121,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_SYSTEM_ENERGY_TODAY, register=3123, value_type=float, length=2, signed=True
+        name=ATTR_SYSTEM_ENERGY_TODAY,
+        register=3123,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_SYSTEM_ENERGY_TOTAL, register=3137, value_type=float, length=2, signed=True
+        name=ATTR_SYSTEM_ENERGY_TOTAL,
+        register=3137,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_SELF_CONSUMPTION_ENERGY_TODAY, register=3139, value_type=float, length=2, signed=True
+        name=ATTR_SELF_CONSUMPTION_ENERGY_TODAY,
+        register=3139,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_SELF_CONSUMPTION_ENERGY_TOTAL, register=3141, value_type=float, length=2, signed=True
+        name=ATTR_SELF_CONSUMPTION_ENERGY_TOTAL,
+        register=3141,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=100
@@ -695,43 +811,32 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_CURRENT, register=3170, value_type=float, signed=True
     ),
-    GrowattDeviceRegisters(
-        name=ATTR_BMS_MAX_SOC, register=3196, value_type=int
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_BMS_MIN_SOC, register=3197, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_BMS_MAX_SOC, register=3196, value_type=int),
+    GrowattDeviceRegisters(name=ATTR_BMS_MIN_SOC, register=3197, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_PARALLEL_BATTERY_NUM, register=3198, value_type=int
     ),
     # --- Battery / BMS detail and fault registers (3165-3233 block) ---
-    GrowattDeviceRegisters(
-        name=ATTR_STORAGE_FAULT_CODE, register=3167, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_STORAGE_FAULT_CODE, register=3167, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_STORAGE_WARNING_CODE, register=3168, value_type=int
     ),
+    GrowattDeviceRegisters(name=ATTR_BMS_DERATE_REASON, register=3199, value_type=int),
     GrowattDeviceRegisters(
-        name=ATTR_BMS_DERATE_REASON, register=3199, value_type=int
+        name=ATTR_BMS_STATUS,
+        register=3212,
+        value_type=custom_function,
+        function=bms_status,
     ),
-    GrowattDeviceRegisters(
-        name=ATTR_BMS_STATUS, register=3212, value_type=custom_function, function=bms_status
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_BMS_SOC, register=3215, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_BMS_SOC, register=3215, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_BMS_MAX_CHARGE_CURRENT, register=3219, value_type=float, scale=100
     ),
     GrowattDeviceRegisters(
         name=ATTR_BMS_MAX_DISCHARGE_CURRENT, register=3220, value_type=float, scale=100
     ),
-    GrowattDeviceRegisters(
-        name=ATTR_BMS_CYCLE_COUNT, register=3221, value_type=int
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_BMS_SOH, register=3222, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_BMS_CYCLE_COUNT, register=3221, value_type=int),
+    GrowattDeviceRegisters(name=ATTR_BMS_SOH, register=3222, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_BMS_CELL_VOLTAGE_MAX, register=3230, value_type=float, scale=1000
     ),
