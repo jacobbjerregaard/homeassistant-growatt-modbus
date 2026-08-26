@@ -143,3 +143,30 @@ async def test_reserved_soc_for_peak_shaving_number_writes(hass, setup_storage):
         "number", "set_value", {"entity_id": eid, "value": 30}, blocking=True
     )
     assert (3310, 30) in fake.writes
+
+
+def test_apparent_and_reactive_power_use_correct_units():
+    """Protocol_II V1.39 documents these in VA and var, not watts.
+
+    Pac1/2/3 (input 40-41, 44-45, 48-49) are "grid output watt VA", 0.1VA.
+    Reactive power is 0.1var. Exposing either as UnitOfPower.WATT with
+    device_class POWER misreports the quantity, and makes them selectable
+    wherever Home Assistant offers real-power sensors.
+    """
+    from homeassistant.components.sensor import SensorDeviceClass
+    from homeassistant.const import UnitOfApparentPower, UnitOfReactivePower
+
+    from custom_components.growatt_modbus.entity_descriptions.inverter import (
+        INVERTER_SENSOR_TYPES,
+    )
+
+    by_key = {d.key: d for d in INVERTER_SENSOR_TYPES}
+
+    for n in (1, 2, 3):
+        d = by_key[f"output_{n}_power"]
+        assert d.device_class is SensorDeviceClass.APPARENT_POWER
+        assert d.native_unit_of_measurement is UnitOfApparentPower.VOLT_AMPERE
+
+    d = by_key["output_reactive_power"]
+    assert d.device_class is SensorDeviceClass.REACTIVE_POWER
+    assert d.native_unit_of_measurement is UnitOfReactivePower.VOLT_AMPERE_REACTIVE
