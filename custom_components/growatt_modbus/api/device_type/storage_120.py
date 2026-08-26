@@ -626,34 +626,34 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_SOC_PERCENTAGE, register=3171, value_type=int
     ),
     GrowattDeviceRegisters(
-        name=ATTR_DISCHARGE_POWER, register=3178, value_type=float, length=2
+        name=ATTR_DISCHARGE_POWER, register=3178, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_CHARGE_POWER, register=3180, value_type=float, length=2
+        name=ATTR_CHARGE_POWER, register=3180, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_ENERGY_TO_USER_TODAY, register=3067, value_type=float, length=2
+        name=ATTR_ENERGY_TO_USER_TODAY, register=3067, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_ENERGY_TO_USER_TOTAL, register=3069, value_type=float, length=2
+        name=ATTR_ENERGY_TO_USER_TOTAL, register=3069, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_ENERGY_TO_GRID_TODAY, register=3071, value_type=float, length=2
+        name=ATTR_ENERGY_TO_GRID_TODAY, register=3071, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_ENERGY_TO_GRID_TOTAL, register=3073, value_type=float, length=2
+        name=ATTR_ENERGY_TO_GRID_TOTAL, register=3073, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_DISCHARGE_ENERGY_TODAY, register=3125, value_type=float, length=2
+        name=ATTR_DISCHARGE_ENERGY_TODAY, register=3125, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_DISCHARGE_ENERGY_TOTAL, register=3127, value_type=float, length=2
+        name=ATTR_DISCHARGE_ENERGY_TOTAL, register=3127, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_CHARGE_ENERGY_TODAY, register=3129, value_type=float, length=2
+        name=ATTR_CHARGE_ENERGY_TODAY, register=3129, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_CHARGE_ENERGY_TOTAL, register=3131, value_type=float, length=2
+        name=ATTR_CHARGE_ENERGY_TOTAL, register=3131, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
         name=ATTR_BMS_TEMPERATURE_A, register=3176, value_type=float, signed=True
@@ -666,19 +666,19 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     ),
     # --- Telemetry registers added in Protocol II V1.39 ---
     GrowattDeviceRegisters(
-        name=ATTR_SELF_CONSUMPTION_POWER, register=3121, value_type=float, length=2
+        name=ATTR_SELF_CONSUMPTION_POWER, register=3121, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_SYSTEM_ENERGY_TODAY, register=3123, value_type=float, length=2
+        name=ATTR_SYSTEM_ENERGY_TODAY, register=3123, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_SYSTEM_ENERGY_TOTAL, register=3137, value_type=float, length=2
+        name=ATTR_SYSTEM_ENERGY_TOTAL, register=3137, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_SELF_CONSUMPTION_ENERGY_TODAY, register=3139, value_type=float, length=2
+        name=ATTR_SELF_CONSUMPTION_ENERGY_TODAY, register=3139, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_SELF_CONSUMPTION_ENERGY_TOTAL, register=3141, value_type=float, length=2
+        name=ATTR_SELF_CONSUMPTION_ENERGY_TOTAL, register=3141, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=100
