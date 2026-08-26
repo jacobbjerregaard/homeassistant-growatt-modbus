@@ -551,7 +551,7 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 retries=0,
             )
             await asyncio.wait_for(server.connect(), 3)
-        except TimeoutError, ConnectionException:
+        except (TimeoutError, ConnectionException):
             return None, {"base": "network_connection"}
         if not server.connected():
             server.close()

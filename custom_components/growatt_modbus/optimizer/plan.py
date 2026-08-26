@@ -73,7 +73,7 @@ def _read_float(hass: HomeAssistant, entity_id: str) -> tuple[float | None, Any 
     forecasts = state.attributes.get("forecasts")
     try:
         return float(state.state), forecasts
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         return None, forecasts
 
 

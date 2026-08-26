@@ -12,6 +12,7 @@ importing from the specific module in new code - importing the register
 dataclass should not have to pull in 150 name constants.
 """
 
+from . import attrs
 from .attrs import *  # noqa: F403
 from .models import (  # noqa: F401
     DEVICE_TYPE_CODE_REGISTER,
@@ -32,3 +33,24 @@ from .status import (  # noqa: F401
     InverterStatus,
     inverter_status,
 )
+
+# Re-exported for callers that still import from `base`; `attrs` contributes
+# its own names through the star import above.
+__all__ = [
+    "DEVICE_TYPE_CODES",
+    "DEVICE_TYPE_CODE_REGISTER",
+    "FIRMWARE_REGISTER",
+    "GrowattDeviceInfo",
+    "GrowattDeviceRegisters",
+    "INVERTER_DERATINGMODES",
+    "INVERTER_FAULTCODES",
+    "INVERTER_WARNINGCODES",
+    "InverterStatus",
+    "NUMBER_OF_TRACKERS_AND_PHASES_REGISTER",
+    "SERIAL_NUMBER_REGISTER",
+    "custom_function",
+    "device_type",
+    "inverter_status",
+    "trackers_and_phases",
+    *attrs.__all__,
+]
