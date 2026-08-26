@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   unit:
     name: Pure-logic unit tests
@@ -19,6 +22,7 @@ jobs:
       - uses: "actions/setup-python@v6"
         with:
           python-version: "3.14"
+          cache: pip
       - name: Install test dependencies
         run: pip install -r requirements_test.txt
       - name: Run unit tests
@@ -33,7 +37,30 @@ jobs:
       - uses: "actions/setup-python@v6"
         with:
           python-version: "3.14"
+          cache: pip
       - name: Install test dependencies
         run: pip install -r requirements_test_ha.txt
       - name: Run integration tests
         run: pytest tests/integration
+
+  coverage:
+    name: Combined coverage
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v7"
+      - uses: "actions/setup-python@v6"
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install test dependencies
+        # The HA tree can run both suites, so CI collects coverage in one
+        # interpreter rather than the two scripts/coverage.sh merges locally.
+        run: pip install -r requirements_test_ha.txt
+      - name: Run both suites under coverage
+        run: |
+          coverage run --source=custom_components/growatt_modbus -m pytest
+          coverage report --show-missing
+      - name: Enforce the floor
+        # Combined coverage has been ~95%; this only catches a real collapse,
+        # so it does not fail a PR for a percentage point of drift.
+        run: coverage report --fail-under=90
