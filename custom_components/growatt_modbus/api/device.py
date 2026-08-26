@@ -41,9 +41,9 @@ from .device_type.storage_120 import (
 from .device_type.time_slots import (
     build_time_slot_registers,
 )
+from .lru_cache import LRUCache
 from .utils import (
     DeviceRegisters,
-    LRUCache,
     RegisterKeys,
     get_keys_from_register,
     keys_sequences,
