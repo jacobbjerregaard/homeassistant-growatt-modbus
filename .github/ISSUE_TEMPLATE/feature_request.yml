@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest a register, entity or capability to add
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like?
+    validations:
+      required: true
+  - type: textarea
+    id: spec
+    attributes:
+      label: Protocol reference
+      description: >-
+        If you are asking for a new register or entity, the register number and
+        the section of the Growatt Modbus protocol document that describes it.
+        Register meanings differ between models, so the model matters here too.
+    validations:
+      required: false

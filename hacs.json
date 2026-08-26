@@ -1,5 +1,6 @@
 {
   "name": "Growatt Modbus",
   "render_readme": true,
-  "zip_release": false
+  "zip_release": false,
+  "homeassistant": "2024.6.0"
 }

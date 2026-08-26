@@ -1,0 +1,90 @@
+name: Bug report
+description: Something is wrong with the integration
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this.
+
+        Most reports come down to *which registers your model exposes*, so the
+        device type and protocol version below matter more than they look.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you get instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device_type
+    attributes:
+      label: Device type
+      description: Settings → Devices & Services → Growatt Modbus → Configure
+      options:
+        - RTU 2 - Inverter v1.24
+        - Hybrid Inverter Protocol version 1.24
+        - RTU - Inverter v3.15
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Inverter model
+      description: The model on the unit's label, and whether you have batteries.
+      placeholder: "e.g. MIC 600TL-X, no batteries"
+    validations:
+      required: true
+
+  - type: input
+    id: entity
+    attributes:
+      label: Affected entity id
+      description: >-
+        The full `sensor.` id, from Developer Tools → States. If a value looks
+        wrong, paste the state and the attributes box too.
+      placeholder: sensor.inverter_output_power
+    validations:
+      required: false
+
+  - type: textarea
+    id: values
+    attributes:
+      label: Observed vs expected values
+      description: >-
+        For wrong readings, a rough ratio helps a lot. A factor of 65,536 or a
+        value near 429,496,729 points at register decoding; a clean 10x or 100x
+        points at scaling.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: >-
+        Enable debug logging for `custom_components.growatt_modbus`, reproduce,
+        then paste the relevant lines.
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: versions
+    attributes:
+      label: Integration and Home Assistant versions
+      placeholder: "integration 0.21.0, Home Assistant 2026.8.3"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        **Diagnostics** are the single most useful attachment: the device page
+        has a *Download diagnostics* button, and the file includes the raw
+        register values with the serial number redacted.
