@@ -1,5 +1,5 @@
 """Tests for the small ``LRUCache`` used to memoise register sequences."""
-from growatt_api.utils import LRUCache
+from growatt_api.lru_cache import LRUCache
 
 
 def test_stores_and_retrieves_values():
