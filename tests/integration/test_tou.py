@@ -1,4 +1,5 @@
 """Integration tests for the time-of-use slot GUI entities."""
+
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.growatt_modbus.const import DOMAIN
@@ -70,5 +71,5 @@ async def test_setting_start_time_rewrites_slot(hass, setup_storage_tou):
     )
 
     new1 = fake.registers[3038]
-    assert (new1 >> 8) & 0x1F == 6   # start hour
-    assert new1 & 0xFF == 15         # start minute
+    assert (new1 >> 8) & 0x1F == 6  # start hour
+    assert new1 & 0xFF == 15  # start minute

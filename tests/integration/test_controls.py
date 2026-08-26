@@ -1,4 +1,5 @@
 """Integration tests: the writable control entities write the right registers."""
+
 from homeassistant.helpers import entity_registry as er
 
 
@@ -16,7 +17,10 @@ async def test_export_limit_mode_select_writes(hass, setup_storage):
     entry, fake = setup_storage
     eid = _entity_id(hass, entry, "select", "_export_limit_mode")  # holding 122
     await hass.services.async_call(
-        "select", "select_option", {"entity_id": eid, "option": "Enable (CT)"}, blocking=True
+        "select",
+        "select_option",
+        {"entity_id": eid, "option": "Enable (CT)"},
+        blocking=True,
     )
     assert (122, 3) in fake.writes
 
@@ -34,7 +38,9 @@ async def test_export_limit_rate_number_writes_signed(hass, setup_storage):
 
 async def test_number_writes_register(hass, setup_storage):
     entry, fake = setup_storage
-    eid = _entity_id(hass, entry, "number", "_grid_first_stop_soc")  # holding 3037, int %
+    eid = _entity_id(
+        hass, entry, "number", "_grid_first_stop_soc"
+    )  # holding 3037, int %
     await hass.services.async_call(
         "number", "set_value", {"entity_id": eid, "value": 55}, blocking=True
     )
@@ -45,7 +51,10 @@ async def test_select_writes_mapped_value(hass, setup_storage):
     entry, fake = setup_storage
     eid = _entity_id(hass, entry, "select", "_battery_type")  # holding 3070
     await hass.services.async_call(
-        "select", "select_option", {"entity_id": eid, "option": "Lead-acid"}, blocking=True
+        "select",
+        "select_option",
+        {"entity_id": eid, "option": "Lead-acid"},
+        blocking=True,
     )
     assert (3070, 1) in fake.writes  # Lead-acid -> 1
 
@@ -110,7 +119,9 @@ async def test_peak_shaving_mode_switch_writes(hass, setup_storage):
 
 async def test_peak_shaving_import_limit_writes_scaled(hass, setup_storage):
     entry, fake = setup_storage
-    eid = _entity_id(hass, entry, "number", "_peak_shaving_import_limit")  # holding 3307, 0.1 kW
+    eid = _entity_id(
+        hass, entry, "number", "_peak_shaving_import_limit"
+    )  # holding 3307, 0.1 kW
     await hass.services.async_call(
         "number", "set_value", {"entity_id": eid, "value": 5.0}, blocking=True
     )
@@ -119,7 +130,9 @@ async def test_peak_shaving_import_limit_writes_scaled(hass, setup_storage):
 
 async def test_peak_shaving_export_limit_writes_signed(hass, setup_storage):
     entry, fake = setup_storage
-    eid = _entity_id(hass, entry, "number", "_peak_shaving_export_limit")  # holding 3308, signed 0.1 kW
+    eid = _entity_id(
+        hass, entry, "number", "_peak_shaving_export_limit"
+    )  # holding 3308, signed 0.1 kW
     await hass.services.async_call(
         "number", "set_value", {"entity_id": eid, "value": -3.0}, blocking=True
     )
@@ -129,7 +142,9 @@ async def test_peak_shaving_export_limit_writes_signed(hass, setup_storage):
 
 async def test_reserved_soc_enable_switch_writes(hass, setup_storage):
     entry, fake = setup_storage
-    eid = _entity_id(hass, entry, "switch", "_reserved_soc_for_peak_shaving_enable")  # holding 3309
+    eid = _entity_id(
+        hass, entry, "switch", "_reserved_soc_for_peak_shaving_enable"
+    )  # holding 3309
     await hass.services.async_call(
         "switch", "turn_on", {"entity_id": eid}, blocking=True
     )
@@ -138,7 +153,9 @@ async def test_reserved_soc_enable_switch_writes(hass, setup_storage):
 
 async def test_reserved_soc_for_peak_shaving_number_writes(hass, setup_storage):
     entry, fake = setup_storage
-    eid = _entity_id(hass, entry, "number", "_reserved_soc_for_peak_shaving")  # holding 3310, int %
+    eid = _entity_id(
+        hass, entry, "number", "_reserved_soc_for_peak_shaving"
+    )  # holding 3310, int %
     await hass.services.async_call(
         "number", "set_value", {"entity_id": eid, "value": 30}, blocking=True
     )

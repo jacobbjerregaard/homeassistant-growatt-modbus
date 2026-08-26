@@ -5,6 +5,7 @@ missed that write_register called convert_to_registers with renamed kwargs and
 passed a list + positional unit. These tests pin the call we make and check it
 against the real pymodbus write_register signature.
 """
+
 import inspect
 from unittest.mock import AsyncMock, MagicMock
 

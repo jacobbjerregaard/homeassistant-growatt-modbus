@@ -3,6 +3,7 @@
 Exposes device-level actions; currently a "Sync device time" button that writes
 the Home Assistant host clock to the inverter (holding registers 45-50).
 """
+
 from __future__ import annotations
 
 import logging

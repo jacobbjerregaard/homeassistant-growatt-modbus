@@ -3,6 +3,7 @@
 Pure reading: this module turns the EMHASS sensors into an OptimizationPlan
 snapshot. It knows nothing about the inverter and never writes anything.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -72,7 +73,7 @@ def _read_float(hass: HomeAssistant, entity_id: str) -> tuple[float | None, Any 
     forecasts = state.attributes.get("forecasts")
     try:
         return float(state.state), forecasts
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return None, forecasts
 
 

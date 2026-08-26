@@ -13,6 +13,7 @@ namespace package named ``growatt_api``.  Tests can then do::
 
 without pulling in Home Assistant or pymodbus.
 """
+
 import importlib.machinery
 import importlib.util
 import sys

@@ -3,6 +3,7 @@
 Covers all four register-backed platforms (sensor, switch, number,
 select) plus the per-battery-module sensor builder.
 """
+
 from __future__ import annotations
 
 from homeassistant.components.number import (
@@ -112,10 +113,7 @@ from .descriptions import (
 )
 
 STORAGE_SWITCH_TYPES: tuple[GrowattSwitchEntityDescription, ...] = (
-    GrowattSwitchEntityDescription(
-        key=ATTR_AC_CHARGE_ENABLED,
-        name="AC Charge"
-    ),
+    GrowattSwitchEntityDescription(key=ATTR_AC_CHARGE_ENABLED, name="AC Charge"),
     GrowattSwitchEntityDescription(
         key=ATTR_PRE_PTO_ENABLED,
         name="Pre-PTO",
@@ -274,19 +272,19 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_SOC_PERCENTAGE,
         name="SOC",
         native_unit_of_measurement=PERCENTAGE,
-        device_class=SensorDeviceClass.BATTERY
+        device_class=SensorDeviceClass.BATTERY,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_DISCHARGE_POWER,
         name="Discharge Power",
         native_unit_of_measurement=UnitOfPower.WATT,
-        device_class=SensorDeviceClass.POWER
+        device_class=SensorDeviceClass.POWER,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_CHARGE_POWER,
         name="Charge Power",
         native_unit_of_measurement=UnitOfPower.WATT,
-        device_class=SensorDeviceClass.POWER
+        device_class=SensorDeviceClass.POWER,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_ENERGY_TO_GRID_TOTAL,
@@ -301,7 +299,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        midnight_reset=True
+        midnight_reset=True,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_ENERGY_TO_USER_TOTAL,
@@ -316,11 +314,10 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        midnight_reset=True
+        midnight_reset=True,
     ),
     GrowattSensorEntityDescription(
-        key=ATTR_AC_CHARGE_ENABLED,
-        name="AC Charge Enabled"
+        key=ATTR_AC_CHARGE_ENABLED, name="AC Charge Enabled"
     ),
     GrowattSensorEntityDescription(
         key=ATTR_DISCHARGE_ENERGY_TODAY,
@@ -328,7 +325,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        midnight_reset=True
+        midnight_reset=True,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_DISCHARGE_ENERGY_TOTAL,
@@ -343,7 +340,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        midnight_reset=True
+        midnight_reset=True,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_CHARGE_ENERGY_TOTAL,

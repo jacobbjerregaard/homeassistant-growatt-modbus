@@ -1,6 +1,7 @@
 """
 Utility functions.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,15 +14,25 @@ from .device_type.base import (
     custom_function,
 )
 
-__all__ = ('get_keys_from_register', 'get_all_keys_from_register', 'keys_sequences', 'split_sequence', 'process_registers', 'to_signed', 'to_register_value')
+__all__ = (
+    "get_keys_from_register",
+    "get_all_keys_from_register",
+    "keys_sequences",
+    "split_sequence",
+    "process_registers",
+    "to_signed",
+    "to_register_value",
+)
 
 _LOGGER = logging.getLogger(__name__)
+
 
 @dataclass
 class DeviceRegisters:
     holding: dict[int, GrowattDeviceRegisters]
     input: dict[int, GrowattDeviceRegisters]
     max_length: int
+
 
 @dataclass
 class RegisterKeys:
@@ -43,6 +54,7 @@ class RegisterKeys:
         self.holding.update(register_keys.holding)
         self.input.update(register_keys.input)
 
+
 @dataclass
 class RegisterSequences:
     holding: set[tuple[int, int]] = field(default_factory=set)
@@ -53,20 +65,26 @@ class RegisterSequences:
 
 
 def register_sequences(
-    register_keys: RegisterKeys,
-    device_registers: DeviceRegisters
+    register_keys: RegisterKeys, device_registers: DeviceRegisters
 ) -> RegisterSequences:
     if register_keys.holding:
-        holding_sequence = keys_sequences(get_all_keys_from_register(device_registers.holding, register_keys.holding), device_registers.max_length)
+        holding_sequence = keys_sequences(
+            get_all_keys_from_register(device_registers.holding, register_keys.holding),
+            device_registers.max_length,
+        )
     else:
         holding_sequence = set()
 
     if register_keys.input:
-        input_sequence = keys_sequences(get_all_keys_from_register(device_registers.input, register_keys.input), device_registers.max_length)
+        input_sequence = keys_sequences(
+            get_all_keys_from_register(device_registers.input, register_keys.input),
+            device_registers.max_length,
+        )
     else:
         input_sequence = set()
 
     return RegisterSequences(holding_sequence, input_sequence)
+
 
 def get_keys_from_register(register: dict[int, GrowattDeviceRegisters]) -> set[int]:
     results = set()
@@ -80,7 +98,9 @@ def get_keys_from_register(register: dict[int, GrowattDeviceRegisters]) -> set[i
     return results
 
 
-def get_all_keys_from_register(registers: dict[int, GrowattDeviceRegisters], keys: set[int]) -> set[int]:
+def get_all_keys_from_register(
+    registers: dict[int, GrowattDeviceRegisters], keys: set[int]
+) -> set[int]:
     """
     Lookup all related keys from the given keys based on the register config.
     returns list a sorted list of all keys.
@@ -112,21 +132,30 @@ def keys_sequences(keys: Iterable[int], maximum_length: int) -> set[tuple[int, i
     start = 0
     indexes.append(len(sorted_keys))
     for end in indexes:
-        sequence.add((sorted_keys[start], max(sorted_keys[start:end]) - min(sorted_keys[start:end]) + 1))
+        sequence.add(
+            (
+                sorted_keys[start],
+                max(sorted_keys[start:end]) - min(sorted_keys[start:end]) + 1,
+            )
+        )
         start = end
 
-    _LOGGER.debug("determined key seqences %s", [f"start: {s[0]}, end: {s[0] + s[1]}" for s in sequence])
+    _LOGGER.debug(
+        "determined key seqences %s",
+        [f"start: {s[0]}, end: {s[0] + s[1]}" for s in sequence],
+    )
     return sequence
 
 
 def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
     """
-    Based on the list of keys the seperation will be determined based on the seperation between values and the maximum length of keys.
+    The split points are chosen from the gaps between consecutive keys and
+    from the maximum number of registers a single read may cover.
     returns indexes where to split
     """
     _LOGGER.debug(f"split sequence keys: {keys}")
 
-    # determining number of splits and it's related index values based on a seperation treshold
+    # Split points from the gaps between keys, using a separation threshold.
 
     diff_key_seperation_index = set()
     seperation_treshold = maximum_length / 4
@@ -139,9 +168,11 @@ def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
             break
         diff_key_seperation_index.add(key_differences.index(key_diff) + 1)
 
-    _LOGGER.debug(f"split sequence indexes based on key seperation: {diff_key_seperation_index}")
+    _LOGGER.debug(
+        f"split sequence indexes based on key seperation: {diff_key_seperation_index}"
+    )
 
-    # determining number of splits and it's related index values based on the maximum length
+    # Split points required by the maximum readable length.
 
     cumulative_key_seperation_index = set()
     key_cumulative_diff = [key - keys[0] for key in keys]
@@ -151,23 +182,31 @@ def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
     while i < len(key_cumulative_diff):
         if key_cumulative_diff[i] >= maximum_length:
             cumulative_key_seperation_index.add(i + j)
-            key_cumulative_diff = [key - keys[i + j] for key in keys[i + j:]]
+            key_cumulative_diff = [key - keys[i + j] for key in keys[i + j :]]
             j += i
             i = 0
         else:
             i += 1
 
-    _LOGGER.debug(f"split sequence indexes based on maximum length: {cumulative_key_seperation_index}")
+    _LOGGER.debug(
+        "split sequence indexes based on maximum length: %s",
+        cumulative_key_seperation_index,
+    )
 
     # check if both methods find equal index separation values
-    common_index = cumulative_key_seperation_index.intersection(diff_key_seperation_index)
+    common_index = cumulative_key_seperation_index.intersection(
+        diff_key_seperation_index
+    )
 
     _LOGGER.debug(f"split sequence common indexes: {common_index}")
 
     cumulative_key_seperation_index.difference_update(common_index)
     diff_key_seperation_index.difference_update(common_index)
 
-    if len(cumulative_key_seperation_index) == 0 and len(diff_key_seperation_index) == 0:
+    if (
+        len(cumulative_key_seperation_index) == 0
+        and len(diff_key_seperation_index) == 0
+    ):
         return sorted(common_index)
 
     if len(cumulative_key_seperation_index) > 0:
@@ -178,7 +217,7 @@ def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
                 cumulative_key_seperation_index.remove(item)
                 continue
 
-            # Trying to optimize the number split by checking if there is a larger separation nearby
+            # Prefer a nearby larger separation, to reduce the split count.
             closest_value = min(diff_key_seperation_index, key=lambda x: abs(x - item))
 
             if len(common_index) == 0:
@@ -192,11 +231,22 @@ def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
                     cumulative_key_seperation_index.remove(item)
 
             else:
-                # As there is already a known seperation we should check if our item is not on the other side in comperision to the closest value
-                smaller_common_value = min(list(filter(lambda x: x < item, common_index)), default=None)
-                larger_common_value = min(list(filter(lambda x: x > item, common_index)), default=None)
+                # A separation is already known here, so check the item is
+                # not on the far side of the closest value.
+                smaller_common_value = min(
+                    list(filter(lambda x: x < item, common_index)), default=None
+                )
+                larger_common_value = min(
+                    list(filter(lambda x: x > item, common_index)), default=None
+                )
 
-                if (smaller_common_value is not None and closest_value < smaller_common_value) or (larger_common_value is not None and closest_value > larger_common_value):
+                if (
+                    smaller_common_value is not None
+                    and closest_value < smaller_common_value
+                ) or (
+                    larger_common_value is not None
+                    and closest_value > larger_common_value
+                ):
                     common_index.add(item)
                     cumulative_key_seperation_index.remove(item)
                     continue
@@ -245,8 +295,7 @@ def to_register_value(register: GrowattDeviceRegisters, value: float) -> int:
 
 
 def process_registers(
-        registers: dict[int, GrowattDeviceRegisters],
-        register_values: dict[int, int]
+    registers: dict[int, GrowattDeviceRegisters], register_values: dict[int, int]
 ) -> dict[str, Any]:
     """
     Processes the register value corisponding to the given register dict.
@@ -255,7 +304,6 @@ def process_registers(
     result: dict[str, Any] = {}
 
     for key, value in register_values.items():
-
         if (register := registers.get(key)) is None:
             continue
 
@@ -295,9 +343,9 @@ def process_registers(
             if register.length == 1:
                 decoded = register.function(value)
             else:
-                decoded = register.function([
-                    register_values.get(i) for i in range(key, key + register.length)
-                ])
+                decoded = register.function(
+                    [register_values.get(i) for i in range(key, key + register.length)]
+                )
 
             # A custom_function may decode a single register into several named
             # values (e.g. a packed bitfield) by returning a dict; each entry is

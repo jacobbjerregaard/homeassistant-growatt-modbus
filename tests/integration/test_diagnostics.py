@@ -1,4 +1,5 @@
 """Integration test: config-entry diagnostics redact secrets and dump data."""
+
 from custom_components.growatt_modbus.diagnostics import (
     async_get_config_entry_diagnostics,
 )

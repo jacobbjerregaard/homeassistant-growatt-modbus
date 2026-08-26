@@ -67,11 +67,7 @@ def model(registers) -> str:
 
 
 HOLDING_REGISTERS_315: tuple[GrowattDeviceRegisters, ...] = (
-    GrowattDeviceRegisters(
-        name=ATTR_INVERTER_ENABLED,
-        register=0,
-        value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_INVERTER_ENABLED, register=0, value_type=int),
     FIRMWARE_REGISTER,
     SERIAL_NUMBER_REGISTER,
     GrowattDeviceRegisters(
@@ -79,39 +75,42 @@ HOLDING_REGISTERS_315: tuple[GrowattDeviceRegisters, ...] = (
         register=28,
         value_type=custom_function,
         length=2,
-        function=model
+        function=model,
     ),
     DEVICE_TYPE_CODE_REGISTER,
     NUMBER_OF_TRACKERS_AND_PHASES_REGISTER,
     GrowattDeviceRegisters(
-        name=ATTR_MODBUS_VERSION,
-        register=73,
-        value_type=float,
-        scale=100
-    )
+        name=ATTR_MODBUS_VERSION, register=73, value_type=float, scale=100
+    ),
 )
 
 INPUT_REGISTERS_315: tuple[GrowattDeviceRegisters, ...] = (
-    GrowattDeviceRegisters(
-        name=ATTR_STATUS_CODE, register=0, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_STATUS_CODE, register=0, value_type=int),
     GrowattDeviceRegisters(
         name=ATTR_INPUT_POWER, register=1, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_1_VOLTAGE, register=3, value_type=float,
+        name=ATTR_INPUT_1_VOLTAGE,
+        register=3,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_1_AMPERAGE, register=4, value_type=float,
+        name=ATTR_INPUT_1_AMPERAGE,
+        register=4,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
         name=ATTR_INPUT_1_POWER, register=5, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_2_VOLTAGE, register=7, value_type=float,
+        name=ATTR_INPUT_2_VOLTAGE,
+        register=7,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_2_AMPERAGE, register=8, value_type=float,
+        name=ATTR_INPUT_2_AMPERAGE,
+        register=8,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
         name=ATTR_INPUT_2_POWER, register=9, value_type=float, length=2, signed=True
@@ -123,74 +122,132 @@ INPUT_REGISTERS_315: tuple[GrowattDeviceRegisters, ...] = (
         name=ATTR_FREQUENCY, register=13, value_type=float, scale=100
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_1_VOLTAGE, register=14, value_type=float,
+        name=ATTR_OUTPUT_1_VOLTAGE,
+        register=14,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_1_AMPERAGE, register=15, value_type=float,
+        name=ATTR_OUTPUT_1_AMPERAGE,
+        register=15,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
         name=ATTR_OUTPUT_1_POWER, register=16, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_2_VOLTAGE, register=18, value_type=float,
+        name=ATTR_OUTPUT_2_VOLTAGE,
+        register=18,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_2_AMPERAGE, register=19, value_type=float,
+        name=ATTR_OUTPUT_2_AMPERAGE,
+        register=19,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
         name=ATTR_OUTPUT_2_POWER, register=20, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_3_VOLTAGE, register=22, value_type=float,
+        name=ATTR_OUTPUT_3_VOLTAGE,
+        register=22,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_3_AMPERAGE, register=23, value_type=float,
+        name=ATTR_OUTPUT_3_AMPERAGE,
+        register=23,
+        value_type=float,
     ),
     GrowattDeviceRegisters(
         name=ATTR_OUTPUT_3_POWER, register=24, value_type=float, length=2, signed=True
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_ENERGY_TODAY, register=26, value_type=float, length=2, signed=True
+        name=ATTR_OUTPUT_ENERGY_TODAY,
+        register=26,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_ENERGY_TOTAL, register=28, value_type=float, length=2, signed=True
+        name=ATTR_OUTPUT_ENERGY_TOTAL,
+        register=28,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OPERATION_HOURS, register=30, value_type=float, length=2, scale=7200,
+        name=ATTR_OPERATION_HOURS,
+        register=30,
+        value_type=float,
+        length=2,
+        scale=7200,
     ),
-    GrowattDeviceRegisters(name=ATTR_TEMPERATURE, register=32, value_type=float, signed=True),
+    GrowattDeviceRegisters(
+        name=ATTR_TEMPERATURE, register=32, value_type=float, signed=True
+    ),
     GrowattDeviceRegisters(name=ATTR_FAULT_CODE, register=40, value_type=int),
-    GrowattDeviceRegisters(name=ATTR_IPM_TEMPERATURE, register=41, value_type=float, signed=True),
+    GrowattDeviceRegisters(
+        name=ATTR_IPM_TEMPERATURE, register=41, value_type=float, signed=True
+    ),
     GrowattDeviceRegisters(name=ATTR_P_BUS_VOLTAGE, register=42, value_type=float),
     GrowattDeviceRegisters(name=ATTR_N_BUS_VOLTAGE, register=43, value_type=float),
     GrowattDeviceRegisters(name=ATTR_DERATING_MODE, register=47, value_type=int),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_1_ENERGY_TODAY, register=48, value_type=float, length=2, signed=True
+        name=ATTR_INPUT_1_ENERGY_TODAY,
+        register=48,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_1_ENERGY_TOTAL, register=50, value_type=float, length=2, signed=True
+        name=ATTR_INPUT_1_ENERGY_TOTAL,
+        register=50,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_2_ENERGY_TODAY, register=52, value_type=float, length=2, signed=True
+        name=ATTR_INPUT_2_ENERGY_TODAY,
+        register=52,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_2_ENERGY_TOTAL, register=54, value_type=float, length=2, signed=True
+        name=ATTR_INPUT_2_ENERGY_TOTAL,
+        register=54,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_INPUT_ENERGY_TOTAL, register=56, value_type=float, length=2, signed=True
+        name=ATTR_INPUT_ENERGY_TOTAL,
+        register=56,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_REACTIVE_POWER, register=58, value_type=float, length=2, signed=True,
+        name=ATTR_OUTPUT_REACTIVE_POWER,
+        register=58,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_REACTIVE_ENERGY_TODAY, register=60, value_type=float, length=2, signed=True
+        name=ATTR_OUTPUT_REACTIVE_ENERGY_TODAY,
+        register=60,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
     GrowattDeviceRegisters(
-        name=ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL, register=62, value_type=float, length=2, signed=True
+        name=ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL,
+        register=62,
+        value_type=float,
+        length=2,
+        signed=True,
     ),
-    GrowattDeviceRegisters(
-        name=ATTR_WARNING_CODE, register=64, value_type=int
-    ),
+    GrowattDeviceRegisters(name=ATTR_WARNING_CODE, register=64, value_type=int),
     GrowattDeviceRegisters(name=ATTR_WARNING_VALUE, register=65, value_type=int),
     GrowattDeviceRegisters(name=ATTR_OUTPUT_PERCENTAGE, register=66, value_type=int),
 )

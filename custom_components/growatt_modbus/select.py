@@ -3,6 +3,7 @@
 Exposes writable enumerated holding registers (battery type, UPS output,
 generator force) as select entities.
 """
+
 from __future__ import annotations
 
 import logging
@@ -53,7 +54,9 @@ async def async_setup_entry(
         if description.key in supported_key_names
     ]
 
-    coordinator.get_keys_by_name({description.key for description in descriptions}, True)
+    coordinator.get_keys_by_name(
+        {description.key for description in descriptions}, True
+    )
 
     entities: list = [
         GrowattSelect(coordinator, description=description, entry=config_entry)
@@ -84,7 +87,9 @@ class GrowattSlotPriority(CoordinatorEntity[GrowattLocalCoordinator], SelectEnti
 
     @property
     def current_option(self) -> str | None:
-        return TOU_PRIORITIES.get(read_slot_fields(self.coordinator, self._slot)["priority"])
+        return TOU_PRIORITIES.get(
+            read_slot_fields(self.coordinator, self._slot)["priority"]
+        )
 
     async def async_select_option(self, option: str) -> None:
         await write_slot_field(
@@ -127,7 +132,9 @@ class GrowattSelect(GrowattEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Write the selected option to the backing holding register."""
         if option not in self.entity_description.options_map:
-            _LOGGER.error("Unknown option %s for %s", option, self.entity_description.key)
+            _LOGGER.error(
+                "Unknown option %s for %s", option, self.entity_description.key
+            )
             return
 
         register = self.coordinator.get_holding_register_by_name(

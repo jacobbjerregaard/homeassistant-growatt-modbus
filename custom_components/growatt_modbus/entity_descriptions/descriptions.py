@@ -6,6 +6,7 @@ description with the few extra fields this integration needs; ``key`` is
 already required by ``EntityDescription`` itself and carries the Growatt
 register name.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

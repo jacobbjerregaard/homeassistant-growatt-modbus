@@ -1,4 +1,5 @@
 """Regression tests for device detection (API/detection.py)."""
+
 import asyncio
 
 import pytest
@@ -50,8 +51,13 @@ from growatt_api.device_type.inverter_120 import HOLDING_REGISTERS_120  # noqa: 
 
 def _info(version):
     return GrowattDeviceInfo(
-        serial_number="S", model="M", firmware="F",
-        mppt_trackers=1, grid_phases=1, modbus_version=version, device_type="t",
+        serial_number="S",
+        model="M",
+        firmware="F",
+        mppt_trackers=1,
+        grid_phases=1,
+        modbus_version=version,
+        device_type="t",
     )
 
 

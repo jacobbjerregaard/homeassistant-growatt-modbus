@@ -4,6 +4,7 @@ Split out of config_flow.py, which was 798 lines covering three distinct
 flows. This one only edits an existing entry - scan intervals, battery and
 time-of-use slot counts, and the optional EMHASS optimizer.
 """
+
 from __future__ import annotations
 
 import voluptuous as vol

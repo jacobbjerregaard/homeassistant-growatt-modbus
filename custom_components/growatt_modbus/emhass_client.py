@@ -11,6 +11,7 @@ optional runtime parameters and turns transport/HTTP failures into
 ``EmhassError``. Reading the optimised plan back is the optimizer's job (it
 reads the published ``sensor.p_batt_forecast`` etc.), not this client's.
 """
+
 from __future__ import annotations
 
 import logging
@@ -103,12 +104,14 @@ class EmhassClient:
         only fail on transport-level errors.
         """
         try:
-            async with self._session.get(
-                self._base_url, timeout=self._timeout
-            ) as resp:
-                _LOGGER.debug("EMHASS reachable at %s (HTTP %s)", self._base_url, resp.status)
+            async with self._session.get(self._base_url, timeout=self._timeout) as resp:
+                _LOGGER.debug(
+                    "EMHASS reachable at %s (HTTP %s)", self._base_url, resp.status
+                )
                 return True
         except TimeoutError as err:
             raise EmhassError("EMHASS connection timed out") from err
         except aiohttp.ClientError as err:
-            raise EmhassError(f"Cannot reach EMHASS at {self._base_url}: {err}") from err
+            raise EmhassError(
+                f"Cannot reach EMHASS at {self._base_url}: {err}"
+            ) from err

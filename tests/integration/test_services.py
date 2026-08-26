@@ -1,4 +1,5 @@
 """Integration test: the set_time_slot service writes the slot registers."""
+
 from homeassistant.helpers import device_registry as dr
 
 
@@ -6,7 +7,9 @@ async def test_set_time_slot_service(hass, setup_storage):
     entry, fake = setup_storage
 
     device_registry = dr.async_get(hass)
-    device = next(iter(dr.async_entries_for_config_entry(device_registry, entry.entry_id)))
+    device = next(
+        iter(dr.async_entries_for_config_entry(device_registry, entry.entry_id))
+    )
 
     assert hass.services.has_service("growatt_modbus", "set_time_slot")
 

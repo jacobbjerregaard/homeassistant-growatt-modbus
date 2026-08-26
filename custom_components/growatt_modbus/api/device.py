@@ -66,9 +66,21 @@ _REGISTER_SETS: dict[
         int,
     ],
 ] = {
-    DeviceTypes.INVERTER: (HOLDING_REGISTERS_315, (INPUT_REGISTERS_315,), MAXIMUM_DATA_LENGTH_315),
-    DeviceTypes.INVERTER_315: (HOLDING_REGISTERS_315, (INPUT_REGISTERS_315,), MAXIMUM_DATA_LENGTH_315),
-    DeviceTypes.INVERTER_120: (HOLDING_REGISTERS_120, (INPUT_REGISTERS_120,), MAXIMUM_DATA_LENGTH_120),
+    DeviceTypes.INVERTER: (
+        HOLDING_REGISTERS_315,
+        (INPUT_REGISTERS_315,),
+        MAXIMUM_DATA_LENGTH_315,
+    ),
+    DeviceTypes.INVERTER_315: (
+        HOLDING_REGISTERS_315,
+        (INPUT_REGISTERS_315,),
+        MAXIMUM_DATA_LENGTH_315,
+    ),
+    DeviceTypes.INVERTER_120: (
+        HOLDING_REGISTERS_120,
+        (INPUT_REGISTERS_120,),
+        MAXIMUM_DATA_LENGTH_120,
+    ),
     DeviceTypes.HYBRID_120: (
         STORAGE_HOLDING_REGISTERS_120,
         (INPUT_REGISTERS_120, STORAGE_INPUT_REGISTERS_120),
@@ -188,7 +200,9 @@ class GrowattDevice:
         for n in range(1, self.battery_modules + 1):
             serial = data.get(f"battery_module_{n}_serial_number")
             # The string decode keeps NUL padding from unused trailing words.
-            serial = serial.replace("\x00", "").strip() if isinstance(serial, str) else ""
+            serial = (
+                serial.replace("\x00", "").strip() if isinstance(serial, str) else ""
+            )
             if serial:
                 serials[n] = serial
         return serials
@@ -220,21 +234,30 @@ class GrowattDevice:
         self.modbus.close()
 
     async def get_device_info(self) -> GrowattDeviceInfo:
-        return await self.modbus.get_device_info(self.holding_register, self.max_length, self.unit)
+        return await self.modbus.get_device_info(
+            self.holding_register, self.max_length, self.unit
+        )
 
     async def sync_time(self) -> timedelta:
         device_time = await self.modbus.read_device_time(self.unit)
         time = datetime.now()
         await self.modbus.write_device_time(
-            time.year, time.month, time.day, time.hour, time.minute, time.second, self.unit
+            time.year,
+            time.month,
+            time.day,
+            time.hour,
+            time.minute,
+            time.second,
+            self.unit,
         )
 
         return time - device_time
 
     async def update(self, keys: RegisterKeys) -> dict[str, Any]:
         """
-        Based on the given keys it will generate one or multiple requests to get the corrisponding results
-        from both holding and input registers from the device.
+        Based on the given keys it will generate one or multiple requests to
+        get the corresponding results from both holding and input registers
+        on the device.
 
         returns a dictionary of register name and value
         """
@@ -252,37 +275,60 @@ class GrowattDevice:
             register_values = {}
             for item in key_sequences.holding:
                 register_values.update(
-                    await self.modbus.read_holding_registers(start_index=item[0], length=item[1], unit=self.unit)
+                    await self.modbus.read_holding_registers(
+                        start_index=item[0], length=item[1], unit=self.unit
+                    )
                 )
-            results.update(process_registers(self.device_registers.holding, register_values))
+            results.update(
+                process_registers(self.device_registers.holding, register_values)
+            )
         if key_sequences.input:
             register_values = {}
             for item in key_sequences.input:
                 register_values.update(
-                    await self.modbus.read_input_registers(start_index=item[0], length=item[1], unit=self.unit)
+                    await self.modbus.read_input_registers(
+                        start_index=item[0], length=item[1], unit=self.unit
+                    )
                 )
-            results.update(process_registers(self.device_registers.input, register_values))
+            results.update(
+                process_registers(self.device_registers.input, register_values)
+            )
         return results
 
     async def write_register(self, register, payload):
-        _LOGGER.debug("Write register %d with payload %d and unit %d", register, payload, self.unit)
+        _LOGGER.debug(
+            "Write register %d with payload %d and unit %d",
+            register,
+            payload,
+            self.unit,
+        )
         return await self.modbus.write_register(register, payload, self.unit)
 
     async def write_register_value(self, register, value):
         """Write a raw unsigned 16-bit value to a holding register."""
-        _LOGGER.debug("Write register %d with raw value %d and unit %d", register, value, self.unit)
+        _LOGGER.debug(
+            "Write register %d with raw value %d and unit %d",
+            register,
+            value,
+            self.unit,
+        )
         return await self.modbus.write_register_value(register, value, self.unit)
 
-
-    async def read_holding_register(self, registers: tuple[GrowattDeviceRegisters, ...]) -> dict[str, Any]:
+    async def read_holding_register(
+        self, registers: tuple[GrowattDeviceRegisters, ...]
+    ) -> dict[str, Any]:
         register = {item.register: item for item in registers}
-        key_sequences = keys_sequences(get_keys_from_register(register), self.max_length)
+        key_sequences = keys_sequences(
+            get_keys_from_register(register), self.max_length
+        )
 
         register_values = {}
 
         for item in key_sequences:
             register_values.update(
-               await self.modbus.read_holding_registers(start_index=item[0], length=item[1], unit=self.unit)
+                await self.modbus.read_holding_registers(
+                    start_index=item[0], length=item[1], unit=self.unit
+                )
             )
 
         results = process_registers(register, register_values)
@@ -310,7 +356,7 @@ class GrowattDevice:
                 key
                 for key, register in self.device_registers.input.items()
                 if _wanted(register)
-            }
+            },
         )
 
     def get_input_register_by_name(self, name: str) -> GrowattDeviceRegisters | None:
@@ -321,7 +367,10 @@ class GrowattDevice:
 
     def get_register_names(self) -> set[str]:
         names: set[str] = set()
-        for register in (*self.input_register.values(), *self.holding_register.values()):
+        for register in (
+            *self.input_register.values(),
+            *self.holding_register.values(),
+        ):
             # A register that expands into several named values advertises those
             # names (so the matching sensors get created) rather than its own.
             names.update(register.value_names or (register.name,))

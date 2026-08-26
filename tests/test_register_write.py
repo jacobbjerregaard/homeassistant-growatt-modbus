@@ -1,5 +1,6 @@
 """Tests for write-side register encoding (to_register_value) and a
 read/write round trip over the real storage register definitions."""
+
 import pytest
 from growatt_api.device_type.base import GrowattDeviceRegisters
 from growatt_api.utils import process_registers, to_register_value
@@ -46,7 +47,9 @@ def test_read_write_round_trip_float():
     assert decoded["x"] == pytest.approx(53.2)
 
 
-pytest.importorskip("pymodbus", reason="storage register defs import the transport layer indirectly")
+pytest.importorskip(
+    "pymodbus", reason="storage register defs import the transport layer indirectly"
+)
 
 
 def test_new_v139_command_registers_present():

@@ -1,4 +1,5 @@
 """Pure-logic tests for the EMHASS -> time-of-use slot compiler."""
+
 from growatt_api.tou_planner import (
     BATTERY_FIRST,
     GRID_FIRST,

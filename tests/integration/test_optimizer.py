@@ -5,6 +5,7 @@ the fake transport patched across the options reload) and the EMHASS HTTP wire
 is faked via ``aioclient_mock``; the plan parsing, entity wiring and service are
 all real.
 """
+
 from datetime import timedelta
 
 import aiohttp
@@ -447,9 +448,7 @@ async def test_configurable_source_entity_id(hass, setup_storage):
     assert float(state.state) == -1234.0
 
 
-async def test_mpc_sets_charge_rate_from_max_power(
-    hass, setup_storage, aioclient_mock
-):
+async def test_mpc_sets_charge_rate_from_max_power(hass, setup_storage, aioclient_mock):
     entry, fake = setup_storage
     aioclient_mock.post(f"{EMHASS_URL}/action/naive-mpc-optim", text="ok")
     aioclient_mock.post(f"{EMHASS_URL}/action/publish-data", text="ok")

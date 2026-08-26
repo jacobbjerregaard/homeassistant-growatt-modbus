@@ -1,4 +1,5 @@
 """Unit tests for GrowattDevice (API/device.py) error/edge branches."""
+
 import asyncio
 
 import pytest
@@ -18,7 +19,9 @@ class _FakeModbus:
     async def read_holding_registers(self, start_index, length, unit):
         if self.raise_on_read:
             raise ConnectionError("modbus down")
-        return {a: self.holding.get(a, 0) for a in range(start_index, start_index + length)}
+        return {
+            a: self.holding.get(a, 0) for a in range(start_index, start_index + length)
+        }
 
     async def read_input_registers(self, start_index, length, unit):
         if self.raise_on_read:
@@ -27,7 +30,9 @@ class _FakeModbus:
 
 
 def _device(modbus, battery_modules=1):
-    return GrowattDevice(modbus, DeviceTypes.STORAGE_120, 1, battery_modules=battery_modules)
+    return GrowattDevice(
+        modbus, DeviceTypes.STORAGE_120, 1, battery_modules=battery_modules
+    )
 
 
 def test_read_battery_module_count_reads_register():

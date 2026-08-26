@@ -76,8 +76,12 @@ def build_time_slot_registers(count: int) -> tuple[GrowattDeviceRegisters, ...]:
         base = time_slot_register(slot)
         registers.extend(
             (
-                GrowattDeviceRegisters(name=f"tou_slot_{slot}_word1", register=base, value_type=int),
-                GrowattDeviceRegisters(name=f"tou_slot_{slot}_word2", register=base + 1, value_type=int),
+                GrowattDeviceRegisters(
+                    name=f"tou_slot_{slot}_word1", register=base, value_type=int
+                ),
+                GrowattDeviceRegisters(
+                    name=f"tou_slot_{slot}_word2", register=base + 1, value_type=int
+                ),
             )
         )
     return tuple(registers)

@@ -3,6 +3,7 @@
 Holds the optimizer DataUpdateCoordinator (plan refresh, daily TOU compile,
 intraday MPC corrections) and the per-config-entry setup that wires it up.
 """
+
 from __future__ import annotations
 
 import logging
@@ -157,7 +158,7 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
                     continue
                 try:
                     value = float(raw)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     value = None
                 break
             series.append((parsed, value))
@@ -252,7 +253,7 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
             return None
         try:
             return float(state.state)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
     def _bms_soc_limits(self) -> tuple[float, float]:
@@ -267,11 +268,11 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         raw_high = data.get(ATTR_BMS_MAX_SOC)
         try:
             low = float(raw_low) if raw_low is not None else 0.0
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             low = 0.0
         try:
             high = float(raw_high) if raw_high is not None else 100.0
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             high = 100.0
         if not 0 <= low < 100:
             low = 0.0
@@ -372,7 +373,7 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
             return 0.0
         try:
             power = float(current) * float(voltage)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return 0.0
         return power if power > 0 else 0.0
 
@@ -383,7 +384,9 @@ class EmhassOptimizerCoordinator(DataUpdateCoordinator[OptimizationPlan]):
         if register is None:
             _LOGGER.debug("optimizer: register %s not available on this model", key)
             return
-        await coordinator.write_register(register.register, to_register_value(register, value))
+        await coordinator.write_register(
+            register.register, to_register_value(register, value)
+        )
 
 
 async def async_setup_optimizer(

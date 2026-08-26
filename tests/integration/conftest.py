@@ -5,6 +5,7 @@ installed (Python 3.14). They exercise the real config-entry setup, coordinators
 and entity platforms against a faked Modbus transport - only the wire is mocked,
 so the register map, decoding and write-encoding are all real.
 """
+
 from collections import defaultdict
 from unittest.mock import patch
 

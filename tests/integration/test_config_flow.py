@@ -1,4 +1,5 @@
 """Config-flow and options-flow tests."""
+
 from dataclasses import replace
 from unittest.mock import AsyncMock, patch
 
@@ -85,15 +86,19 @@ async def test_serial_config_flow_happy_path(hass):
     )
     assert result["step_id"] == "serial"
 
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattSerial",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(return_value=_DEVICE_INFO),
-    ), patch(
-        "custom_components.growatt_modbus.async_setup_entry",
-        AsyncMock(return_value=True),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=_DEVICE_INFO),
+        ),
+        patch(
+            "custom_components.growatt_modbus.async_setup_entry",
+            AsyncMock(return_value=True),
+        ),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -136,12 +141,15 @@ async def test_serial_flow_shows_error_on_timeout(hass):
         result["flow_id"], {CONF_LAYER: CONF_SERIAL}
     )
 
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattSerial",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(side_effect=TimeoutError),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(side_effect=TimeoutError),
+        ),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -162,7 +170,9 @@ async def test_serial_flow_shows_error_on_timeout(hass):
 
 
 async def test_serial_flow_port_error(hass):
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_LAYER: CONF_SERIAL}
     )
@@ -184,21 +194,27 @@ async def test_serial_flow_port_error(hass):
 
 
 async def test_network_config_flow_happy_path(hass):
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_LAYER: CONF_TCP}
     )
     assert result["step_id"] == "network"
 
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattNetwork",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(return_value=_DEVICE_INFO),
-    ), patch(
-        "custom_components.growatt_modbus.async_setup_entry",
-        AsyncMock(return_value=True),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattNetwork",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=_DEVICE_INFO),
+        ),
+        patch(
+            "custom_components.growatt_modbus.async_setup_entry",
+            AsyncMock(return_value=True),
+        ),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], _NETWORK_INPUT
@@ -222,7 +238,9 @@ async def test_network_config_flow_happy_path(hass):
 
 
 async def test_network_flow_connection_error(hass):
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_LAYER: CONF_TCP}
     )
@@ -250,12 +268,15 @@ async def test_reconfigure_serial_updates_connection(hass, setup_storage):
     result = await entry.start_reconfigure_flow(hass)
     assert result["step_id"] == "reconfigure_serial"
 
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattSerial",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(return_value=matched),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=matched),
+        ),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**_SERIAL_INPUT, CONF_SERIAL_PORT: "/dev/ttyUSB9"}
@@ -272,12 +293,15 @@ async def test_reconfigure_aborts_on_wrong_device(hass, setup_storage):
     other = replace(_DEVICE_INFO, serial_number="SOMEOTHERUNIT")
 
     result = await entry.start_reconfigure_flow(hass)
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattSerial",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(return_value=other),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=other),
+        ),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], _SERIAL_INPUT
@@ -289,12 +313,15 @@ async def test_reconfigure_aborts_on_wrong_device(hass, setup_storage):
 async def test_reconfigure_serial_shows_error_on_timeout(hass, setup_storage):
     entry, _fake = setup_storage
     result = await entry.start_reconfigure_flow(hass)
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattSerial",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(side_effect=TimeoutError),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(side_effect=TimeoutError),
+        ),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], _SERIAL_INPUT
@@ -326,14 +353,16 @@ async def test_reconfigure_network_updates_connection(hass):
     result = await entry.start_reconfigure_flow(hass)
     assert result["step_id"] == "reconfigure_network"
 
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattNetwork",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(return_value=matched),
-    ), patch(
-        "homeassistant.config_entries.ConfigEntries.async_schedule_reload"
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattNetwork",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=matched),
+        ),
+        patch("homeassistant.config_entries.ConfigEntries.async_schedule_reload"),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**_NETWORK_INPUT, CONF_IP_ADDRESS: "10.0.0.99"}
@@ -345,7 +374,9 @@ async def test_reconfigure_network_updates_connection(hass):
 
 
 async def _to_serial_step(hass):
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
     return await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_LAYER: CONF_SERIAL}
     )
@@ -353,35 +384,49 @@ async def _to_serial_step(hass):
 
 async def test_serial_flow_connection_error(hass):
     result = await _to_serial_step(hass)
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattSerial",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(side_effect=ConnectionException("boom")),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(side_effect=ConnectionException("boom")),
+        ),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _SERIAL_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _SERIAL_INPUT
+        )
     assert result["step_id"] == "serial"
     assert result["errors"]["base"] == "device_disconnect"
 
 
 async def test_serial_flow_no_device_info_shows_device_form(hass):
     result = await _to_serial_step(hass)
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattSerial",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(return_value=None),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=None),
+        ),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _SERIAL_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _SERIAL_INPUT
+        )
     assert result["step_id"] == "device"
 
 
 async def test_network_flow_timeout(hass):
 
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_LAYER: CONF_TCP})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_LAYER: CONF_TCP}
+    )
 
     class _SlowServer(_FakeServer):
         async def connect(self):
@@ -391,13 +436,17 @@ async def test_network_flow_timeout(hass):
         "custom_components.growatt_modbus.config_flow.GrowattNetwork",
         return_value=_SlowServer(),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _NETWORK_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _NETWORK_INPUT
+        )
     assert result["step_id"] == "network"
     assert result["errors"]["base"] == "network_connection"
 
 
 async def _to_network_step(hass):
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
     return await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_LAYER: CONF_TCP}
     )
@@ -405,56 +454,76 @@ async def _to_network_step(hass):
 
 async def test_network_flow_device_timeout(hass):
     result = await _to_network_step(hass)
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattNetwork",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(side_effect=TimeoutError),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattNetwork",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(side_effect=TimeoutError),
+        ),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _NETWORK_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _NETWORK_INPUT
+        )
     assert result["step_id"] == "network"
     assert result["errors"]["base"] == "device_timeout"
 
 
 async def test_network_flow_device_disconnect(hass):
     result = await _to_network_step(hass)
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattNetwork",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(side_effect=ConnectionException("x")),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattNetwork",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(side_effect=ConnectionException("x")),
+        ),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _NETWORK_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _NETWORK_INPUT
+        )
     assert result["step_id"] == "network"
     assert result["errors"]["base"] == "device_disconnect"
 
 
 async def test_network_flow_no_device_info_shows_device_form(hass):
     result = await _to_network_step(hass)
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattNetwork",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(return_value=None),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattNetwork",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=None),
+        ),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _NETWORK_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _NETWORK_INPUT
+        )
     assert result["step_id"] == "device"
 
 
 async def _to_device_step(hass):
     """Drive the serial flow up to the device form."""
     result = await _to_serial_step(hass)
-    with patch(
-        "custom_components.growatt_modbus.config_flow.GrowattSerial",
-        return_value=_FakeServer(),
-    ), patch(
-        "custom_components.growatt_modbus.config_flow.get_device_info",
-        AsyncMock(return_value=_DEVICE_INFO),
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=_DEVICE_INFO),
+        ),
     ):
-        return await hass.config_entries.flow.async_configure(result["flow_id"], _SERIAL_INPUT)
+        return await hass.config_entries.flow.async_configure(
+            result["flow_id"], _SERIAL_INPUT
+        )
 
 
 _DEVICE_INPUT = {
@@ -475,7 +544,9 @@ async def test_device_step_timeout_reshows_form(hass):
         "custom_components.growatt_modbus.config_flow.get_device_info",
         AsyncMock(side_effect=TimeoutError),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _DEVICE_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _DEVICE_INPUT
+        )
     assert result["step_id"] == "device"
     assert result["errors"]["base"] == "device_timeout"
 
@@ -486,7 +557,9 @@ async def test_device_step_connection_error_reshows_form(hass):
         "custom_components.growatt_modbus.config_flow.get_device_info",
         AsyncMock(side_effect=ConnectionException("x")),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _DEVICE_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _DEVICE_INPUT
+        )
     assert result["step_id"] == "device"
     assert result["errors"]["base"] == "device_disconnect"
 
@@ -497,7 +570,9 @@ async def test_device_step_unknown_type_errors(hass):
         "custom_components.growatt_modbus.config_flow.get_device_info",
         AsyncMock(return_value=None),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _DEVICE_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _DEVICE_INPUT
+        )
     assert result["step_id"] == "device"
     assert result["errors"]["base"] == "device_type"
 
@@ -528,7 +603,9 @@ async def test_reconfigure_network_shows_error(hass):
         "custom_components.growatt_modbus.config_flow.GrowattNetwork",
         return_value=_Unreachable(),
     ):
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], _NETWORK_INPUT)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _NETWORK_INPUT
+        )
     assert result["step_id"] == "reconfigure_network"
     assert result["errors"]["base"] == "network_connection"
 

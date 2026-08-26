@@ -4,6 +4,7 @@ These are the keys the decoder writes into its result dict, and the keys the
 entity descriptions look up. Split out of base.py so that importing the
 register dataclass does not drag in 150 name constants.
 """
+
 # Attribute names for values in the holding register
 ATTR_FIRMWARE = "firmware"
 ATTR_SERIAL_NUMBER = "serial number"
@@ -31,8 +32,12 @@ ATTR_AC_CHARGE_ENABLED = "ac_charge_enabled"
 # Generic (non-mode-specific) battery charge/discharge stop SOC. The siblings
 # above (3037/3048/3067) are mode-specific (Grid-First / Battery-First); these
 # two carry no mode qualifier in the spec.
-ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC = "battery_global_charge_stop_soc"  # holding 951 uwBatChargeStopSoc
-ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC = "battery_global_discharge_stop_soc"  # holding 952 uwBatDisChargeStopSoc
+ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC = (
+    "battery_global_charge_stop_soc"  # holding 951 uwBatChargeStopSoc
+)
+ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC = (
+    "battery_global_discharge_stop_soc"  # holding 952 uwBatDisChargeStopSoc
+)
 ATTR_GRID_FIRST_STOP_SOC = "grid_first_stop_soc"  # holding 3037
 ATTR_ON_GRID_DISCHARGE_STOP_SOC = "on_grid_discharge_stop_soc"  # holding 3067
 ATTR_BATTERY_TYPE = "battery_type"  # holding 3070
@@ -51,9 +56,15 @@ ATTR_EXPORT_LIMIT_RATE = "export_limit_rate"  # holding 123, 0.1% signed
 # the load while the import limit is exceeded (see README).
 ATTR_PEAK_SHAVING_MODE = "peak_shaving_mode"  # holding 3306, 0/1
 ATTR_PEAK_SHAVING_IMPORT_LIMIT = "peak_shaving_import_limit"  # holding 3307, 0.1kW
-ATTR_PEAK_SHAVING_EXPORT_LIMIT = "peak_shaving_export_limit"  # holding 3308, 0.1kW signed
-ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE = "reserved_soc_for_peak_shaving_enable"  # holding 3309, 0/1
-ATTR_RESERVED_SOC_FOR_PEAK_SHAVING = "reserved_soc_for_peak_shaving"  # holding 3310, % 0-100
+ATTR_PEAK_SHAVING_EXPORT_LIMIT = (
+    "peak_shaving_export_limit"  # holding 3308, 0.1kW signed
+)
+ATTR_RESERVED_SOC_FOR_PEAK_SHAVING_ENABLE = (
+    "reserved_soc_for_peak_shaving_enable"  # holding 3309, 0/1
+)
+ATTR_RESERVED_SOC_FOR_PEAK_SHAVING = (
+    "reserved_soc_for_peak_shaving"  # holding 3310, % 0-100
+)
 
 # Nameplate / rated values (read-only config registers).
 ATTR_INVERTER_RATED_POWER = "inverter_rated_power"  # holding 6-7 (Pmax), 0.1VA
@@ -179,13 +190,13 @@ ATTR_N_BUS_VOLTAGE = "n_bus_voltage"  # V
 
 ATTR_OUTPUT_PERCENTAGE = "real_output_power_percent"  # %
 
-ATTR_AC_CHARGE_ENERGY_TODAY = "battery_ac_charge_energy_today" # kWh
+ATTR_AC_CHARGE_ENERGY_TODAY = "battery_ac_charge_energy_today"  # kWh
 ATTR_AC_CHARGE_ENERGY_TOTAL = "battery_AC_charge_energy_total"  # kWh
 
 # Attribute names for values in the input register Storage
 ATTR_INVERTER_STATUS = "inverter_status"
 ATTR_INVERTER_MODE = "inverter mode"
-ATTR_BDC_DATA_FLAG= "bdc_data_flag"
+ATTR_BDC_DATA_FLAG = "bdc_data_flag"
 ATTR_BDC_DERATING_MODE = "bdc_derating_mode"
 ATTR_SOC_PERCENTAGE = "soc"  # %
 ATTR_DISCHARGE_POWER = "discharge_power"  # W
@@ -198,10 +209,10 @@ ATTR_DISCHARGE_ENERGY_TODAY = "discharge_energy_today"  # kWh
 ATTR_DISCHARGE_ENERGY_TOTAL = "discharge_energy_total"  # kWh
 ATTR_CHARGE_ENERGY_TODAY = "charge_energy_today"  # kWh
 ATTR_CHARGE_ENERGY_TOTAL = "charge_energy_total"  # kWh
-ATTR_METER_POWER_NETTO = "meter_power_netto" # W
+ATTR_METER_POWER_NETTO = "meter_power_netto"  # W
 ATTR_BATTERY_PACK_NUMBER = "battery_pack_number"
-ATTR_BMS_TEMPERATURE_A = "bms_temperature_a" # C
-ATTR_BMS_TEMPERATURE_B = "bms_temperature_b" # C
+ATTR_BMS_TEMPERATURE_A = "bms_temperature_a"  # C
+ATTR_BMS_TEMPERATURE_B = "bms_temperature_b"  # C
 
 
 __all__ = [

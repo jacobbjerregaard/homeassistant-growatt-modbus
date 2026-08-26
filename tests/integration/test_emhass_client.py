@@ -3,6 +3,7 @@
 Only the HTTP wire is mocked (via ``aioclient_mock``); the request building,
 JSON body and error handling are real.
 """
+
 import aiohttp
 import pytest
 from homeassistant.helpers.aiohttp_client import async_get_clientsession

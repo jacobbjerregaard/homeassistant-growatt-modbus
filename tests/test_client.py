@@ -3,6 +3,7 @@
 Only the pymodbus client object is faked; the GrowattModbusBase request/response
 plumbing, value masking and constructor wiring are exercised for real.
 """
+
 import asyncio
 from datetime import datetime
 
@@ -129,8 +130,12 @@ def test_get_device_info_builds_struct():
 def test_network_constructors(net_type, frame, monkeypatch):
     # Mock the pymodbus client classes so no real socket/serial stack is needed;
     # the GrowattNetwork framer/transport wiring still runs.
-    monkeypatch.setattr("growatt_api.client.AsyncModbusTcpClient", lambda *a, **k: object())
-    monkeypatch.setattr("growatt_api.client.AsyncModbusUdpClient", lambda *a, **k: object())
+    monkeypatch.setattr(
+        "growatt_api.client.AsyncModbusTcpClient", lambda *a, **k: object()
+    )
+    monkeypatch.setattr(
+        "growatt_api.client.AsyncModbusUdpClient", lambda *a, **k: object()
+    )
     dev = GrowattNetwork(net_type, "10.0.0.2", 502, frame)
     assert dev.client is not None
 
@@ -150,7 +155,9 @@ def test_serial_missing_port_raises(monkeypatch):
 def test_serial_constructs_when_port_exists(monkeypatch):
     monkeypatch.setattr("growatt_api.client.sys.platform", "linux")
     monkeypatch.setattr("growatt_api.client.os.path.exists", lambda _p: True)
-    monkeypatch.setattr("growatt_api.client.AsyncModbusSerialClient", lambda *a, **k: object())
+    monkeypatch.setattr(
+        "growatt_api.client.AsyncModbusSerialClient", lambda *a, **k: object()
+    )
     dev = GrowattSerial("/dev/ttyUSB0", 9600, 1, "N", 8)
     assert dev.client is not None
 

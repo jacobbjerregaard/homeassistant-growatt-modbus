@@ -7,6 +7,7 @@ keys, but may omit ``entity.*`` names: Home Assistant falls back to English for
 those, and hand-maintaining a name for every register in every language is not
 required.
 """
+
 import json
 from pathlib import Path
 

@@ -1,4 +1,5 @@
 """Inverter status, derating, warning and fault code tables."""
+
 from enum import Enum
 from typing import Any
 
@@ -7,6 +8,7 @@ from .attrs import ATTR_DERATING_MODE, ATTR_FAULT_CODE, ATTR_STATUS_CODE
 
 class InverterStatus(Enum):
     "Enum of possible Inverter Status."
+
     Waiting = 0
     Normal = 1
     Fault = 3
@@ -70,7 +72,11 @@ def inverter_status(value: dict[str, Any]) -> str | None:
 
     elif status_value == InverterStatus.Normal:
         derating = value.get(ATTR_DERATING_MODE, None)
-        if (derating is not None and derating in INVERTER_DERATINGMODES.keys() and derating != 0):
+        if (
+            derating is not None
+            and derating in INVERTER_DERATINGMODES.keys()
+            and derating != 0
+        ):
             return f"{status_value.name} - {INVERTER_DERATINGMODES[derating]}"
 
         return status_value.name
