@@ -1,8 +1,6 @@
 """Device defaults for a Growatt Inverter."""
 
 from .base import (
-    ATTR_AC_CHARGE_ENERGY_TODAY,
-    ATTR_AC_CHARGE_ENERGY_TOTAL,
     ATTR_BATTERY_NUMBER_OF_MODULES,
     ATTR_BOOST_TEMPERATURE,
     ATTR_DERATING_MODE,
@@ -310,9 +308,10 @@ INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
     GrowattDeviceRegisters(name=ATTR_OUTPUT_PERCENTAGE, register=101, value_type=int),
     GrowattDeviceRegisters(name=ATTR_DERATING_MODE, register=104, value_type=int),
     GrowattDeviceRegisters(name=ATTR_FAULT_CODE, register=105, value_type=int),
-    GrowattDeviceRegisters(name=ATTR_WARNING_CODE, register=110, value_type=int, length=2),
-    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TODAY, register=112, value_type=float, length=2, scale=0.1, signed=True),
-    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TOTAL, register=114, value_type=float, length=2, scale=0.1, signed=True),
+    # Protocol_II V1.39: 110 is "Warning bit H" and 111 is a separate
+    # "Warn Subcode" - not the low word of a 32-bit value. The int decode
+    # path ignores length anyway, so this only ever read register 110.
+    GrowattDeviceRegisters(name=ATTR_WARNING_CODE, register=110, value_type=int),
     GrowattDeviceRegisters(name=ATTR_OUTPUT_REACTIVE_POWER, register=234, value_type=float, length=2, signed=True),
     GrowattDeviceRegisters(name=ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL, register=236, value_type=float, length=2, signed=True),
 )

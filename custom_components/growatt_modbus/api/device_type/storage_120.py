@@ -3,6 +3,8 @@ from typing import Any
 
 from .base import (
     ATTR_AC_CHARGE_ENABLED,
+    ATTR_AC_CHARGE_ENERGY_TODAY,
+    ATTR_AC_CHARGE_ENERGY_TOTAL,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_BATTERY_CURRENT,
@@ -587,6 +589,13 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
 )
 
 STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
+    # Protocol_II V1.39 documents input registers 112-115 as ACCharge
+    # energy today/total (0.1 kWh) on Storage Power models only. On the
+    # MAX series the same addresses are Warn Maincode, real Power Percent,
+    # inv start delay time and bINVAllFaultCode - which is why these belong
+    # here rather than in the plain-inverter map.
+    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TODAY, register=112, value_type=float, length=2, scale=10, signed=True),
+    GrowattDeviceRegisters(name=ATTR_AC_CHARGE_ENERGY_TOTAL, register=114, value_type=float, length=2, scale=10, signed=True),
     GrowattDeviceRegisters(
         name=ATTR_INVERTER_STATUS,
         register=3000,
