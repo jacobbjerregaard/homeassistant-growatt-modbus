@@ -7,11 +7,13 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import (
     PERCENTAGE,
+    UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfReactivePower,
     UnitOfTemperature,
     UnitOfTime,
 )
@@ -388,9 +390,9 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_1_POWER,
-        name="Output 1 Wattage",
-        native_unit_of_measurement=UnitOfPower.WATT,
-        device_class=SensorDeviceClass.POWER,
+        name="Output 1 Apparent Power",
+        native_unit_of_measurement=UnitOfApparentPower.VOLT_AMPERE,
+        device_class=SensorDeviceClass.APPARENT_POWER,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_2_VOLTAGE,
@@ -406,9 +408,9 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_2_POWER,
-        name="Output 2 Wattage",
-        native_unit_of_measurement=UnitOfPower.WATT,
-        device_class=SensorDeviceClass.POWER,
+        name="Output 2 Apparent Power",
+        native_unit_of_measurement=UnitOfApparentPower.VOLT_AMPERE,
+        device_class=SensorDeviceClass.APPARENT_POWER,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_3_VOLTAGE,
@@ -424,9 +426,9 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_3_POWER,
-        name="Output 3 Wattage",
-        native_unit_of_measurement=UnitOfPower.WATT,
-        device_class=SensorDeviceClass.POWER,
+        name="Output 3 Apparent Power",
+        native_unit_of_measurement=UnitOfApparentPower.VOLT_AMPERE,
+        device_class=SensorDeviceClass.APPARENT_POWER,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OPERATION_HOURS,
@@ -455,9 +457,9 @@ INVERTER_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     ),
     GrowattSensorEntityDescription(
         key=ATTR_OUTPUT_REACTIVE_POWER,
-        name="Reactive wattage",
-        native_unit_of_measurement=UnitOfPower.WATT,
-        device_class=SensorDeviceClass.POWER,
+        name="Reactive Power",
+        native_unit_of_measurement=UnitOfReactivePower.VOLT_AMPERE_REACTIVE,
+        device_class=SensorDeviceClass.REACTIVE_POWER,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_IPM_TEMPERATURE,

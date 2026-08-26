@@ -141,7 +141,7 @@
         "name": "Output 1 Amperage"
       },
       "output_1_power": {
-        "name": "Output 1 Wattage"
+        "name": "Output 1 Apparent Power"
       },
       "output_2_voltage": {
         "name": "Output 2 voltage"
@@ -150,7 +150,7 @@
         "name": "Output 2 Amperage"
       },
       "output_2_power": {
-        "name": "Output 2 Wattage"
+        "name": "Output 2 Apparent Power"
       },
       "output_3_voltage": {
         "name": "Output 3 voltage"
@@ -159,7 +159,7 @@
         "name": "Output 3 Amperage"
       },
       "output_3_power": {
-        "name": "Output 3 Wattage"
+        "name": "Output 3 Apparent Power"
       },
       "operation_hours": {
         "name": "Running hours"
@@ -174,7 +174,7 @@
         "name": "Output power"
       },
       "output_reactive_power": {
-        "name": "Reactive wattage"
+        "name": "Reactive Power"
       },
       "ipm_temperature": {
         "name": "Intelligent Power Management temperature"
