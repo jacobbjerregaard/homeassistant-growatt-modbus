@@ -74,3 +74,42 @@ def test_storage_exposes_battery_charge_discharge_stop_soc():
 def test_unsupported_device_type_raises():
     with pytest.raises(TypeError):
         get_register_information("not-a-device-type")
+
+
+def test_ac_charge_energy_only_on_storage_models():
+    """Input 112-115 mean different things depending on the model.
+
+    Protocol_II V1.39 documents 112-115 as ACCharge energy today/total
+    (0.1 kWh) on Storage Power models. On the MAX series the same addresses
+    are Warn Maincode, real Power Percent, inv start delay time and
+    bINVAllFaultCode. Decoding those four as a pair of 32-bit energy
+    counters produces large nonsense values, and because the sensors are
+    TOTAL_INCREASING the nonsense accumulates permanently.
+    """
+    plain = get_register_information(DeviceTypes.INVERTER_120)
+    assert not [r for r in plain.input.values() if "ac_charge" in r.name.lower()]
+    for addr in (112, 113, 114, 115):
+        assert addr not in plain.input, (
+            f"plain inverter map claims input register {addr}, which is "
+            "model-specific and not ACCharge energy on the MAX series"
+        )
+
+    for device_type in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120):
+        info = get_register_information(device_type)
+        names = {r.name.lower() for r in info.input.values()}
+        assert "battery_ac_charge_energy_today" in names
+        assert "battery_ac_charge_energy_total" in names
+
+
+def test_warning_code_is_a_single_register():
+    """110 is "Warning bit H"; 111 is a separate "Warn Subcode".
+
+    They are not the two halves of a 32-bit value, and the int decode path
+    ignores `length` regardless - so declaring length=2 only caused register
+    111 to be fetched every poll and thrown away.
+    """
+    info = get_register_information(DeviceTypes.INVERTER_120)
+    warning = info.input[110]
+    assert warning.name == "warning_code"
+    assert warning.length == 1
+    assert 111 not in info.input
