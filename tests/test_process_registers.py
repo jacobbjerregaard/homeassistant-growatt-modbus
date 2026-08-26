@@ -49,9 +49,7 @@ def test_custom_function_single_word():
 
 
 def test_custom_function_multi_word_receives_list():
-    registers = {
-        10: _reg("sum", 10, custom_function, length=3, function=lambda vals: sum(vals))
-    }
+    registers = {10: _reg("sum", 10, custom_function, length=3, function=sum)}
     assert process_registers(registers, {10: 1, 11: 2, 12: 3}) == {"sum": 6}
 
 

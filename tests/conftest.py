@@ -21,6 +21,7 @@ from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _API_DIR = _REPO_ROOT / "custom_components" / "growatt_modbus" / "api"
+_INTEGRATION_DIR = Path(__file__).resolve().parent / "integration"
 
 # Make ``custom_components`` importable for the Home Assistant integration tests.
 if str(_REPO_ROOT) not in sys.path:
@@ -40,10 +41,23 @@ def _register_namespace_package(name: str, path: Path) -> None:
 _register_namespace_package("growatt_api", _API_DIR)
 
 
-# The tests/integration suite needs Home Assistant + pytest-homeassistant-custom
-# -component. When those aren't installed (e.g. the pure-logic Python 3.14 venv)
-# skip collecting that directory entirely so the rest of the suite still runs.
-try:
-    import pytest_homeassistant_custom_component  # noqa: F401
-except ImportError:
-    collect_ignore = ["integration"]
+# The tests/integration suite needs Home Assistant +
+# pytest-homeassistant-custom-component. When those aren't installed (e.g. the
+# pure-logic venv) skip collecting that directory entirely so the rest of the
+# suite still runs.
+#
+# find_spec plus the documented hook rather than a try/except import and the
+# `collect_ignore` magic global: both of those look like dead code to static
+# analysis, since nothing in this file reads either name.
+_HAS_HOMEASSISTANT = (
+    importlib.util.find_spec("pytest_homeassistant_custom_component") is not None
+)
+
+
+def pytest_ignore_collect(collection_path, config):
+    """Skip tests/integration when Home Assistant isn't installed."""
+    if _HAS_HOMEASSISTANT:
+        return None
+    return _INTEGRATION_DIR in collection_path.parents or (
+        collection_path == _INTEGRATION_DIR
+    )

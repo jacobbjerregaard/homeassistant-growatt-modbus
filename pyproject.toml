@@ -3,7 +3,11 @@
 # runs share one source of truth.
 
 [tool.ruff]
-target-version = "py314"
+# Deliberately below the interpreter CI runs on. hacs.json claims support
+# back to HA 2024.6, which ships Python 3.12, and `ruff format` emits
+# syntax for this target - at py314 it rewrote `except (A, B):` into the
+# PEP 758 form, which is a SyntaxError on 3.12 and 3.13.
+target-version = "py312"
 line-length = 88
 
 [tool.ruff.lint]

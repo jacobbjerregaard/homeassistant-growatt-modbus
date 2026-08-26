@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from datetime import time as dt_time
 
 from homeassistant.components.time import TimeEntity
@@ -14,8 +13,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import GrowattConfigEntry, GrowattLocalCoordinator
 from .entity import growatt_device_info
 from .tou import read_slot_fields, slot_unique_id, write_slot_field
-
-_LOGGER = logging.getLogger(__name__)
 
 # Writes go to the inverter over a single Modbus connection (serialized by the
 # transport lock); be explicit and let Home Assistant issue them one at a time.
