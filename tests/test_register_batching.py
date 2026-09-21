@@ -152,3 +152,32 @@ def test_keys_sequences_never_exceed_maximum_length():
             maximum_length,
             sorted(spans),
         )
+
+
+def test_multi_word_registers_are_never_split_across_reads():
+    """Both words of a 32-bit value must come from the same request.
+
+    Read in two requests, a carry into the high word between them decodes the
+    counter off by 65536 raw (6553.6 kWh at 0.1 kWh scale).
+    """
+    import random
+
+    rng = random.Random(4321)
+    for _ in range(2000):
+        maximum_length = rng.choice((20, 45, 100))
+        registers: dict[int, GrowattDeviceRegisters] = {}
+        position = rng.randrange(0, 20)
+        for index in range(rng.randrange(1, 60)):
+            length = rng.choice((1, 1, 2, 2, 4))
+            registers[position] = _u16(f"r{index}", position, length)
+            position += length + rng.choice((0, 0, 0, 1, 5, 40))
+        device = DeviceRegisters(holding=registers, input={}, max_length=maximum_length)
+
+        spans = register_sequences(RegisterKeys(holding=set(registers)), device).holding
+
+        for register in registers.values():
+            words = set(range(register.register, register.register + register.length))
+            assert any(
+                words <= set(range(start, start + length)) for start, length in spans
+            ), (register, maximum_length, sorted(spans))
+            assert all(length <= maximum_length for _start, length in spans)
