@@ -73,3 +73,55 @@ async def test_setting_start_time_rewrites_slot(hass, setup_storage_tou):
     new1 = fake.registers[3038]
     assert (new1 >> 8) & 0x1F == 6  # start hour
     assert new1 & 0xFF == 15  # start minute
+
+
+async def test_quick_successive_field_changes_are_all_kept(hass, setup_storage_tou):
+    """A script setting start, end and enabled back to back must keep all three.
+
+    Each change rewrites both slot words. The refresh after a write is
+    debounced, so a change made from the last poll's data wrote back a stale
+    word2 and undid the end time set just before it.
+    """
+    entry, fake = setup_storage_tou
+    fake.registers[3038] = SLOT1_WORD1
+    fake.registers[3039] = SLOT1_WORD2
+    await _refresh(hass, entry)
+
+    for domain, service, suffix, data in (
+        ("time", "set_value", "start_time", {"time": "02:00:00"}),
+        ("time", "set_value", "end_time", {"time": "04:00:00"}),
+        ("switch", "turn_off", "enabled", {}),
+    ):
+        await hass.services.async_call(
+            domain,
+            service,
+            {"entity_id": _entity_id(hass, entry, suffix), **data},
+            blocking=True,
+        )
+
+    word1, word2 = fake.registers[3038], fake.registers[3039]
+    assert ((word1 >> 8) & 0x1F, word1 & 0xFF) == (2, 0)  # start 02:00
+    assert ((word2 >> 8) & 0x1F, word2 & 0xFF) == (4, 0)  # end 04:00
+    assert (word1 >> 15) & 0x1 == 0  # disabled
+    assert (word1 >> 13) & 0x3 == 1  # priority untouched
+
+
+async def test_field_change_before_first_poll_keeps_other_fields(
+    hass, setup_storage_tou
+):
+    """Without polled data the other fields used to be written as 0 (00:00)."""
+    entry, fake = setup_storage_tou
+    coordinator = entry.runtime_data.main_coordinator
+    fake.registers[3038] = SLOT1_WORD1
+    fake.registers[3039] = SLOT1_WORD2
+    coordinator.data = {}  # never polled
+
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": _entity_id(hass, entry, "priority"), "option": "Grid First"},
+        blocking=True,
+    )
+
+    assert fake.registers[3039] == SLOT1_WORD2  # end 05:45 preserved
+    assert fake.registers[3038] & 0xFF == 30  # start minute preserved

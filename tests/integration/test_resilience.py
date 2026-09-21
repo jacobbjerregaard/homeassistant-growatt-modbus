@@ -158,3 +158,54 @@ async def test_connection_closed_when_setup_fails_after_connect(
 
     assert entry.state is ConfigEntryState.SETUP_ERROR
     assert transport.closed
+
+
+async def test_failed_entity_write_raises_a_user_facing_error(hass, setup_storage):
+    """A rejected write surfaces as HomeAssistantError, not a raw traceback."""
+    import pytest
+    from homeassistant.exceptions import HomeAssistantError
+
+    entry, fake = setup_storage
+    switch_id = next(
+        e.entity_id
+        for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+        if e.domain == "switch" and e.unique_id.endswith("_ac_charge_enabled")
+    )
+
+    async def _reject(register, payload, unit):
+        raise ModbusException("illegal data value")
+
+    fake.write_register = _reject
+    with pytest.raises(HomeAssistantError, match="illegal data value"):
+        await hass.services.async_call(
+            "switch", "turn_on", {"entity_id": switch_id}, blocking=True
+        )
+
+
+async def test_reconnect_is_attempted_promptly_and_rate_limited(hass, setup_storage):
+    """The link is retried on the first failure, then at most once a minute.
+
+    It used to retry only on every 60th failed poll: at the default 60 s scan
+    interval, one reconnect attempt an hour.
+    """
+    entry, fake = setup_storage
+    coordinator = entry.runtime_data.main_coordinator
+    connect = AsyncMock()
+    fake.connect = connect
+
+    with (
+        patch.object(
+            entry.runtime_data.device,
+            "update",
+            new=AsyncMock(side_effect=ConnectionException("lost")),
+        ),
+        patch(
+            "custom_components.growatt_modbus.coordinator.time.monotonic"
+        ) as monotonic,
+    ):
+        for now in (1000.0, 1010.0, 1030.0, 1061.0):
+            monotonic.return_value = now
+            await coordinator.async_refresh()
+
+    # 1000 (first failure), then 1061 (>= 60 s later); 1010/1030 rate-limited.
+    assert connect.await_count == 2

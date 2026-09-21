@@ -30,11 +30,27 @@ def read_slot_fields(coordinator, slot: int) -> dict:
 
 
 async def write_slot_field(coordinator, slot: int, **change) -> None:
-    """Read-modify-write a single field of a time-of-use slot."""
+    """Read-modify-write a single field of a time-of-use slot.
+
+    Both words are rewritten, so they are read fresh from the device rather
+    than from the last poll. The poll data can be stale: the refresh after a
+    write is debounced, so changing start, end and enable in quick succession
+    (a script) wrote back an old word2 and undid the end time. If the slot had
+    never been polled, the missing words defaulted to 0 and reset the other
+    fields to 00:00. The lock keeps two field changes from interleaving.
+    """
     base = time_slot_register(slot)
-    reg1 = int(coordinator.data.get(f"tou_slot_{slot}_word1") or 0)
-    reg2 = int(coordinator.data.get(f"tou_slot_{slot}_word2") or 0)
-    new1, new2 = apply_time_slot_field(reg1, reg2, **change)
-    await coordinator.write_register_value(base, new1)
-    await coordinator.write_register_value(base + 1, new2)
+    async with coordinator.tou_lock:
+        reg1, reg2 = await coordinator.read_holding_words(base, 2)
+        new1, new2 = apply_time_slot_field(reg1, reg2, **change)
+        await coordinator.write_register_value(base, new1)
+        await coordinator.write_register_value(base + 1, new2)
+        # Show the new value now; the refresh below re-reads it from the device.
+        coordinator.async_set_updated_data(
+            {
+                **coordinator.data,
+                f"tou_slot_{slot}_word1": new1,
+                f"tou_slot_{slot}_word2": new2,
+            }
+        )
     await coordinator.async_request_refresh()

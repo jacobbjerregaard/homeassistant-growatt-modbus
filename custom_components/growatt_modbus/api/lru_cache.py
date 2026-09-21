@@ -76,7 +76,9 @@ class LRUCache[K, V](MutableMapping):
         return default
 
     def set(self, key: K, value: V):
-        if self.cache.get(key):
+        # Membership, not truthiness: a cached value can be falsy (an empty
+        # RegisterSequences has len() 0).
+        if key in self.cache:
             # Move the entry to the front by re-inserting it
             del self.cache[key]
             self.cache[key] = value

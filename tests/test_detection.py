@@ -40,9 +40,14 @@ def test_fixed_120_family_uses_120_registers(device_type):
     assert result is not None
 
 
-def test_fixed_unknown_type_returns_none():
-    # A device type outside the 120 family / 315 falls through to None.
-    assert asyncio.run(get_device_info(_StubDevice(), 1, DeviceTypes.INVERTER)) is None
+def test_fixed_legacy_inverter_uses_315_registers():
+    # The legacy "inverter" type polls the v3.15 map (see device._REGISTER_SETS);
+    # returning None here made such entries impossible to reconfigure.
+    from growatt_api.device_type.inverter_315 import HOLDING_REGISTERS_315
+
+    device = _StubDevice()
+    assert asyncio.run(get_device_info(device, 1, DeviceTypes.INVERTER)) is not None
+    assert device.requested is HOLDING_REGISTERS_315
 
 
 from growatt_api.device_type.base import GrowattDeviceInfo  # noqa: E402
@@ -83,3 +88,35 @@ def test_autodetect_selects_v315():
 
 def test_autodetect_unknown_version_returns_none():
     assert asyncio.run(get_device_info(_VersionDevice(0.0, 0.0), 1)) is None
+
+
+def test_autodetect_accepts_exactly_v315():
+    result = asyncio.run(get_device_info(_VersionDevice(0.0, 3.15), 1))
+    assert result is not None and result.modbus_version == 3.15
+
+
+def test_autodetect_tries_v315_when_v120_probe_is_rejected():
+    """A v3.15 inverter may reject the v1.24 identity addresses outright.
+
+    That exception used to abort detection before the v3.15 layout was tried.
+    """
+    from growatt_api.exception import ModbusException
+
+    class _Rejects120(_VersionDevice):
+        async def get_device_info(self, registers, max_length, unit):
+            if registers is HOLDING_REGISTERS_120:
+                raise ModbusException("illegal data address")
+            return await super().get_device_info(registers, max_length, unit)
+
+    result = asyncio.run(get_device_info(_Rejects120(0.0, 3.05), 1))
+    assert result is not None and result.modbus_version == 3.05
+
+
+@pytest.mark.parametrize(
+    ("version", "expected"),
+    [(1.24, DeviceTypes.INVERTER_120), (3.05, DeviceTypes.INVERTER_315)],
+)
+def test_default_device_type_is_a_selectable_type(version, expected):
+    from growatt_api.detection import default_device_type
+
+    assert default_device_type(_info(version)) is expected

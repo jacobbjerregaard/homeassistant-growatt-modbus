@@ -455,13 +455,16 @@ async def async_setup_optimizer(
         # Apply the current plan now, recompile once daily just after midnight
         # from EMHASS's published day-ahead plan, and run intraday model-
         # predictive corrections every optimizer interval.
-        await optimizer.async_compile_tou()
+        #
+        # A failed write must not fail the entry's setup (the inverter entities
+        # would all go missing) - the daily compile and MPC steps retry it.
+        await _async_actuate(optimizer.async_compile_tou, "applying the plan")
 
         async def _daily_compile(_now) -> None:
-            await optimizer.async_compile_tou()
+            await _async_actuate(optimizer.async_compile_tou, "daily TOU compile")
 
         async def _mpc_step(_now) -> None:
-            await optimizer.async_mpc_step()
+            await _async_actuate(optimizer.async_mpc_step, "MPC step")
 
         entry.async_on_unload(
             async_track_time_change(hass, _daily_compile, hour=0, minute=10, second=0)
@@ -471,3 +474,11 @@ async def async_setup_optimizer(
         )
 
     return optimizer
+
+
+async def _async_actuate(action, description: str) -> None:
+    """Run an optimizer write, logging a failure instead of raising it."""
+    try:
+        await action()
+    except HomeAssistantError as err:
+        _LOGGER.warning("optimizer: %s failed: %s", description, err)

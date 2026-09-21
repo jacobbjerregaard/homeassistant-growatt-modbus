@@ -22,9 +22,9 @@ from pymodbus.exceptions import ConnectionException
 
 from .api.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
 from .api.const import DeviceTypes
-from .api.detection import get_device_info
+from .api.detection import default_device_type, get_device_info
 from .api.device_type.base import GrowattDeviceInfo
-from .api.exception import ModbusPortException
+from .api.exception import ModbusException, ModbusPortException
 from .const import (
     CONF_AC_PHASES,
     CONF_BAUDRATE,
@@ -272,7 +272,14 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[CONF_PARITY],
                     user_input[CONF_BYTESIZE],
                 )
+                # pymodbus reports a port it cannot open by not connecting (it does
+                # not raise), e.g. when it is in use by another process.
                 await server.connect()
+                if not server.connected():
+                    server.close()
+                    raise ModbusPortException(
+                        f"Cannot open serial port {user_input[CONF_SERIAL_PORT]}"
+                    )
             except ModbusPortException:
                 _LOGGER.error("ERROR", exc_info=True)
                 return self._async_show_serial_form(
@@ -289,6 +296,11 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             try:
                 device_info = await get_device_info(server, user_input[CONF_ADDRESS])
+            except ModbusException:
+                # The device answered but rejected the identity read; let the
+                # user choose the device type by hand.
+                _LOGGER.warning("Device detection failed", exc_info=True)
+                device_info = None
             except TimeoutError:
                 _LOGGER.warning(
                     "Device didn't respond on given address ID %s",
@@ -329,7 +341,7 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if device_info:
                 return self._async_show_device_form(
                     model=device_info.model,
-                    device_type=device_info.device_type,
+                    device_type=default_device_type(device_info),
                     mppt_trackers=device_info.mppt_trackers,
                     grid_phases=device_info.grid_phases,
                     modbus_version=device_info.modbus_version,
@@ -393,6 +405,11 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     device_info = await get_device_info(
                         server, user_input[CONF_ADDRESS]
                     )
+            except ModbusException:
+                # The device answered but rejected the identity read; let the
+                # user choose the device type by hand.
+                _LOGGER.warning("Device detection failed", exc_info=True)
+                device_info = None
             except TimeoutError:
                 _LOGGER.warning(
                     "Device didn't respond on given address ID %s",
@@ -429,7 +446,7 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if device_info:
                 return self._async_show_device_form(
                     model=device_info.model,
-                    device_type=device_info.device_type,
+                    device_type=default_device_type(device_info),
                     mppt_trackers=device_info.mppt_trackers,
                     grid_phases=device_info.grid_phases,
                     modbus_version=device_info.modbus_version,
@@ -448,11 +465,17 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         device_info = None
         if self.server and user_input is not None:
-            await self.server.connect()
             try:
+                await self.server.connect()
+                if not self.server.connected():
+                    raise ConnectionException("connection failed")
                 device_info = await get_device_info(
                     self.server, self.data[CONF_ADDRESS], user_input[CONF_TYPE]
                 )
+            except ModbusException:
+                # The device rejected the identity read for the chosen type.
+                _LOGGER.warning("Reading device info failed", exc_info=True)
+                device_info = None
             except TimeoutError:
                 _LOGGER.warning(
                     "Device didn't respond on given address ID %s",
@@ -525,10 +548,20 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_BYTESIZE],
             )
             await server.connect()
+            if not server.connected():
+                server.close()
+                return None, {CONF_SERIAL_PORT: "serial_port"}
         except ModbusPortException:
             return None, {CONF_SERIAL_PORT: "serial_port"}
         try:
-            info = await get_device_info(server, user_input[CONF_ADDRESS])
+            # Read with the configured device type: a device whose type had to
+            # be chosen by hand at setup is not auto-detectable, and would
+            # otherwise always fail reconfigure with "device_type".
+            info = await get_device_info(
+                server, user_input[CONF_ADDRESS], self.data.get(CONF_TYPE)
+            )
+        except ModbusException:
+            return None, {"base": "device_type"}
         except TimeoutError:
             return None, {CONF_ADDRESS: "device_address", "base": "device_timeout"}
         except ConnectionException:
@@ -557,7 +590,11 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             server.close()
             return None, {"base": "network_connection"}
         try:
-            info = await get_device_info(server, user_input[CONF_ADDRESS])
+            info = await get_device_info(
+                server, user_input[CONF_ADDRESS], self.data.get(CONF_TYPE)
+            )
+        except ModbusException:
+            return None, {"base": "device_type"}
         except TimeoutError:
             return None, {CONF_ADDRESS: "device_address", "base": "device_timeout"}
         except ConnectionException:

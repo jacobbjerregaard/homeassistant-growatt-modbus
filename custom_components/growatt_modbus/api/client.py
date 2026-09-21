@@ -119,14 +119,20 @@ class GrowattModbusBase:
 
         # SysYear is stored with a 2000 offset (year - 2000). See note in
         # write_device_time about the V1.39 "Year offset is 0" ambiguity.
-        return datetime(
-            rhr.registers[0] + 2000,
-            rhr.registers[1],
-            rhr.registers[2],
-            rhr.registers[3],
-            rhr.registers[4],
-            rhr.registers[5],
-        )
+        try:
+            return datetime(
+                rhr.registers[0] + 2000,
+                rhr.registers[1],
+                rhr.registers[2],
+                rhr.registers[3],
+                rhr.registers[4],
+                rhr.registers[5],
+            )
+        except (ValueError, IndexError) as err:
+            # An unset clock reads as zeros (month 0), which is not a date.
+            raise ModbusException(
+                f"Device clock holds an invalid date: {list(rhr.registers)}"
+            ) from err
 
     async def write_device_time(
         self,
@@ -167,14 +173,10 @@ class GrowattModbusBase:
         """Write a raw unsigned 16-bit value (0-65535) to a holding register.
 
         Carries bit-packed values such as the time-slot registers (enable bit
-        15) which exceed the signed-int16 range.
+        15) which exceed the signed-int16 range. The encoding is the same as
+        :meth:`write_register`; the separate name documents the intent.
         """
-        async with self._lock:
-            result = await self.client.write_register(
-                register, int(value) & 0xFFFF, device_id=unit
-            )
-        _raise_on_error(result, register)
-        return result
+        return await self.write_register(register, value, unit)
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
         async with self._lock:
