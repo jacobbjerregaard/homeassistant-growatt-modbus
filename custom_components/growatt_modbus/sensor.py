@@ -1,9 +1,8 @@
 import logging
 import re
 from datetime import timedelta
-from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import (
     CONF_TYPE,
     STATE_UNAVAILABLE,
@@ -258,42 +257,9 @@ class GrowattDeviceEntity(
         # availability tracks the coordinator - on a failed update it must go
         # unavailable instead of holding the stale value.
         state = self.coordinator.data.get(self.entity_description.key)
-        if state is not None and not self._is_counter_glitch(state):
+        if state is not None:
             self._attr_native_value = state
         self.async_write_ha_state()
-
-    def _is_counter_glitch(self, new_value: Any) -> bool:
-        """True when a total_increasing counter dipped without resetting.
-
-        Growatt's energy counters occasionally report one step (0.1 kWh) below
-        the previous poll, e.g. 1.7 -> 1.6 kWh. Home Assistant does not treat a
-        drop that small as a reset: it warns that the state is "not strictly
-        increasing" and counts the energy again when the counter climbs back,
-        inflating the statistics. Keep the previous value through such a dip.
-
-        A drop to below half the previous value is still passed through as a
-        genuine reset (the daily counters return to 0 at the inverter's
-        midnight, which may differ from Home Assistant's).
-        """
-        if self.entity_description.state_class != SensorStateClass.TOTAL_INCREASING:
-            return False
-        previous_value = self._attr_native_value  # a restored state is a str
-        if not isinstance(previous_value, (str, int, float)):
-            return False
-        try:
-            previous = float(previous_value)
-            current = float(new_value)
-        except (TypeError, ValueError):
-            return False
-        if current >= previous or current < previous / 2:
-            return False
-        _LOGGER.debug(
-            "Ignoring %s dip from %s to %s; the counter is total_increasing",
-            self.entity_id,
-            previous,
-            current,
-        )
-        return True
 
     @callback
     def _handle_midnight_update(self) -> None:

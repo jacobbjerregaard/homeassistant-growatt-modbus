@@ -190,8 +190,6 @@ ATTR_N_BUS_VOLTAGE = "n_bus_voltage"  # V
 
 ATTR_OUTPUT_PERCENTAGE = "real_output_power_percent"  # %
 
-ATTR_AC_CHARGE_ENERGY_TODAY = "battery_ac_charge_energy_today"  # kWh
-ATTR_AC_CHARGE_ENERGY_TOTAL = "battery_AC_charge_energy_total"  # kWh
 
 # Attribute names for values in the input register Storage
 ATTR_INVERTER_STATUS = "inverter_status"
@@ -217,8 +215,6 @@ ATTR_BMS_TEMPERATURE_B = "bms_temperature_b"  # C
 
 __all__ = [
     "ATTR_AC_CHARGE_ENABLED",
-    "ATTR_AC_CHARGE_ENERGY_TODAY",
-    "ATTR_AC_CHARGE_ENERGY_TOTAL",
     "ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST",
     "ATTR_BATTERY_CHARGE_STOP_SOC",
     "ATTR_BATTERY_CURRENT",

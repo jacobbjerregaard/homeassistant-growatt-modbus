@@ -185,12 +185,6 @@
       "real_output_power_percent": {
         "name": "Real power output percentage"
       },
-      "battery_ac_charge_energy_today": {
-        "name": "Battery AC Charge energy today"
-      },
-      "battery_ac_charge_energy_total": {
-        "name": "Battery AC Charge energy total"
-      },
       "status": {
         "name": "Status"
       },
