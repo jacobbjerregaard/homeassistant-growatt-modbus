@@ -30,7 +30,7 @@ ATTR_AC_CHARGE_ENABLED = "ac_charge_enabled"
 
 # Writable command registers added in Protocol II V1.39 (Storage)
 # Generic (non-mode-specific) battery charge/discharge stop SOC. The siblings
-# above (3037/3048/3067) are mode-specific (Grid-First / Battery-First); these
+# above (3037/3048/3067) are mode-specific (off-grid / Battery-First / on-grid); these
 # two carry no mode qualifier in the spec.
 ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC = (
     "battery_global_charge_stop_soc"  # holding 951 uwBatChargeStopSoc
@@ -38,6 +38,9 @@ ATTR_BATTERY_GLOBAL_CHARGE_STOP_SOC = (
 ATTR_BATTERY_GLOBAL_DISCHARGE_STOP_SOC = (
     "battery_global_discharge_stop_soc"  # holding 952 uwBatDisChargeStopSoc
 )
+# Holding 3037 is the off-grid discharge stop SOC (the Growatt portal's
+# "Off-grid Battery Discharge Stop SOC"). The historical name is kept because
+# it is part of every existing entity's unique_id.
 ATTR_GRID_FIRST_STOP_SOC = "grid_first_stop_soc"  # holding 3037
 ATTR_ON_GRID_DISCHARGE_STOP_SOC = "on_grid_discharge_stop_soc"  # holding 3067
 ATTR_BATTERY_TYPE = "battery_type"  # holding 3070

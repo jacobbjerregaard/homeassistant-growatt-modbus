@@ -452,7 +452,7 @@
         "name": "Battery Stop Charge SOC when Battery First"
       },
       "grid_first_stop_soc": {
-        "name": "Stop Discharge SOC when Grid First"
+        "name": "Off-Grid Stop Discharge SOC"
       },
       "on_grid_discharge_stop_soc": {
         "name": "On-Grid Stop Discharge SOC"

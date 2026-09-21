@@ -38,7 +38,7 @@ In addition to the existing telemetry, the storage/hybrid device type now
 exposes:
 
 * **Writable controls** (the V1.39 "command API"):
-  * `number`: Grid-First stop-discharge SOC, On-Grid stop-discharge SOC, and
+  * `number`: Off-Grid stop-discharge SOC, On-Grid stop-discharge SOC, and
     the Grid-First discharge rate / Battery-First charge rate / Battery-First
     stop SOC (these three moved from read-only `sensor.*` to writable
     `number.*`), plus the generic Battery charge stop SOC / Battery discharge

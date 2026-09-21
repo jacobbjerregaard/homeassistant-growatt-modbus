@@ -166,8 +166,11 @@ STORAGE_NUMBER_TYPES: tuple[GrowattNumberEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
     ),
     GrowattNumberEntityDescription(
+        # Holding 3037. The Growatt portal labels it "Off-grid Battery Discharge
+        # Stop SOC"; the key keeps its old name so existing unique_ids and
+        # entity history are unaffected.
         key=ATTR_GRID_FIRST_STOP_SOC,
-        name="Stop Discharge SOC when Grid First",
+        name="Off-Grid Stop Discharge SOC",
         native_min_value=1,
         native_max_value=100,
         native_step=1,
