@@ -111,3 +111,17 @@ def test_warning_code_is_a_single_register():
     assert warning.name == "warning_code"
     assert warning.length == 1
     assert 111 not in info.input
+
+
+def test_storage_battery_voltage_is_tenths_of_a_volt():
+    """Input 3169 is 0.1 V on the TL-XH hybrids, not the documented 0.01 V.
+
+    Verified live on a MOD TL3-XH: raw 6403 while the Growatt portal showed
+    639.8 V and charge power / current (2250 W / 3.5 A) gave 643 V.
+    """
+    from growatt_api.utils import process_registers
+
+    for device_type in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120):
+        info = get_register_information(device_type)
+        decoded = process_registers(info.input, {3169: 6403})
+        assert decoded["battery_voltage"] == 640.3

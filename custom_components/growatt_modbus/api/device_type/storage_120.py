@@ -790,8 +790,13 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         length=2,
         signed=True,
     ),
+    # 0.1 V, not the 0.01 V the V1.39 table gives. Verified on a live MOD
+    # TL3-XH with an HV battery: raw 6403 is 640.3 V - the Growatt portal
+    # showed 639.8 V, and charge power / battery current (2250 W / 3.5 A)
+    # gives 643 V. At 0.01 V it read 64.03 V, which also made the optimizer's
+    # max-power estimate (BMS current x voltage) ten times too small.
     GrowattDeviceRegisters(
-        name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=100
+        name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=10
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_CURRENT, register=3170, value_type=float, signed=True
