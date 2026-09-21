@@ -149,130 +149,29 @@ def keys_sequences(keys: Iterable[int], maximum_length: int) -> set[tuple[int, i
 
 def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
     """
-    The split points are chosen from the gaps between consecutive keys and
-    from the maximum number of registers a single read may cover.
-    returns indexes where to split
+    Return the indexes into the sorted ``keys`` at which a new read starts.
+
+    A new read starts at a key when either
+    - the gap from the previous key reaches ``maximum_length / 4``: reading
+      the unused words in between would cost more than another request, or
+    - including the key would make the current read longer than
+      ``maximum_length`` words, which the inverter rejects.
+
+    Greedy, so every read is guaranteed to be at most ``maximum_length``.
     """
-    _LOGGER.debug(f"split sequence keys: {keys}")
+    separation_threshold = maximum_length / 4
 
-    # Split points from the gaps between keys, using a separation threshold.
+    indexes: list[int] = []
+    read_start = 0
+    for index in range(1, len(keys)):
+        gap = keys[index] - keys[index - 1]
+        span = keys[index] - keys[read_start] + 1
+        if gap >= separation_threshold or span > maximum_length:
+            indexes.append(index)
+            read_start = index
 
-    diff_key_seperation_index = set()
-    seperation_treshold = maximum_length / 4
-
-    key_differences = [j - i for i, j in zip(keys[:-1], keys[1:], strict=True)]
-    sorted_key_differences = sorted(key_differences, reverse=True)
-
-    for key_diff in sorted_key_differences:
-        if key_diff < seperation_treshold:
-            break
-        diff_key_seperation_index.add(key_differences.index(key_diff) + 1)
-
-    _LOGGER.debug(
-        f"split sequence indexes based on key seperation: {diff_key_seperation_index}"
-    )
-
-    # Split points required by the maximum readable length.
-
-    cumulative_key_seperation_index = set()
-    key_cumulative_diff = [key - keys[0] for key in keys]
-
-    i = 0
-    j = 0
-    while i < len(key_cumulative_diff):
-        if key_cumulative_diff[i] >= maximum_length:
-            cumulative_key_seperation_index.add(i + j)
-            key_cumulative_diff = [key - keys[i + j] for key in keys[i + j :]]
-            j += i
-            i = 0
-        else:
-            i += 1
-
-    _LOGGER.debug(
-        "split sequence indexes based on maximum length: %s",
-        cumulative_key_seperation_index,
-    )
-
-    # check if both methods find equal index separation values
-    common_index = cumulative_key_seperation_index.intersection(
-        diff_key_seperation_index
-    )
-
-    _LOGGER.debug(f"split sequence common indexes: {common_index}")
-
-    cumulative_key_seperation_index.difference_update(common_index)
-    diff_key_seperation_index.difference_update(common_index)
-
-    if (
-        len(cumulative_key_seperation_index) == 0
-        and len(diff_key_seperation_index) == 0
-    ):
-        return sorted(common_index)
-
-    if len(cumulative_key_seperation_index) > 0:
-        # sorting the separation index fixes the processing from small to higher
-        for item in sorted(cumulative_key_seperation_index):
-            if len(diff_key_seperation_index) == 0:
-                common_index.add(item)
-                cumulative_key_seperation_index.remove(item)
-                continue
-
-            # Prefer a nearby larger separation, to reduce the split count.
-            closest_value = min(diff_key_seperation_index, key=lambda x: abs(x - item))
-
-            if len(common_index) == 0:
-                # checking if closest separation is not violating the maximum length
-                if keys[closest_value - 1] - keys[0] < maximum_length:
-                    common_index.add(closest_value)
-                    cumulative_key_seperation_index.remove(item)
-                    diff_key_seperation_index.remove(closest_value)
-                else:
-                    common_index.add(item)
-                    cumulative_key_seperation_index.remove(item)
-
-            else:
-                # A separation is already known here, so check the item is
-                # not on the far side of the closest value.
-                smaller_common_value = min(
-                    list(filter(lambda x: x < item, common_index)), default=None
-                )
-                larger_common_value = min(
-                    list(filter(lambda x: x > item, common_index)), default=None
-                )
-
-                if (
-                    smaller_common_value is not None
-                    and closest_value < smaller_common_value
-                ) or (
-                    larger_common_value is not None
-                    and closest_value > larger_common_value
-                ):
-                    common_index.add(item)
-                    cumulative_key_seperation_index.remove(item)
-                    continue
-
-                # closest_value falls within the same known sepeation as item
-                if smaller_common_value is None:
-                    if keys[closest_value - 1] - keys[0] < maximum_length:
-                        common_index.add(closest_value)
-                        cumulative_key_seperation_index.remove(item)
-                        diff_key_seperation_index.remove(closest_value)
-                    else:
-                        common_index.add(item)
-                        cumulative_key_seperation_index.remove(item)
-                else:
-                    if keys[closest_value - 1] - keys[smaller_common_value]:
-                        common_index.add(closest_value)
-                        cumulative_key_seperation_index.remove(item)
-                        diff_key_seperation_index.remove(closest_value)
-                    else:
-                        common_index.add(item)
-                        cumulative_key_seperation_index.remove(item)
-
-    if len(diff_key_seperation_index) > 0:
-        common_index.update(diff_key_seperation_index)
-
-    return sorted(common_index)
+    _LOGGER.debug("split sequence keys %s at indexes %s", keys, indexes)
+    return indexes
 
 
 def to_signed(value: int, bits: int) -> int:

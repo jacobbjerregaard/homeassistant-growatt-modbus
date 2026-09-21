@@ -124,3 +124,31 @@ def test_register_sequences_empty_side_branches():
     # Only input requested -> the holding sequence stays empty.
     only_i = register_sequences(RegisterKeys(holding=set(), input={10}), regs)
     assert only_i.input and not only_i.holding
+
+
+def test_keys_sequences_never_exceed_maximum_length():
+    """Property check: no planned read is longer than the device allows.
+
+    A read longer than ``maximum_length`` is rejected by the inverter, which
+    fails the whole poll. Sparse key sets with several large gaps exercise the
+    split-merging branches in ``split_sequence``.
+    """
+    import random
+
+    rng = random.Random(1234)
+    for _ in range(2000):
+        maximum_length = rng.choice((20, 40, 45, 100, 125))
+        keys: set[int] = set()
+        position = rng.randrange(0, 50)
+        for _ in range(rng.randrange(1, 60)):
+            keys.add(position)
+            position += rng.choice((1, 1, 1, 2, 3, maximum_length // 3, 70, 200))
+
+        spans = keys_sequences(keys, maximum_length)
+
+        assert _covers(spans, keys), (sorted(keys), maximum_length, spans)
+        assert all(length <= maximum_length for _start, length in spans), (
+            sorted(keys),
+            maximum_length,
+            sorted(spans),
+        )

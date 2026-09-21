@@ -65,7 +65,13 @@ def inverter_status(value: dict[str, Any]) -> str | None:
     if ATTR_STATUS_CODE not in value.keys():
         return None
 
-    status_value = InverterStatus(value[ATTR_STATUS_CODE])
+    # Hybrids and newer firmware report codes outside this table (4 = Flash,
+    # 5+ = battery online modes). Raising here would fail the whole poll, so an
+    # unknown code is reported as-is instead.
+    try:
+        status_value = InverterStatus(value[ATTR_STATUS_CODE])
+    except ValueError:
+        return f"Unknown status code: {value[ATTR_STATUS_CODE]}"
 
     if status_value is InverterStatus.Waiting:
         return status_value.name
@@ -84,6 +90,7 @@ def inverter_status(value: dict[str, Any]) -> str | None:
     elif status_value is InverterStatus.Fault:
         fault = value.get(ATTR_FAULT_CODE, None)
         if fault is not None and fault != 0:
-            return f"{status_value.name} - {INVERTER_FAULTCODES[fault]}"
+            description = INVERTER_FAULTCODES.get(fault, f"Unknown fault code {fault}")
+            return f"{status_value.name} - {description}"
 
     return None

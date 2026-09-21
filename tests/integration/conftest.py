@@ -202,3 +202,31 @@ async def setup_unreachable(hass):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
         yield entry
+
+
+@pytest.fixture
+def fake_modbus_class() -> type[FakeModbus]:
+    """The fake transport class, for tests that subclass it."""
+    return FakeModbus
+
+
+@pytest.fixture
+def setup_with_transport(hass):
+    """Return a coroutine that sets up an entry with GrowattSerial patched.
+
+    Keyword arguments are passed to ``patch`` (``return_value`` for a fake
+    transport, ``side_effect`` to make constructing it fail). Setup is allowed
+    to fail; the entry is returned so its state can be asserted.
+    """
+
+    async def _setup_entry(**patch_kwargs) -> MockConfigEntry:
+        entry = MockConfigEntry(
+            domain=DOMAIN, data=_entry_data(0), unique_id=TEST_SERIAL, title="Growatt"
+        )
+        entry.add_to_hass(hass)
+        with patch("custom_components.growatt_modbus.GrowattSerial", **patch_kwargs):
+            await hass.config_entries.async_setup(entry.entry_id)
+            await hass.async_block_till_done()
+        return entry
+
+    return _setup_entry
