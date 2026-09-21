@@ -607,10 +607,19 @@ class GrowattLocalConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _async_apply_reconfigure(self, info: GrowattDeviceInfo, user_input):
         """Verify it is the same device, then update the entry and reload."""
+        entry = self._get_reconfigure_entry()
         await self.async_set_unique_id(info.serial_number)
-        self._abort_if_unique_id_mismatch(reason="wrong_device")
+        if entry.unique_id:
+            self._abort_if_unique_id_mismatch(reason="wrong_device")
+        else:
+            # Set up with an empty serial (read from the wrong register), so
+            # there is nothing to compare against. Adopt the device's serial
+            # unless another entry already has it; setup then repairs the
+            # entity and device identities (see serial_migration).
+            self._abort_if_unique_id_configured()
         return self.async_update_reload_and_abort(
-            self._get_reconfigure_entry(),
+            entry,
+            unique_id=info.serial_number,
             data_updates={
                 **user_input,
                 CONF_SERIAL_NUMBER: info.serial_number,

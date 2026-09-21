@@ -245,3 +245,9 @@ def setup_with_transport(hass):
         return entry
 
     return _setup_entry
+
+
+@pytest.fixture
+def entry_data():
+    """The builder for a standard entry's data, for tests that vary it."""
+    return _entry_data

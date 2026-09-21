@@ -47,6 +47,7 @@ from .coordinator import (
     GrowattRuntimeData,
 )
 from .optimizer import async_setup_optimizer
+from .serial_migration import async_repair_empty_serial
 from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
@@ -175,6 +176,12 @@ async def _async_setup_connected_entry(
 ) -> bool:
     """Finish setting up an entry whose device is connected."""
     device_type = device.device
+
+    # Entries set up before the storage serial fix have "" as their serial;
+    # repair them (and the entity/device identities built from it) before the
+    # platforms create entities. Runs first: the module migration below builds
+    # its unique_id prefix from the stored serial.
+    await async_repair_empty_serial(hass, entry, device)
 
     # Auto-detect the battery module count (holding register 185) unless the
     # user pinned it via the options flow.
