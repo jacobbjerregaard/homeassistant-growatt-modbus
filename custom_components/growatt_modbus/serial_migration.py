@@ -115,6 +115,20 @@ async def _async_migrate_entities(hass: HomeAssistant, entry, serial: str) -> No
     await er.async_migrate_entries(hass, entry.entry_id, _migrate)
 
 
+def _device_with_identifier(
+    registry: dr.DeviceRegistry, identifier: tuple[str, str], entry_id: str
+) -> dr.DeviceEntry | None:
+    """Look up a device by identifier.
+
+    From Home Assistant 2026.8, identifiers are unique per config entry and
+    ``async_get_device`` is deprecated (removed in 2027.8); older cores only
+    have the global lookup.
+    """
+    if hasattr(registry, "async_get_device_by_identifier"):
+        return registry.async_get_device_by_identifier(identifier, entry_id)
+    return registry.async_get_device(identifiers={identifier})
+
+
 def _migrate_devices(hass: HomeAssistant, entry, serial: str) -> None:
     registry = dr.async_get(hass)
     for device_entry in dr.async_entries_for_config_entry(registry, entry.entry_id):
@@ -131,7 +145,7 @@ def _migrate_devices(hass: HomeAssistant, entry, serial: str) -> None:
         if not changed:
             continue
         if any(
-            registry.async_get_device(identifiers={ident})
+            _device_with_identifier(registry, ident, entry.entry_id)
             for ident in new_identifiers - device_entry.identifiers
         ):
             _LOGGER.warning(
