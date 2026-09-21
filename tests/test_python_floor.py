@@ -1,6 +1,7 @@
 """The shipped integration must parse on the oldest Python we claim to support.
 
-hacs.json declares a minimum of Home Assistant 2024.6, which runs Python 3.12.
+hacs.json declares a minimum of Home Assistant 2024.12, which still runs on
+Python 3.12.
 Nothing in custom_components/ may use syntax newer than that.
 
 This is not hypothetical: `ruff format` with target-version = "py314" once

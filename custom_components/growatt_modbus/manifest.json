@@ -8,6 +8,6 @@
     "issue_tracker": "https://github.com/jacobbjerregaard/homeassistant-growatt-modbus/issues",
     "loggers": ["custom_components.growatt_modbus"],
     "quality_scale": "platinum",
-    "requirements": ["pymodbus>=3.8.3"],
+    "requirements": ["pymodbus>=3.10.0"],
     "version": "0.22.1"
   }
