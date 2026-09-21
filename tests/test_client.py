@@ -103,6 +103,18 @@ def test_device_time_round_trip():
     assert client.writes[-1] == (50, 0, 1)
 
 
+def test_device_time_full_year_device_round_trip():
+    """Some devices store SysYear as the full year (verified on a 3-phase hybrid,
+    firmware DN1.0, which read 2026). Adding 2000 read it as 4026, and a write
+    must keep the device's format rather than write year - 2000."""
+    client = _FakeClient(holding={45: [2026, 9, 21, 20, 32, 59]})
+    base = _base(client)
+    assert asyncio.run(base.read_device_time(1)) == datetime(2026, 9, 21, 20, 32, 59)
+
+    asyncio.run(base.write_device_time(2026, 9, 21, 20, 33, 0, 1))
+    assert client.writes[0] == (45, 2026, 1)
+
+
 def test_read_device_time_raises_on_error():
     class _ErrClient(_FakeClient):
         async def read_holding_registers(self, address, count, device_id):
