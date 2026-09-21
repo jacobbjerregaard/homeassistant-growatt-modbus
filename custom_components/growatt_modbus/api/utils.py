@@ -5,7 +5,7 @@ Utility functions.
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -64,6 +64,15 @@ class RegisterSequences:
         return len(self.holding) + len(self.input)
 
 
+def continuation_keys(registers: dict[int, GrowattDeviceRegisters]) -> set[int]:
+    """Addresses that are the second or later word of a multi-word register."""
+    return {
+        key + offset
+        for key, register in registers.items()
+        for offset in range(1, register.length)
+    }
+
+
 def register_sequences(
     register_keys: RegisterKeys, device_registers: DeviceRegisters
 ) -> RegisterSequences:
@@ -71,6 +80,7 @@ def register_sequences(
         holding_sequence = keys_sequences(
             get_all_keys_from_register(device_registers.holding, register_keys.holding),
             device_registers.max_length,
+            continuation_keys(device_registers.holding),
         )
     else:
         holding_sequence = set()
@@ -79,6 +89,7 @@ def register_sequences(
         input_sequence = keys_sequences(
             get_all_keys_from_register(device_registers.input, register_keys.input),
             device_registers.max_length,
+            continuation_keys(device_registers.input),
         )
     else:
         input_sequence = set()
@@ -119,13 +130,17 @@ def get_all_keys_from_register(
     return result
 
 
-def keys_sequences(keys: Iterable[int], maximum_length: int) -> set[tuple[int, int]]:
+def keys_sequences(
+    keys: Iterable[int],
+    maximum_length: int,
+    continuation: Collection[int] = (),
+) -> set[tuple[int, int]]:
     """
     Creates the set of sequences based on the given keys.
     returns set containing tuples with start_key and length.
     """
     sorted_keys = sorted(keys)
-    indexes = split_sequence(sorted_keys, maximum_length)
+    indexes = split_sequence(sorted_keys, maximum_length, continuation)
 
     sequence = set()
 
@@ -147,7 +162,9 @@ def keys_sequences(keys: Iterable[int], maximum_length: int) -> set[tuple[int, i
     return sequence
 
 
-def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
+def split_sequence(
+    keys: list[int], maximum_length: int, continuation: Collection[int] = ()
+) -> list[int]:
     """
     Return the indexes into the sorted ``keys`` at which a new read starts.
 
@@ -156,6 +173,11 @@ def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
       the unused words in between would cost more than another request, or
     - including the key would make the current read longer than
       ``maximum_length`` words, which the inverter rejects.
+
+    ``continuation`` holds the second and later words of multi-word registers.
+    A read never starts on one of those: the split moves back to the first
+    word, so a 32-bit counter's two halves come from the same request. Read
+    separately, a carry between the requests would decode off by 65536 raw.
 
     Greedy, so every read is guaranteed to be at most ``maximum_length``.
     """
@@ -167,8 +189,11 @@ def split_sequence(keys: list[int], maximum_length: int) -> list[int]:
         gap = keys[index] - keys[index - 1]
         span = keys[index] - keys[read_start] + 1
         if gap >= separation_threshold or span > maximum_length:
-            indexes.append(index)
-            read_start = index
+            split = index
+            while split > read_start + 1 and keys[split] in continuation:
+                split -= 1
+            indexes.append(split)
+            read_start = split
 
     _LOGGER.debug("split sequence keys %s at indexes %s", keys, indexes)
     return indexes

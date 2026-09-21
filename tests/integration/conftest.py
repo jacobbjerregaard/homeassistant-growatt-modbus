@@ -92,7 +92,9 @@ class FakeModbus:
         return None
 
 
-def _entry_data(battery_modules: int = 0, tou_slots: int = 0) -> dict:
+def _entry_data(
+    battery_modules: int = 0, tou_slots: int = 0, device_type: str = "storage_120"
+) -> dict:
     return {
         CONF_BATTERY_MODULES: battery_modules,
         CONF_TOU_SLOTS: tou_slots,
@@ -103,7 +105,7 @@ def _entry_data(battery_modules: int = 0, tou_slots: int = 0) -> dict:
         CONF_PARITY: "None",
         CONF_BYTESIZE: 8,
         CONF_ADDRESS: 1,
-        CONF_TYPE: "storage_120",
+        CONF_TYPE: device_type,
         CONF_NAME: "Growatt Test",
         CONF_MODEL: "SPH",
         CONF_DC_STRING: 2,
@@ -121,10 +123,16 @@ def fake_modbus() -> FakeModbus:
     return FakeModbus()
 
 
-async def _setup(hass, fake_modbus, battery_modules: int, tou_slots: int = 0):
+async def _setup(
+    hass,
+    fake_modbus,
+    battery_modules: int,
+    tou_slots: int = 0,
+    device_type: str = "storage_120",
+):
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=_entry_data(battery_modules, tou_slots),
+        data=_entry_data(battery_modules, tou_slots, device_type),
         unique_id=TEST_SERIAL,
         title="Growatt Test",
     )
@@ -150,6 +158,13 @@ async def setup_storage(hass, fake_modbus):
     uses the fake transport rather than touching a real serial port.
     """
     async for value in _setup(hass, fake_modbus, 0):
+        yield value
+
+
+@pytest.fixture
+async def setup_hybrid(hass, fake_modbus):
+    """Set up a hybrid (inverter + storage register maps) device."""
+    async for value in _setup(hass, fake_modbus, 0, device_type="hybrid_120"):
         yield value
 
 

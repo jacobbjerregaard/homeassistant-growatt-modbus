@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
+from pymodbus.exceptions import ConnectionException
 
 from .api.device_type.time_slots import (
     TIME_SLOT_PRIORITIES,
@@ -81,11 +82,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
             try:
                 await device.write_register_value(base, reg1)
                 await device.write_register_value(base + 1, reg2)
-            except ModbusException as err:
+            except (ModbusException, ConnectionException, TimeoutError) as err:
                 raise HomeAssistantError(
                     translation_domain=DOMAIN,
                     translation_key="write_failed",
-                    translation_placeholders={"error": str(err)},
+                    translation_placeholders={"error": str(err) or type(err).__name__},
                 ) from err
 
     hass.services.async_register(

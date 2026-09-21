@@ -47,6 +47,15 @@ def _raise_on_error(result, register: int) -> None:
         raise ModbusException(f"Modbus error writing register {register}: {result}")
 
 
+def _year_from_register(value: int) -> int:
+    """Decode SysYear (holding 45), which devices store in one of two ways.
+
+    Most store the year minus 2000 (26); some - a 3-phase hybrid with firmware
+    DN1.0 was verified - store the full year (2026).
+    """
+    return value if value >= 2000 else value + 2000
+
+
 class GrowattModbusBase:
     client: ModbusBaseClient
 
@@ -117,16 +126,20 @@ class GrowattModbusBase:
             _LOGGER.debug("Modbus read failed for rhr")
             raise ModbusException("Modbus read failed for rhr.")
 
-        # SysYear is stored with a 2000 offset (year - 2000). See note in
-        # write_device_time about the V1.39 "Year offset is 0" ambiguity.
-        return datetime(
-            rhr.registers[0] + 2000,
-            rhr.registers[1],
-            rhr.registers[2],
-            rhr.registers[3],
-            rhr.registers[4],
-            rhr.registers[5],
-        )
+        try:
+            return datetime(
+                _year_from_register(rhr.registers[0]),
+                rhr.registers[1],
+                rhr.registers[2],
+                rhr.registers[3],
+                rhr.registers[4],
+                rhr.registers[5],
+            )
+        except (ValueError, IndexError) as err:
+            # An unset clock reads as zeros (month 0), which is not a date.
+            raise ModbusException(
+                f"Device clock holds an invalid date: {list(rhr.registers)}"
+            ) from err
 
     async def write_device_time(
         self,
@@ -140,13 +153,25 @@ class GrowattModbusBase:
     ):
         """Write current date/time to the device (holding registers 45-50).
 
-        SysYear is written as ``year - 2000`` to match read_device_time. The
-        V1.39 spec annotates SysYear as "Year offset is 0", which is ambiguous;
-        if a device shows a wrong year after a sync, this offset is the knob.
+        SysYear is written in the format the device already uses, read back
+        first: a full year (2026) or the year minus 2000 (26). The V1.39 spec's
+        "Year offset is 0" is ambiguous; a 3-phase hybrid (firmware DN1.0) was
+        verified to store the full year.
+
+        Not every device accepts a clock write: that hybrid rejected register
+        45 with both a single-register write (exception 1, illegal function)
+        and a multi-register write, so there the caller gets a
+        ModbusException.
         """
         async with self._lock:
+            current = await self.client.read_holding_registers(
+                address=45, count=1, device_id=unit
+            )
+            if current.isError():
+                raise ModbusException(f"Modbus error reading register 45: {current}")
+            year_value = year if current.registers[0] >= 2000 else year - 2000
             for offset, value in enumerate(
-                (year - 2000, month, day, hour, minute, second)
+                (year_value, month, day, hour, minute, second)
             ):
                 result = await self.client.write_register(
                     45 + offset, value, device_id=unit
@@ -167,14 +192,10 @@ class GrowattModbusBase:
         """Write a raw unsigned 16-bit value (0-65535) to a holding register.
 
         Carries bit-packed values such as the time-slot registers (enable bit
-        15) which exceed the signed-int16 range.
+        15) which exceed the signed-int16 range. The encoding is the same as
+        :meth:`write_register`; the separate name documents the intent.
         """
-        async with self._lock:
-            result = await self.client.write_register(
-                register, int(value) & 0xFFFF, device_id=unit
-            )
-        _raise_on_error(result, register)
-        return result
+        return await self.write_register(register, value, unit)
 
     async def read_holding_registers(self, start_index, length, unit) -> dict[int, int]:
         async with self._lock:

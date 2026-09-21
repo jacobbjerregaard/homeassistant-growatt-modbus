@@ -288,6 +288,33 @@ async def test_reconfigure_serial_updates_connection(hass, setup_storage):
     assert entry.data[CONF_SERIAL_PORT] == "/dev/ttyUSB9"
 
 
+async def test_reconfigure_reads_with_the_configured_device_type(hass, setup_storage):
+    """Reconfigure must not re-run auto-detection.
+
+    A device whose type was picked by hand at setup is, by definition, not
+    auto-detectable, so reconfiguring it always failed with "device_type".
+    """
+    entry, _fake = setup_storage
+    matched = replace(_DEVICE_INFO, serial_number=entry.unique_id)
+    detect = AsyncMock(return_value=matched)
+
+    result = await entry.start_reconfigure_flow(hass)
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch("custom_components.growatt_modbus.config_flow.get_device_info", detect),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _SERIAL_INPUT
+        )
+        await hass.async_block_till_done()
+
+    assert result["reason"] == "reconfigure_successful"
+    assert detect.await_args.args[2] == "storage_120"
+
+
 async def test_reconfigure_aborts_on_wrong_device(hass, setup_storage):
     entry, _fake = setup_storage
     other = replace(_DEVICE_INFO, serial_number="SOMEOTHERUNIT")
@@ -637,3 +664,91 @@ async def test_options_flow_updates_settings(hass, setup_storage):
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert entry.options[CONF_SCAN_INTERVAL] == 30
+
+
+async def test_detected_device_preselects_a_valid_device_type(hass):
+    """The device-type default must be one of the selectable types.
+
+    It used to be the register-43 description (e.g. "2 tracker and 3phase
+    ..."), which is not an option, so the form could not be submitted as-is.
+    """
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_LAYER: CONF_SERIAL}
+    )
+    described = replace(
+        _DEVICE_INFO, device_type="2 tracker and 3phase Grid connect PV inverter TL"
+    )
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(return_value=described),
+        ),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _SERIAL_INPUT
+        )
+
+    assert result["step_id"] == "device"
+    type_default = next(
+        key.default() for key in result["data_schema"].schema if key == CONF_TYPE
+    )
+    assert type_default == "inverter_120"
+
+
+async def test_serial_flow_rejected_detection_falls_back_to_manual_type(hass):
+    """A Modbus exception during detection offers manual type selection."""
+    from custom_components.growatt_modbus.api.exception import ModbusException
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_LAYER: CONF_SERIAL}
+    )
+    with (
+        patch(
+            "custom_components.growatt_modbus.config_flow.GrowattSerial",
+            return_value=_FakeServer(),
+        ),
+        patch(
+            "custom_components.growatt_modbus.config_flow.get_device_info",
+            AsyncMock(side_effect=ModbusException("illegal data address")),
+        ),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _SERIAL_INPUT
+        )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "device"
+
+
+async def test_serial_flow_port_that_cannot_open_shows_error(hass):
+    """pymodbus does not raise for a port it cannot open; it stays unconnected."""
+
+    class _Unopenable(_FakeServer):
+        def connected(self):
+            return False
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_LAYER: CONF_SERIAL}
+    )
+    with patch(
+        "custom_components.growatt_modbus.config_flow.GrowattSerial",
+        return_value=_Unopenable(),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], _SERIAL_INPUT
+        )
+
+    assert result["errors"] == {CONF_SERIAL_PORT: "serial_port"}

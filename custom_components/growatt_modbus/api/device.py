@@ -238,9 +238,17 @@ class GrowattDevice:
             self.holding_register, self.max_length, self.unit
         )
 
-    async def sync_time(self) -> timedelta:
+    async def sync_time(self, now: datetime) -> timedelta:
+        """Set the device clock to the wall-clock time of ``now``.
+
+        The inverter's clock has no time zone: it runs its time-of-use slots
+        and daily counter resets on local wall time. Pass Home Assistant's
+        local time (``dt_util.now()``), not ``datetime.now()`` - the latter is
+        the host/container zone, often UTC, which would shift every slot.
+        Returns the drift the device had before the sync.
+        """
         device_time = await self.modbus.read_device_time(self.unit)
-        time = datetime.now()
+        time = now.replace(tzinfo=None)
         await self.modbus.write_device_time(
             time.year,
             time.month,
@@ -313,6 +321,14 @@ class GrowattDevice:
             self.unit,
         )
         return await self.modbus.write_register_value(register, value, self.unit)
+
+    async def read_raw_holding_registers(
+        self, start: int, count: int
+    ) -> dict[int, int]:
+        """Read ``count`` raw holding registers as ``{address: value}``."""
+        return await self.modbus.read_holding_registers(
+            start_index=start, length=count, unit=self.unit
+        )
 
     async def read_holding_register(
         self, registers: tuple[GrowattDeviceRegisters, ...]

@@ -77,29 +77,26 @@ def test_unsupported_device_type_raises():
         get_register_information("not-a-device-type")
 
 
-def test_ac_charge_energy_only_on_storage_models():
+def test_input_112_to_115_are_not_mapped_as_ac_charge_energy():
     """Input 112-115 mean different things depending on the model.
 
-    Protocol_II V1.39 documents 112-115 as ACCharge energy today/total
-    (0.1 kWh) on Storage Power models. On the MAX series the same addresses
-    are Warn Maincode, real Power Percent, inv start delay time and
-    bINVAllFaultCode. Decoding those four as a pair of 32-bit energy
-    counters produces large nonsense values, and because the sensors are
-    TOTAL_INCREASING the nonsense accumulates permanently.
+    Protocol_II V1.39 documents 112-115 as ACCharge energy today/total only on
+    Storage Power (SPH/SPA) models. The TL-X/MAX meaning - Warn Maincode, real
+    Power Percent, inv start delay time, bINVAllFaultCode - applies to the
+    plain inverters and, verified on a live MOD TL3-XH, to the TL-XH hybrids
+    this integration's storage map covers: 113 read -30 (real power percent
+    while charging) and 114 read 180 (start delay, s). Decoded as energy they
+    gave a "1.7 kWh today" that tracked the power percentage and a 1,179,648
+    kWh lifetime total, folded into TOTAL_INCREASING statistics.
     """
-    plain = get_register_information(DeviceTypes.INVERTER_120)
-    assert not [r for r in plain.input.values() if "ac_charge" in r.name.lower()]
-    for addr in (112, 113, 114, 115):
-        assert addr not in plain.input, (
-            f"plain inverter map claims input register {addr}, which is "
-            "model-specific and not ACCharge energy on the MAX series"
-        )
-
-    for device_type in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120):
-        info = get_register_information(device_type)
-        names = {r.name.lower() for r in info.input.values()}
-        assert "battery_ac_charge_energy_today" in names
-        assert "battery_ac_charge_energy_total" in names
+    for device_type in DeviceTypes:
+        info = get_register_information(device_type, battery_modules=3, tou_slots=9)
+        assert not [r for r in info.input.values() if "ac_charge" in r.name.lower()]
+        for addr in (112, 113, 114, 115):
+            assert addr not in info.input, (
+                f"{device_type} maps input register {addr}, which is model-"
+                "specific and not ACCharge energy on TL-X/TL-XH/MAX devices"
+            )
 
 
 def test_warning_code_is_a_single_register():
@@ -114,3 +111,17 @@ def test_warning_code_is_a_single_register():
     assert warning.name == "warning_code"
     assert warning.length == 1
     assert 111 not in info.input
+
+
+def test_storage_battery_voltage_is_tenths_of_a_volt():
+    """Input 3169 is 0.1 V on the TL-XH hybrids, not the documented 0.01 V.
+
+    Verified live on a MOD TL3-XH: raw 6403 while the Growatt portal showed
+    639.8 V and charge power / current (2250 W / 3.5 A) gave 643 V.
+    """
+    from growatt_api.utils import process_registers
+
+    for device_type in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120):
+        info = get_register_information(device_type)
+        decoded = process_registers(info.input, {3169: 6403})
+        assert decoded["battery_voltage"] == 640.3

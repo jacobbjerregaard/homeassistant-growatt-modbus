@@ -236,6 +236,34 @@ async def test_options_flow_accepts_reachable_emhass(
     assert result["data"][CONF_EMHASS_URL] == EMHASS_URL
 
 
+async def test_options_flow_can_remove_emhass(hass, setup_storage):
+    """Clearing the URL and token must remove them, not keep the old values.
+
+    A cleared optional field is omitted from the submitted form, and merging
+    that over the existing options kept the old URL - EMHASS could never be
+    turned off again.
+    """
+    from custom_components.growatt_modbus.const import CONF_EMHASS_TOKEN
+
+    entry, _fake = setup_storage
+    await _enable_emhass(hass, entry, **{CONF_EMHASS_TOKEN: "s3cret"})
+    assert entry.runtime_data.optimizer is not None
+
+    result = await _open_optimizer_step(hass, entry)
+    user_input = _optimizer_input()
+    user_input.pop(CONF_EMHASS_URL, None)
+    user_input.pop(CONF_EMHASS_TOKEN, None)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input=user_input
+    )
+    await hass.async_block_till_done()
+
+    assert result["type"] == "create_entry"
+    assert CONF_EMHASS_URL not in entry.options
+    assert CONF_EMHASS_TOKEN not in entry.options
+    assert entry.runtime_data.optimizer is None
+
+
 # --- Phase 2: day-ahead TOU compile (actuation) ---------------------------
 
 
@@ -266,6 +294,31 @@ async def test_compile_writes_tou_slots_when_enabled(hass, setup_storage):
     )
     assert ac_reg is not None
     assert (ac_reg.register, 1) in fake.writes
+
+
+async def test_failed_plan_write_does_not_fail_setup(hass, setup_storage):
+    """A Modbus write error while applying the plan must not fail setup.
+
+    The plan is applied during entry setup; an unhandled error there left the
+    entry in SETUP_ERROR with every inverter entity missing.
+    """
+    from homeassistant.config_entries import ConfigEntryState
+
+    from custom_components.growatt_modbus.api.exception import ModbusException
+
+    entry, fake = setup_storage
+    values = [0] * 24
+    values[2] = -2000
+    _publish_hourly_batt_forecast(hass, values)
+
+    async def _reject(register, value, unit):
+        raise ModbusException("illegal data value")
+
+    fake.write_register_value = _reject
+    await _enable_emhass(hass, entry, **{CONF_OPTIMIZER_ENABLED: True})
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert entry.runtime_data.optimizer.enabled is True
 
 
 async def test_export_window_maps_to_grid_first(hass, setup_storage):

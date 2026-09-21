@@ -33,6 +33,20 @@ from .const import (
 )
 from .emhass_client import EmhassClient, EmhassError
 
+# Optimizer options a user can clear. A cleared optional field is left out of
+# the submitted form entirely, so saving must drop the old value explicitly -
+# otherwise merging over the existing options silently keeps it, and EMHASS
+# could never be turned off again once configured.
+OPTIMIZER_CLEARABLE_OPTIONS = (
+    CONF_EMHASS_URL,
+    CONF_EMHASS_TOKEN,
+    CONF_OPTIMIZER_SOC_SENSOR,
+    CONF_EMHASS_SENSOR_BATT_POWER,
+    CONF_EMHASS_SENSOR_BATT_SOC,
+    CONF_EMHASS_SENSOR_GRID,
+    CONF_EMHASS_SENSOR_STATUS,
+)
+
 
 class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
     """Edit polling and EMHASS optimizer options, grouped into two sections."""
@@ -45,11 +59,25 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
             **(user_input or {}),
         }
 
-    def _save(self, user_input: dict) -> ConfigFlowResult:
-        """Persist one section, preserving the settings of the other section."""
-        return self.async_create_entry(
-            title="", data={**self.config_entry.options, **user_input}
+    def _save(
+        self, user_input: dict, clearable: tuple[str, ...] = ()
+    ) -> ConfigFlowResult:
+        """Persist one section, preserving the settings of the other section.
+
+        Keys in ``clearable`` that are missing or empty in ``user_input`` are
+        removed rather than kept from the previous options.
+        """
+        options = {
+            key: value
+            for key, value in self.config_entry.options.items()
+            if key not in clearable
+        }
+        options.update(
+            (key, value)
+            for key, value in user_input.items()
+            if not (key in clearable and value in (None, ""))
         )
+        return self.async_create_entry(title="", data=options)
 
     async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         """Choose which group of options to edit."""
@@ -103,6 +131,7 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             url = (user_input.get(CONF_EMHASS_URL) or "").strip()
+            user_input = {**user_input, CONF_EMHASS_URL: url}
             if url:
                 client = EmhassClient(
                     async_get_clientsession(self.hass),
@@ -114,7 +143,7 @@ class GrowattOptionsFlowHandler(config_entries.OptionsFlow):
                 except EmhassError:
                     errors["base"] = "emhass_connection"
             if not errors:
-                return self._save(user_input)
+                return self._save(user_input, OPTIMIZER_CLEARABLE_OPTIONS)
 
         current = self._current(user_input)
 

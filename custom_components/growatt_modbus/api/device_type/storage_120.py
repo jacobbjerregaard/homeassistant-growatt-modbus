@@ -4,8 +4,6 @@ from typing import Any
 
 from .base import (
     ATTR_AC_CHARGE_ENABLED,
-    ATTR_AC_CHARGE_ENERGY_TODAY,
-    ATTR_AC_CHARGE_ENERGY_TOTAL,
     ATTR_BATTERY_CHARGE_RATE_WHEN_FIRST,
     ATTR_BATTERY_CHARGE_STOP_SOC,
     ATTR_BATTERY_CURRENT,
@@ -637,27 +635,14 @@ STORAGE_HOLDING_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
 )
 
 STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
-    # Protocol_II V1.39 documents input registers 112-115 as ACCharge
-    # energy today/total (0.1 kWh) on Storage Power models only. On the
-    # MAX series the same addresses are Warn Maincode, real Power Percent,
-    # inv start delay time and bINVAllFaultCode - which is why these belong
-    # here rather than in the plain-inverter map.
-    GrowattDeviceRegisters(
-        name=ATTR_AC_CHARGE_ENERGY_TODAY,
-        register=112,
-        value_type=float,
-        length=2,
-        scale=10,
-        signed=True,
-    ),
-    GrowattDeviceRegisters(
-        name=ATTR_AC_CHARGE_ENERGY_TOTAL,
-        register=114,
-        value_type=float,
-        length=2,
-        scale=10,
-        signed=True,
-    ),
+    # Input registers 112-115 are deliberately not mapped. Protocol_II V1.39
+    # documents them as ACCharge energy today/total only on Storage Power
+    # (SPH/SPA) models. This map is the TL-XH family (the 3000-range storage
+    # block), where they carry the TL-X/MAX meaning - verified on a live
+    # MOD TL3-XH: 112 Warn Maincode (0), 113 real power percent (signed, e.g.
+    # -30 while charging at 2.4 kW of 8 kW), 114 inv start delay time (180 s),
+    # 115 bINVAllFaultCode (0). Decoded as AC charge energy, 113 showed up as
+    # "1.7 kWh today" and 114 as a 1,179,648 kWh lifetime total.
     GrowattDeviceRegisters(
         name=ATTR_INVERTER_STATUS,
         register=3000,
@@ -805,8 +790,13 @@ STORAGE_INPUT_REGISTERS_120: tuple[GrowattDeviceRegisters, ...] = (
         length=2,
         signed=True,
     ),
+    # 0.1 V, not the 0.01 V the V1.39 table gives. Verified on a live MOD
+    # TL3-XH with an HV battery: raw 6403 is 640.3 V - the Growatt portal
+    # showed 639.8 V, and charge power / battery current (2250 W / 3.5 A)
+    # gives 643 V. At 0.01 V it read 64.03 V, which also made the optimizer's
+    # max-power estimate (BMS current x voltage) ten times too small.
     GrowattDeviceRegisters(
-        name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=100
+        name=ATTR_BATTERY_VOLTAGE, register=3169, value_type=float, scale=10
     ),
     GrowattDeviceRegisters(
         name=ATTR_BATTERY_CURRENT, register=3170, value_type=float, signed=True

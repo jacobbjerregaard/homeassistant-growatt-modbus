@@ -1,7 +1,7 @@
 """Button platform for the Growatt Modbus integration.
 
 Exposes device-level actions; currently a "Sync device time" button that writes
-the Home Assistant host clock to the inverter (holding registers 45-50).
+Home Assistant's local time to the inverter (holding registers 45-50).
 """
 
 from __future__ import annotations
@@ -13,8 +13,12 @@ from homeassistant.const import (
     EntityCategory,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util import dt as dt_util
+from pymodbus.exceptions import ConnectionException
 
+from .api.exception import ModbusException
 from .const import (
     CONF_SERIAL_NUMBER,
     DOMAIN,
@@ -54,6 +58,13 @@ class GrowattSyncTimeButton(ButtonEntity):
         self._attr_device_info = growatt_device_info(entry)
 
     async def async_press(self) -> None:
-        """Sync the device clock to the host time."""
-        drift = await self._device.sync_time()
+        """Sync the device clock to Home Assistant's local time."""
+        try:
+            drift = await self._device.sync_time(dt_util.now())
+        except (ModbusException, ConnectionException, TimeoutError) as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="write_failed",
+                translation_placeholders={"error": str(err) or type(err).__name__},
+            ) from err
         _LOGGER.info("Synced Growatt device time; drift before sync was %s", drift)
