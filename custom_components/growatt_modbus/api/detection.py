@@ -9,12 +9,26 @@ import logging
 
 from .client import GrowattModbusBase
 from .const import DeviceTypes
+from .device_type.attrs import ATTR_SERIAL_NUMBER
 from .device_type.base import GrowattDeviceInfo
 from .device_type.inverter_120 import HOLDING_REGISTERS_120, MAXIMUM_DATA_LENGTH_120
 from .device_type.inverter_315 import HOLDING_REGISTERS_315, MAXIMUM_DATA_LENGTH_315
+from .device_type.storage_120 import (
+    SERIAL_NUMBER_REGISTER as STORAGE_SERIAL_NUMBER_REGISTER,
+)
 from .exception import ModbusException
 
 _LOGGER = logging.getLogger(__name__)
+
+# Identity registers for the storage/hybrid types: the v1.24 set, but with the
+# serial read from holding 3001 (15 words), where the storage register map
+# already reads it. Holding 23 is empty on these devices - verified on a MOD
+# TL3-XH - so entries set up with the plain set got an empty serial as their
+# unique_id.
+STORAGE_IDENTITY_REGISTERS = (
+    *(r for r in HOLDING_REGISTERS_120 if r.name != ATTR_SERIAL_NUMBER),
+    STORAGE_SERIAL_NUMBER_REGISTER,
+)
 
 
 async def _probe(
@@ -41,11 +55,11 @@ async def get_device_info(
     minimal_length = min((MAXIMUM_DATA_LENGTH_120, MAXIMUM_DATA_LENGTH_315))
 
     if fixed_device_types is not None:
-        if fixed_device_types in (
-            DeviceTypes.INVERTER_120,
-            DeviceTypes.HYBRID_120,
-            DeviceTypes.STORAGE_120,
-        ):
+        if fixed_device_types in (DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120):
+            return await device.get_device_info(
+                STORAGE_IDENTITY_REGISTERS, minimal_length, unit
+            )
+        if fixed_device_types == DeviceTypes.INVERTER_120:
             return await device.get_device_info(
                 HOLDING_REGISTERS_120, minimal_length, unit
             )

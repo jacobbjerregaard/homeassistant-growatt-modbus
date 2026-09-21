@@ -120,3 +120,31 @@ def test_default_device_type_is_a_selectable_type(version, expected):
     from growatt_api.detection import default_device_type
 
     assert default_device_type(_info(version)) is expected
+
+
+@pytest.mark.parametrize(
+    "device_type", [DeviceTypes.HYBRID_120, DeviceTypes.STORAGE_120]
+)
+def test_storage_types_read_the_serial_from_3001(device_type):
+    """Holding 23 is empty on storage/hybrid devices; the serial is at 3001.
+
+    Verified on a MOD TL3-XH: 23-27 read zeros, 3001+ read "HHM0DAA03B".
+    Reading 23 gave these entries an empty serial as their unique_id.
+    """
+    from growatt_api.device_type.attrs import ATTR_SERIAL_NUMBER
+
+    device = _StubDevice()
+    asyncio.run(get_device_info(device, 1, device_type))
+
+    serial = [r for r in device.requested if r.name == ATTR_SERIAL_NUMBER]
+    assert [(r.register, r.length) for r in serial] == [(3001, 15)]
+
+
+def test_plain_v124_inverter_still_reads_the_serial_from_23():
+    from growatt_api.device_type.attrs import ATTR_SERIAL_NUMBER
+
+    device = _StubDevice()
+    asyncio.run(get_device_info(device, 1, DeviceTypes.INVERTER_120))
+
+    serial = [r for r in device.requested if r.name == ATTR_SERIAL_NUMBER]
+    assert [r.register for r in serial] == [23]

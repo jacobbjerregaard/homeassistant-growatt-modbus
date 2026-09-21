@@ -105,7 +105,7 @@ class GrowattModbusBase:
         results = process_registers(register, register_values)
 
         device_info = GrowattDeviceInfo(
-            serial_number=results[ATTR_SERIAL_NUMBER].replace("\x00", ""),
+            serial_number=results[ATTR_SERIAL_NUMBER].replace("\x00", "").strip(),
             model=results[ATTR_INVERTER_MODEL],
             firmware=results[ATTR_FIRMWARE].replace("\x00", ""),
             mppt_trackers=results[ATTR_NUMBER_OF_TRACKERS_AND_PHASES][0],
