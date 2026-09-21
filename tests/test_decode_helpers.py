@@ -31,6 +31,14 @@ def test_base_inverter_status_variants():
     assert fault.startswith("Fault - ")
 
 
+def test_base_inverter_status_unknown_codes_do_not_raise():
+    # Hybrids report 4 (Flash) and 5+ (battery online modes); raising would
+    # fail the whole coordinator poll.
+    assert base.inverter_status({ATTR_STATUS_CODE: 5}) == "Unknown status code: 5"
+    fault = base.inverter_status({ATTR_STATUS_CODE: 3, ATTR_FAULT_CODE: 200})
+    assert fault == "Fault - Unknown fault code 200"
+
+
 def test_storage_firmware_code_version():
     # [0x4142, 0x4300, 5] -> "ABC" + version 5
     assert storage.firmware_code_version([0x4142, 0x4300, 5]) == "ABC-5"

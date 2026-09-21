@@ -21,6 +21,7 @@ from pymodbus.exceptions import ConnectionException
 from .api.client import GrowattModbusBase, GrowattNetwork, GrowattSerial
 from .api.const import DeviceTypes
 from .api.device import GrowattDevice
+from .api.exception import ModbusPortException
 from .const import (
     CONF_BATTERY_MODULES,
     CONF_BAUDRATE,
@@ -99,13 +100,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: GrowattConfigEntry) -> b
 
     device_layer: GrowattModbusBase
     if entry.data[CONF_LAYER] == CONF_SERIAL:
-        device_layer = GrowattSerial(
-            entry.data[CONF_SERIAL_PORT],
-            entry.data[CONF_BAUDRATE],
-            entry.data[CONF_STOPBITS],
-            entry.data[CONF_PARITY],
-            entry.data[CONF_BYTESIZE],
-        )
+        try:
+            device_layer = GrowattSerial(
+                entry.data[CONF_SERIAL_PORT],
+                entry.data[CONF_BAUDRATE],
+                entry.data[CONF_STOPBITS],
+                entry.data[CONF_PARITY],
+                entry.data[CONF_BYTESIZE],
+            )
+        except ModbusPortException as err:
+            # The USB adapter is not there (yet), e.g. it enumerates after
+            # Home Assistant starts. Retry instead of failing for good.
+            raise ConfigEntryNotReady(
+                translation_domain=DOMAIN,
+                translation_key="cannot_connect",
+                translation_placeholders={"error": str(err)},
+            ) from err
     elif entry.data[CONF_LAYER] in (CONF_TCP, CONF_UDP):
         device_layer = GrowattNetwork(
             entry.data[CONF_LAYER],
@@ -141,10 +151,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: GrowattConfigEntry) -> b
             translation_key="cannot_connect",
             translation_placeholders={"error": str(err)},
         ) from err
+    # pymodbus reports most connection failures (refused, unreachable host,
+    # serial port that cannot be opened) by returning False, not by raising.
+    if not device.connected():
+        device.close()
+        raise ConfigEntryNotReady(
+            translation_domain=DOMAIN,
+            translation_key="cannot_connect",
+            translation_placeholders={"error": "connection failed"},
+        )
+
+    try:
+        return await _async_setup_connected_entry(hass, entry, device)
+    except BaseException:
+        # Setup failed after the link was opened; do not leak the connection
+        # (a serial port stays locked until it is closed).
+        device.close()
+        raise
+
+
+async def _async_setup_connected_entry(
+    hass: HomeAssistant, entry: GrowattConfigEntry, device: GrowattDevice
+) -> bool:
+    """Finish setting up an entry whose device is connected."""
+    device_type = device.device
 
     # Auto-detect the battery module count (holding register 185) unless the
     # user pinned it via the options flow.
-    if not battery_modules and device_type in (
+    if not device.battery_modules and device_type in (
         DeviceTypes.HYBRID_120,
         DeviceTypes.STORAGE_120,
     ):

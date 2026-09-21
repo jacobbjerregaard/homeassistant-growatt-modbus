@@ -9,7 +9,10 @@ from pymodbus.exceptions import ConnectionException
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.growatt_modbus import _async_migrate_module_unique_ids
-from custom_components.growatt_modbus.api.exception import ModbusException
+from custom_components.growatt_modbus.api.exception import (
+    ModbusException,
+    ModbusPortException,
+)
 from custom_components.growatt_modbus.const import CONF_SERIAL_NUMBER, DOMAIN
 
 
@@ -105,3 +108,53 @@ async def test_migrates_slot_unique_ids_to_serial(hass):
         registry.async_get(other.entity_id).unique_id
         == f"{DOMAIN}_INV1_battery_voltage"
     )
+
+
+async def test_setup_retries_when_connect_returns_false(
+    setup_with_transport, fake_modbus_class
+):
+    # pymodbus signals a refused/unreachable connection by returning False
+    # from connect(), not by raising.
+    class _NotConnected(fake_modbus_class):
+        closed = False
+
+        def connected(self):
+            return False
+
+        def close(self):
+            self.closed = True
+
+    transport = _NotConnected()
+    entry = await setup_with_transport(return_value=transport)
+
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert transport.closed
+
+
+async def test_setup_retries_when_serial_port_missing(setup_with_transport):
+    # A USB adapter that has not enumerated yet must not fail setup for good.
+    entry = await setup_with_transport(
+        side_effect=ModbusPortException("USB port /dev/ttyUSB0 is not available")
+    )
+
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+
+
+async def test_connection_closed_when_setup_fails_after_connect(
+    setup_with_transport, fake_modbus_class
+):
+    class _Tracking(fake_modbus_class):
+        closed = False
+
+        def close(self):
+            self.closed = True
+
+    transport = _Tracking()
+    with patch(
+        "custom_components.growatt_modbus.async_setup_optimizer",
+        side_effect=RuntimeError("boom"),
+    ):
+        entry = await setup_with_transport(return_value=transport)
+
+    assert entry.state is ConfigEntryState.SETUP_ERROR
+    assert transport.closed

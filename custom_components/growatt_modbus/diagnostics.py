@@ -4,14 +4,36 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.diagnostics import async_redact_data
+from homeassistant.components.diagnostics import REDACTED, async_redact_data
 from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_SERIAL_NUMBER
+from .api.device_type.attrs import ATTR_SERIAL_NUMBER
+from .const import CONF_EMHASS_TOKEN, CONF_EMHASS_URL, CONF_SERIAL_NUMBER
 from .coordinator import GrowattConfigEntry
 
-TO_REDACT = {CONF_SERIAL_NUMBER, CONF_IP_ADDRESS, "serial_number"}
+# Diagnostics are routinely attached to public GitHub issues: redact anything
+# that identifies the installation or grants access to another service.
+TO_REDACT = {
+    CONF_SERIAL_NUMBER,
+    CONF_IP_ADDRESS,
+    CONF_EMHASS_TOKEN,
+    CONF_EMHASS_URL,
+    ATTR_SERIAL_NUMBER,
+}
+
+
+def _redact_register_data(data: dict[str, Any]) -> dict[str, Any]:
+    """Redact the inverter and per-module serials from polled register data.
+
+    Module serials are keyed ``battery_module_<n>_serial_number``, so they are
+    matched by suffix rather than listed in TO_REDACT.
+    """
+    redacted = async_redact_data(data, TO_REDACT)
+    return {
+        key: REDACTED if key.endswith("_serial_number") else value
+        for key, value in redacted.items()
+    }
 
 
 def _coordinator_diagnostics(coordinator) -> dict[str, Any] | None:
@@ -20,7 +42,7 @@ def _coordinator_diagnostics(coordinator) -> dict[str, Any] | None:
     return {
         "update_interval": str(coordinator.update_interval),
         "last_update_success": coordinator.last_update_success,
-        "data": dict(coordinator.data or {}),
+        "data": _redact_register_data(dict(coordinator.data or {})),
     }
 
 
