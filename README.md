@@ -1,4 +1,4 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 [![CodeQL](https://github.com/jacobbjerregaard/homeassistant-growatt-modbus/actions/workflows/codeql.yml/badge.svg)](https://github.com/jacobbjerregaard/homeassistant-growatt-modbus/actions/workflows/codeql.yml)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -7,7 +7,16 @@
 # Home Assistant Growatt Modbus Integration
  Growatt Modbus is a custom component for Home Assistant that connects directly to your Growatt inverter using the Modbus protocol and supports Serial, TCP and UDP communication layers to connect to your inverter
 
- This repository is at this moment not part of HACS therefore requiring manual adding this custom repository to HACS.
+ ## Installation
+ Growatt Modbus is available in the default [HACS](https://hacs.xyz) store:
+
+ 1. In Home Assistant, open **HACS** and search for **Growatt Modbus**, or use this link:
+
+    [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jacobbjerregaard&repository=homeassistant-growatt-modbus&category=integration)
+ 2. Download it and restart Home Assistant.
+ 3. Go to **Settings → Devices & services → Add integration** and pick **Growatt Modbus**.
+
+ Requires Home Assistant 2024.12 or newer. If you previously added this repository to HACS as a custom repository, you can remove that entry; HACS keeps tracking the integration from the default store.
 
  This integration makes use of the *config_flow* and can be configured using the UI; no configuration is required in `configuration.yaml`.
 
