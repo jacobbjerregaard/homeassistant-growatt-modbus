@@ -9,6 +9,7 @@ from homeassistant.const import (
     STATE_UNKNOWN,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -39,6 +40,10 @@ from .entity_descriptions.storage import (
     build_battery_module_sensor_types,
 )
 from .optimizer import build_optimizer_sensors
+
+# Home Assistant 2026.8 deprecates ``via_device`` (removed in 2027.8) in favour
+# of ``via_device_id``; older cores only accept ``via_device``.
+_HAS_VIA_DEVICE_ID = "via_device_id" in DeviceInfo.__annotations__
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -153,6 +158,16 @@ async def async_setup_entry(
     # per-module device keyed by the module serial (read at setup).
     module_serials = runtime.battery_module_serials
     if module_descriptions:
+        # Register the inverter device up front so the module devices can link
+        # to it by id.
+        inverter_device_id = (
+            dr.async_get(hass)
+            .async_get_or_create(
+                config_entry_id=config_entry.entry_id,
+                **growatt_device_info(config_entry),
+            )
+            .id
+        )
         main_coordinator.get_keys_by_name({d.key for d in module_descriptions}, True)
         for description in module_descriptions:
             match = _MODULE_KEY_RE.match(description.key)
@@ -166,6 +181,7 @@ async def async_setup_entry(
                     module_serial=module_serials.get(slot)
                     if slot is not None
                     else None,
+                    inverter_device_id=inverter_device_id,
                 )
             )
 
@@ -185,7 +201,13 @@ class GrowattDeviceEntity(
     entity_description: GrowattSensorEntityDescription
 
     def __init__(
-        self, coordinator, description, entry, module_slot=None, module_serial=None
+        self,
+        coordinator,
+        description,
+        entry,
+        module_slot=None,
+        module_serial=None,
+        inverter_device_id=None,
     ):
         """Pass coordinator to CoordinatorEntity.
 
@@ -221,8 +243,11 @@ class GrowattDeviceEntity(
                 manufacturer="Growatt",
                 model="Battery Module",
                 name=f"Module {module_serial}",
-                via_device=(DOMAIN, inverter_serial),
             )
+            if _HAS_VIA_DEVICE_ID and inverter_device_id is not None:
+                self._attr_device_info["via_device_id"] = inverter_device_id
+            else:
+                self._attr_device_info["via_device"] = (DOMAIN, inverter_serial)
         else:
             self._attr_unique_id = f"{DOMAIN}_{inverter_serial}_{description.key}"
             self._attr_device_info = growatt_device_info(entry)

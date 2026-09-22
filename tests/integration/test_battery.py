@@ -159,6 +159,14 @@ async def test_per_module_grouped_under_serial_device(
     assert device.name == "Module MODONE"
     assert (DOMAIN, f"{entry.unique_id}_battery_module_MODONE") in device.identifiers
 
+    # ...which hangs off the inverter device.
+    inverter = next(
+        d
+        for d in dr.async_entries_for_config_entry(dev_reg, entry.entry_id)
+        if (DOMAIN, entry.unique_id) in d.identifiers
+    )
+    assert device.via_device_id == inverter.id
+
 
 async def test_firmware_sensors(hass, setup_storage):
     entry, fake = setup_storage
