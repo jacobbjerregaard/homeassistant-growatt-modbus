@@ -7,7 +7,6 @@ time-of-use slot counts, and the optional EMHASS optimizer.
 
 from __future__ import annotations
 
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_SCAN_INTERVAL
@@ -32,6 +31,7 @@ from .const import (
     DEFAULT_OPTIMIZER_INTERVAL,
 )
 from .emhass_client import EmhassClient, EmhassError
+from .schema_lib import vol
 
 # Optimizer options a user can clear. A cleared optional field is left out of
 # the submitted form entirely, so saving must drop the old value explicitly -

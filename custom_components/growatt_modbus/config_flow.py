@@ -4,7 +4,6 @@ import asyncio
 import logging
 from typing import Any
 
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import (
@@ -46,6 +45,7 @@ from .const import (
     ParityOptions,
 )
 from .options_flow import GrowattOptionsFlowHandler
+from .schema_lib import vol
 
 PARITY_OPTION = [
     selector.SelectOptionDict(value=ParityOptions.NONE, label=ParityOptions.NONE),
