@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterator
 
-import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
@@ -19,6 +18,7 @@ from .api.device_type.time_slots import (
 )
 from .api.exception import ModbusException
 from .const import DOMAIN
+from .schema_lib import vol
 
 _LOGGER = logging.getLogger(__name__)
 
