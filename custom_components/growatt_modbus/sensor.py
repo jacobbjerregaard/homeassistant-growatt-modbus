@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import timedelta
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import (
     CONF_TYPE,
     STATE_UNAVAILABLE,
@@ -262,6 +262,12 @@ class GrowattDeviceEntity(
                     self._handle_midnight_update, self.coordinator_context
                 )
             )
+
+        # Instantaneous readings start unknown until the first poll. Restoring
+        # the pre-restart value would write it as current, and it would land in
+        # the long-term statistics (e.g. a stale 4 kW in the first 5-min mean).
+        if self.entity_description.state_class == SensorStateClass.MEASUREMENT:
+            return
 
         if (state := await self.async_get_last_state()) is None:
             return

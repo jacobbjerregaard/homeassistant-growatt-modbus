@@ -515,7 +515,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
     GrowattSensorEntityDescription(
         key=ATTR_BMS_CYCLE_COUNT,
         name="BMS Cycle Count",
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
@@ -748,7 +748,7 @@ def build_battery_module_sensor_types(
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_cycle_count",
                     name=f"Module {n} Cycle Count",
-                    state_class=SensorStateClass.TOTAL_INCREASING,
+                    state_class=SensorStateClass.MEASUREMENT,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
