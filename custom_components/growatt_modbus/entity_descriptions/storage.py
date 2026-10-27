@@ -276,18 +276,21 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="SOC",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_DISCHARGE_POWER,
         name="Discharge Power",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_CHARGE_POWER,
         name="Charge Power",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_ENERGY_TO_GRID_TOTAL,
@@ -357,6 +360,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="Meter",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_INVERTER_STATUS,
@@ -383,12 +387,14 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="BMS temperature A",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BMS_TEMPERATURE_B,
         name="BMS temperature B",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_PACK_NUMBER,
@@ -421,18 +427,21 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="Battery Voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BATTERY_CURRENT,
         name="Battery Current",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_SELF_CONSUMPTION_POWER,
         name="Self Consumption Power",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_SYSTEM_ENERGY_TODAY,
@@ -486,6 +495,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         key=ATTR_BMS_SOH,
         name="Battery Health (SOH)",
         native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BMS_STATUS,
@@ -499,11 +509,13 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="BMS SOC",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
         key=ATTR_BMS_CYCLE_COUNT,
         name="BMS Cycle Count",
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
@@ -511,6 +523,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="BMS Cell Voltage Max",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
@@ -518,6 +531,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="BMS Cell Voltage Min",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
@@ -525,6 +539,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="BMS Max Charge Current",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
@@ -532,6 +547,7 @@ STORAGE_SENSOR_TYPES: tuple[GrowattSensorEntityDescription, ...] = (
         name="BMS Max Discharge Current",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     GrowattSensorEntityDescription(
@@ -601,29 +617,34 @@ def build_battery_module_sensor_types(
                     name=f"Module {n} SOC",
                     native_unit_of_measurement=PERCENTAGE,
                     device_class=SensorDeviceClass.BATTERY,
+                    state_class=SensorStateClass.MEASUREMENT,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_soh",
                     name=f"Module {n} Health (SOH)",
                     native_unit_of_measurement=PERCENTAGE,
+                    state_class=SensorStateClass.MEASUREMENT,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_voltage",
                     name=f"Module {n} Voltage",
                     native_unit_of_measurement=UnitOfElectricPotential.VOLT,
                     device_class=SensorDeviceClass.VOLTAGE,
+                    state_class=SensorStateClass.MEASUREMENT,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_current",
                     name=f"Module {n} Current",
                     native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
                     device_class=SensorDeviceClass.CURRENT,
+                    state_class=SensorStateClass.MEASUREMENT,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_power",
                     name=f"Module {n} Power",
                     native_unit_of_measurement=UnitOfPower.WATT,
                     device_class=SensorDeviceClass.POWER,
+                    state_class=SensorStateClass.MEASUREMENT,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_discharge_energy_total",
@@ -644,6 +665,7 @@ def build_battery_module_sensor_types(
                     name=f"Module {n} Temperature Max",
                     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                     device_class=SensorDeviceClass.TEMPERATURE,
+                    state_class=SensorStateClass.MEASUREMENT,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
@@ -651,6 +673,7 @@ def build_battery_module_sensor_types(
                     name=f"Module {n} Temperature Min",
                     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                     device_class=SensorDeviceClass.TEMPERATURE,
+                    state_class=SensorStateClass.MEASUREMENT,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
@@ -658,6 +681,7 @@ def build_battery_module_sensor_types(
                     name=f"Module {n} Cell Voltage Max",
                     native_unit_of_measurement=UnitOfElectricPotential.VOLT,
                     device_class=SensorDeviceClass.VOLTAGE,
+                    state_class=SensorStateClass.MEASUREMENT,
                     suggested_display_precision=3,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
@@ -666,6 +690,7 @@ def build_battery_module_sensor_types(
                     name=f"Module {n} Cell Voltage Min",
                     native_unit_of_measurement=UnitOfElectricPotential.VOLT,
                     device_class=SensorDeviceClass.VOLTAGE,
+                    state_class=SensorStateClass.MEASUREMENT,
                     suggested_display_precision=3,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
@@ -682,24 +707,28 @@ def build_battery_module_sensor_types(
                     name=f"Module {n} Balance Time",
                     native_unit_of_measurement=UnitOfTime.HOURS,
                     device_class=SensorDeviceClass.DURATION,
+                    state_class=SensorStateClass.MEASUREMENT,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_cell_capacity",
                     name=f"Module {n} Cell Capacity",
                     native_unit_of_measurement="Ah",
+                    state_class=SensorStateClass.MEASUREMENT,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_cell_capacity_min",
                     name=f"Module {n} Cell Capacity Min",
                     native_unit_of_measurement="Ah",
+                    state_class=SensorStateClass.MEASUREMENT,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_ah_integral",
                     name=f"Module {n} Ah Integral",
                     native_unit_of_measurement="Ah",
+                    state_class=SensorStateClass.MEASUREMENT,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
@@ -719,6 +748,7 @@ def build_battery_module_sensor_types(
                 GrowattSensorEntityDescription(
                     key=f"battery_module_{n}_cycle_count",
                     name=f"Module {n} Cycle Count",
+                    state_class=SensorStateClass.MEASUREMENT,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 ),
                 GrowattSensorEntityDescription(
